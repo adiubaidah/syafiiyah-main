@@ -1,0 +1,914 @@
+openapi: "3.0.3"
+info:
+  title: Rest API As-Syafi'iyah
+  version: "1.0"
+  description: Rest API Syaiifyah Sidoarjo Documentation using Golang
+servers:
+  - url: https://api.assyafiiyah.com
+    description: Production Server
+  - url: http://localhost:8080
+paths:
+  /auth/sign-in:
+    post:
+      tags:
+        - Auth
+      summary: Sign In
+      description: Sign In
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InN1cGVyYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE1MTYyMzkwMjJ9.7J1"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 401
+                  status: error
+                  message: "Invalid username or password"
+  /auth/sign-out:
+    post:
+      tags:
+        - Auth
+      summary: Sign Out
+      security:
+        - cookieAuth: []
+      description: Sign Out
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  message:
+                    type: string
+                    example: "Sign out success"
+  /auth/is-auth:
+    get:
+      tags:
+        - Auth
+      summary: Check Auth
+      description: Check Auth
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      role:
+                        $ref: "#/components/schemas/RoleEnum"
+  /user:
+    get:
+      tags:
+        - User
+      summary: Get All User
+      security:
+        - cookieAuth: []
+      description: Admin, and Superadmin can access this Endpoint
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit per page
+        - in: query
+          name: role
+          schema:
+            $ref: "#/components/schemas/RoleEnum"
+          required: false
+          description: Filter by role
+        - in: query
+          name: username
+          schema:
+            type: string
+          required: false
+          description: Filter by username
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/User"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+                
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+    post:
+      tags:
+        - User
+      summary: Create User
+      security:
+        - cookieAuth: []
+      description: Admin, and Superadmin can access this Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  $ref: "#/components/schemas/RoleEnum"
+                username:
+                  type: string
+                password:
+                  type: string
+                parent_id:
+                  type: integer
+                  nullable: true
+                employee_id:
+                  type: string
+                  nullable: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: 
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 400
+                  status: error
+                  message: "Username already exists"
+  /user/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - User
+      summary: Get User By ID
+      security:
+        - cookieAuth: []
+      description: Get User By ID
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/User"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "User not found"
+    put:
+      tags:
+        - User
+      summary: Update User By ID
+      security:
+        - cookieAuth: []
+      description: Update User By ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  $ref: "#/components/schemas/RoleEnum"
+                username:
+                  type: string
+                password:
+                  type: string
+                parent_id:
+                  type: integer
+                  nullable: true
+                employee_id:
+                  type: string
+                  nullable: true
+                    
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data: 
+                    $ref: "#/components/schemas/User"
+                   
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "User not found"
+    delete:
+      tags:
+        - User
+      summary: Delete User By ID
+      security:
+        - cookieAuth: []
+      description: Delete User By ID
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 204
+                  status: success
+                  message: "User deleted"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "User not found"
+  /holiday:
+    get:
+      tags:
+        - Holiday
+      summary: Get All Holiday
+      description: Get All Holiday
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                          nullable: true
+                        date:
+                          type: string
+                          nullable: false
+                          format: date
+                        pagination:
+                          $ref: "#/components/schemas/Pagination"
+  /santri-occupation:
+    get:
+      tags:
+        - Santri Occupation
+      summary: Get All Santri Occupation
+      description: Get All Santri Occupation
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+          description: Search Occupation by name
+          example: "Penjaga Pos"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SantriOccupation"
+    post:
+      tags:
+        - Santri Occupation
+      summary: Create Santri Occupation
+      security:
+        - cookieAuth: []
+      description: Create Santri Occupation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/SantriOccupation"
+  /santri-occupation/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Santri Occupation
+      summary: Get Santri Occupation By ID
+      description: Get Santri Occupation By ID
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/SantriOccupation"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Santri Occupation not found"
+    put:
+      tags:
+        - Santri Occupation
+      summary: Update Santri Occupation By ID
+      security:
+        - cookieAuth: []
+      description: Update Santri Occupation By ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/SantriOccupation"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Santri Occupation not found"
+    delete:
+      tags:
+        - Santri Occupation
+      summary: Delete Santri Occupation By ID
+      security:
+        - cookieAuth: []
+      description: Delete Santri Occupation By ID
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 204
+                  status: success
+                  message: "Santri Occupation deleted"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Santri Occupation not found"
+  /santri:
+    get:
+      tags:
+        - Santri
+      summary: Get All Santri
+      description: Get All Santri
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit per page
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+          description: Search Santri by name
+          example: "Muhammad"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Santri"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+    post:
+      tags:
+        - Santri
+      summary: Create Santri
+      description: Create Santri
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                gender:
+                  $ref: "#/components/schemas/GenderEnum"
+                is_active:
+                  type: boolean
+                  default: true
+                photo:
+                  type: string
+                  nullable: true
+                  format: binary
+                occupation_id:
+                  type: integer
+                  nullable: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Santri"
+  /santri/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Santri
+      summary: Get Santri By NIS
+      description: Get Santri By NIS
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Santri"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Santri not found"
+    put:
+      tags:
+        - Santri
+      summary: Update Santri By NIS
+      description: Update Santri By NIS
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                gender:
+                  $ref: "#/components/schemas/GenderEnum"
+                is_active:
+                  type: boolean
+                  default: true
+                photo:
+                  type: string
+                  nullable: true
+                  format: binary
+                occupation_id:
+                  type: integer
+                  nullable: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Santri"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Santri not found"
+    delete:
+      tags:
+        - Santri
+      summary: Delete Santri By NIS
+      description: Delete Santri By NIS
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 204
+                  status: success
+                  message: "Santri deleted"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Santri not found"
+  /parent:
+    get:
+      tags:
+        - Parent
+      summary: Get All Parent
+      description: Get All Parent
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit per page
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+          description: Search Parent by name
+          example: "Muhammad"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Santri"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+          
+  
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+  schemas:
+    RoleEnum:
+      type: string
+      enum:
+        - parent
+        - admin
+        - superadmin
+        - employee
+    GenderEnum:
+      type: string
+      enum:
+        - male
+        - female
+    Response:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          uniqueItems: true
+        role:
+          type: string
+        username:
+          type: string
+          uniqueItems: true
+        details:
+          type: object
+          properties:
+            parent_id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+            employee_nip:
+              type: string
+              nullable: true
+    SantriOccupation:
+      type:
+        object
+      properties:
+        id:
+          type: integer
+          uniqueItems: true
+        name:
+          type: string
+        description:
+          type: string
+    Parent:
+      type: object
+      properties:
+        id:
+          type: integer
+        
+    Santri:
+      type: object
+      properties:
+        id:
+          type: integer
+          uniqueItems: true
+        name:
+          type: string
+        gender:
+          $ref: "#/components/schemas/GenderEnum"
+        is_active:
+          type: boolean
+        photo:
+          type: string
+          nullable: true
+        occupation:
+          $ref: "#/components/schemas/SantriOccupation"
+
+    Pagination:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 10
+        currentPage:
+          type: integer
+          example: 1
+        itemsPerPage:
+          type: integer
+          example: 10
+    Forbidden:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 403
+        status:
+          type: string
+          example: forbidden
+        message:
+          type: string
+          example: "You don't have permission to access this resource"
