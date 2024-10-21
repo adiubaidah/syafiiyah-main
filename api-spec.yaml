@@ -99,6 +99,10 @@ paths:
                   data:
                     type: object
                     properties:
+                      id:
+                        oneOf:
+                          - type: string
+                          - type: integer
                       username:
                         type: string
                       role:
@@ -184,12 +188,10 @@ paths:
                   type: string
                 password:
                   type: string
-                parent_id:
+                id:
                   type: integer
                   nullable: true
-                employee_id:
-                  type: string
-                  nullable: true
+                  description: It give relation to parent or employee
       responses:
         "201":
           description: Created
@@ -272,13 +274,10 @@ paths:
                   type: string
                 password:
                   type: string
-                parent_id:
+                id:
                   type: integer
                   nullable: true
-                employee_id:
-                  type: string
-                  nullable: true
-                    
+                  description: Id can be for parent or employee
       responses:
         "200":
           description: OK
@@ -353,21 +352,109 @@ paths:
                     type: string
                     example: success
                   data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        name:
-                          type: string
-                          nullable: true
-                        date:
-                          type: string
-                          nullable: false
-                          format: date
-                        pagination:
-                          $ref: "#/components/schemas/Pagination"
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Holiday"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+
+    post:
+      tags:
+        - Holiday
+      summary: Create Holiday
+      description: Admin, and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                start_date:
+                  type: string
+                end_date:
+                  type: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Holiday"
+  /holiday/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Holiday
+      summary: Update Holiday By ID
+      description: Only Admin and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                start_date:
+                  type: string
+                end_date:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Holiday"
+    delete:
+      tags:
+        - Holiday
+      summary: Delete Holiday By ID
+      description: Only Admin and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 204
+                  status: success
+                  message: "Holiday deleted"
+      
+      
   /santri-occupation:
     get:
       tags:
@@ -747,12 +834,326 @@ paths:
                   code: 404
                   status: error
                   message: "Santri not found"
+  /employee-occupation:
+    get:
+      tags:
+        - Employee Occupation
+      summary: Get All Occupation
+      description: Get All occupation
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+          description: Search Occupation by name
+          example: "Guru"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EmployeeOccupation"
+    post:
+      tags:
+        - Employee Occupation
+      summary: Create Occupation
+      description: Admin, Superadmin can manage endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  notes:
+                    type: string
+                    nullable: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/EmployeeOccupation"
+  /employee-occupation/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Employee Occupation
+      description: All can access endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmployeeOccupation"
+    put:
+      tags:
+        - Employee Occupation
+      description: Admin, Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                notes:
+                  type: string
+                  nullable: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmployeeOccupation"
+    delete:
+      tags: 
+        - Employee Occupation
+      description: Admin, Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                notes:
+                  type: string
+                  nullable: true
+      responses:
+        "200":
+          description: OK
+
+  /employee:
+    get:
+      tags:
+        - Employee
+      summary: Get All Employee
+      description: Admin and Superadmin can access this endpoint
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number      
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit per page
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+          description: Search Parent by name
+          example: "Muhammad"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Employee"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+    post:
+      tags:
+        - Employee
+      summary: Create Employee
+      description: Admin and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nip:
+                  type: string
+                  maxLength: 18
+                  minLength: 18
+                name:
+                  type: string
+                gender:
+                  $ref: "#/components/schemas/GenderEnum"
+                photo:
+                  type: string
+                  format: binary
+                occupation_id:
+                  type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+  /employee/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Employee
+      summary: Get Employee By ID
+      description: Get Employee By ID
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Employee"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Employee not found"
+    put:
+      tags:
+        - Employee
+      summary: Update Employee By ID
+      description: Update Employee By ID
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nip:
+                  type: string
+                  maxLength: 18
+                  minLength: 18
+                name:
+                  type: string
+                gender:
+                  $ref: "#/components/schemas/GenderEnum"
+                photo:
+                  type: string
+                  format: binary
+                occupation_id:
+                  type: integer
+      responses:
+        "200":
+          description: OK
+    delete:
+      tags:
+        - Employee
+      summary: Delete Employee By ID
+      security:
+        - cookieAuth: []
+      description: Only Admin and Superadmin can manage this endpoint
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 204
+                  status: success
+                  message: "Employee deleted"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Employee not found"
+                
+                  
+
   /parent:
     get:
       tags:
         - Parent
       summary: Get All Parent
-      description: Get All Parent
+      description: Admin and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
       parameters:
         - in: query
           name: page
@@ -793,10 +1194,223 @@ paths:
                       items:
                         type: array
                         items:
-                          $ref: "#/components/schemas/Santri"
+                          $ref: "#/components/schemas/Parent"
                       pagination:
                         $ref: "#/components/schemas/Pagination"
-          
+    post:
+      tags:
+        - Parent
+      summary: Create Parent
+      description: Create Parent
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                address:
+                  type: string
+                no_wa:
+                  type: string
+                  minLength: 10
+                  maxLength: 13
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Parent"
+  /parent/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Parent
+      summary: Get Parent By ID
+      description: Get Parent By ID
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Parent"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Parent not found"
+    put:
+      tags:
+        - Parent
+      summary: Update Parent By ID
+      description: Update Parent By ID
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                address:
+                  type: string
+                no_wa:
+                  type: string
+                  minLength: 10
+                  maxLength: 13
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  status:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Parent"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Parent not found"
+    delete:
+      tags:
+        - Parent
+      summary: Delete Parent By ID
+      description: Delete Parent By ID
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 204
+                  status: success
+                  message: "Parent deleted"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  code: 404
+                  status: error
+                  message: "Parent not found"
+  /rfid:
+    get:
+      tags:
+        - RFID
+      summary: Get All RFID
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit per page
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+          description: Search RFID by uid or name
+          example: "1234567890"
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum:
+              - santri
+              - employee
+          required: false
+          description: Search by role
+      description: Only admin, and Superadmin can access endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: 
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: sucess
+                  data:
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/RFID"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+                    
   
 components:
   securitySchemes:
@@ -841,15 +1455,28 @@ components:
           uniqueItems: true
         details:
           type: object
+          nullable: true
+          description: It can be null because if is admin, or superadmin, doesn't need details of related account
+
           properties:
-            parent_id:
+            id:
               type: integer
-              nullable: true
             name:
               type: string
-            employee_nip:
-              type: string
-              nullable: true
+
+    Holiday:
+      type:
+        object
+      properties:
+        id:
+          type: integer
+          uniqueItems: true
+        name:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string              
     SantriOccupation:
       type:
         object
@@ -861,12 +1488,29 @@ components:
           type: string
         description:
           type: string
+        count: 
+          type: integer
     Parent:
       type: object
       properties:
         id:
           type: integer
-        
+          uniqueItems: true
+        name:
+          type: string
+        address:
+          type: string
+        no_wa:
+          type: string
+          minLength: 10
+          maxLength: 13
+        photo:
+          type: string
+          format: binary
+          nullable: true
+        user_id:
+          type: integer
+          nullable: true
     Santri:
       type: object
       properties:
@@ -884,7 +1528,62 @@ components:
           nullable: true
         occupation:
           $ref: "#/components/schemas/SantriOccupation"
-
+    EmployeeOccupation:
+      type: object
+      properties:
+        id:
+          type: integer
+          uniqueItems: true
+        name: 
+          type: string
+        description:
+          type: string
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+          uniqueItems: true
+        nip:
+          type: string
+          maxLength: 18
+          minLength: 18
+          uniqueItems: true
+        name: 
+          type: string
+          maxLength: 100
+        gender: 
+          $ref: "#/components/schemas/GenderEnum"
+        photo:
+          type: string
+          format: binary
+        occupation_id:
+          type: integer
+          nullable: false
+    RFID:
+      type: object
+      properties:
+        id:
+          type: integer
+          uniqueItems: true
+        uid:
+          type: string
+          uniqueItems: true
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        role:
+          type: string
+          enum:
+            - employee
+            - santri
+        is_active: 
+          type: boolean
+        details: 
+          oneOf:
+            - $ref: "#/components/schemas/Employee"
+            - $ref: "#/components/schemas/Santri"
     Pagination:
       type: object
       properties:
