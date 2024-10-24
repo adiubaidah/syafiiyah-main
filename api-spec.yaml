@@ -13,7 +13,7 @@ paths:
       tags:
         - Auth
       summary: Sign In
-      description: Sign In
+      description: Sign In will set cookie for user
       requestBody:
         required: true
         content:
@@ -32,23 +32,19 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    type: object
-                    properties:
-                      token:
-                        type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InN1cGVyYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE1MTYyMzkwMjJ9.7J1"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/User"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 401
                   status: error
@@ -68,14 +64,12 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  message:
-                    type: string
-                    example: "Sign out success"
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+                example: 
+                  code: 204
+                  status: success
+                  message: Sign out success
   /auth/is-auth:
     get:
       tags:
@@ -91,22 +85,51 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        oneOf:
-                          - type: string
-                          - type: integer
-                      username:
-                        type: string
-                      role:
-                        $ref: "#/components/schemas/RoleEnum"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data: 
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          username:
+                            type: string
+                          role:
+                            $ref: "#/components/schemas/RoleEnum"
+  /auth/reset-password:
+    put:
+      tags:
+        - Auth
+      summary: Reset password
+      description: Admin, superadmin, parent, employee can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                old_password:
+                  type: string
+                new_password:
+                  type: string
+                confirm_new_password:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+              example:
+                code: 200
+                status: success
+                message: Password has ben resetted
   /user:
     get:
       tags:
@@ -114,7 +137,7 @@ paths:
       summary: Get All User
       security:
         - cookieAuth: []
-      description: Admin, and Superadmin can access this Endpoint
+      description: Only Admin, superadmin can access this endpoint
       parameters:
         - in: query
           name: page
@@ -129,38 +152,61 @@ paths:
           required: false
           description: Limit per page
         - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - "asc:username"
+              - "desc:username"
+              - "asc:name"
+              - "desc:name"
+        - in: query
           name: role
           schema:
             $ref: "#/components/schemas/RoleEnum"
           required: false
           description: Filter by role
         - in: query
-          name: username
+          name: has-relation
+          required: false
+          schema:
+            type: integer
+            description: Relation can be with parent or employee
+            enum:
+              - 1
+              - 0
+              - -1
+          examples:
+            has-relation:
+              value: 1
+            no-relation:
+              value: 0
+            all:
+              value: -1
+        - in: query
+          name: q
           schema:
             type: string
           required: false
-          description: Filter by username
+          description: Search by username
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/User"
-                      pagination:
-                        $ref: "#/components/schemas/Pagination"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/UserWithRelation"
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
                 
         "403":
           description: Forbidden
@@ -174,24 +220,19 @@ paths:
       summary: Create User
       security:
         - cookieAuth: []
-      description: Admin, and Superadmin can access this Endpoint
+      description: Only superadmin can manage this endpoint
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                role:
-                  $ref: "#/components/schemas/RoleEnum"
-                username:
-                  type: string
-                password:
-                  type: string
-                id:
-                  type: integer
-                  nullable: true
-                  description: It give relation to parent or employee
+              allOf:
+                - $ref: "#/components/schemas/NewUserWithPassword"
+                - properties:
+                    relation_id:
+                      description: It can be parent or employee
+                      nullable: true
+                      type: integer
       responses:
         "201":
           description: Created
@@ -199,23 +240,49 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code: 
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/User"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/UserWithRelation"
+                
         "400":
           description: Bad Request
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 400
                   status: error
-                  message: "Username already exists"
+                  message: "Invalid request"
+        "409":
+          description: Duplicate
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+              examples:
+                username:
+                  value:
+                    code: 409
+                    status: error
+                    message: "Username already exists"
+                relation-parent:
+                  value:
+                    code: 409
+                    status: error
+                    message: Parent with id ... has been related
+                relation-employee:
+                  value:
+                    code: 409
+                    status: error
+                    message: Employee with id ... has been related
+        
   /user/{id}:
     parameters:
       - in: path
@@ -229,7 +296,7 @@ paths:
       summary: Get User By ID
       security:
         - cookieAuth: []
-      description: Get User By ID
+      description: Only superadmin can manage this endpoint
       responses:
         "200":
           description: OK
@@ -237,13 +304,11 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/User"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/UserWithRelation"
         "404":
           description: Not Found
           content:
@@ -260,24 +325,19 @@ paths:
       summary: Update User By ID
       security:
         - cookieAuth: []
-      description: Update User By ID
+      description: Only superadmin can manage this endpoint
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                role:
-                  $ref: "#/components/schemas/RoleEnum"
-                username:
-                  type: string
-                password:
-                  type: string
-                id:
-                  type: integer
-                  nullable: true
-                  description: Id can be for parent or employee
+              allOf:
+                - $ref: "#/components/schemas/NewUserWithPassword"
+                - properties:
+                    relation_id:
+                      description: It can be parent or employee
+                      nullable: true
+                      type: integer
       responses:
         "200":
           description: OK
@@ -285,13 +345,15 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data: 
-                    $ref: "#/components/schemas/User"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data: 
+                        allOf:
+                          - properties:
+                              id:
+                                $ref: "#/components/schemas/Id"
+                          - $ref: "#/components/schemas/UserWithRelation"
                    
         "404":
           description: Not Found
@@ -303,69 +365,86 @@ paths:
                   code: 404
                   status: error
                   message: "User not found"
+        "409":
+          description: Duplicate
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+              examples:
+                username:
+                  value:
+                    code: 409
+                    status: error
+                    message: "Username already exists"
+                relation-parent:
+                  value:
+                    code: 409
+                    status: error
+                    message: Parent with id ... has been related
+                relation-employee:
+                  value:
+                    code: 409
+                    status: error
+                    message: Employee with id ... has been related
     delete:
       tags:
         - User
       summary: Delete User By ID
       security:
         - cookieAuth: []
-      description: Delete User By ID
+      description: Superadmin can manage this endpoint
       responses:
-        "204":
+        "200":
           description: No Content
           content:
             application/json:
               schema:
                 type: object
-                example:
-                  code: 204
-                  status: success
-                  message: "User deleted"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/User"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
                   message: "User not found"
-  /holiday:
+  /santri-activity:
     get:
       tags:
-        - Holiday
-      summary: Get All Holiday
-      description: Get All Holiday
+        - Santri Activity
+      summary: Get All Santri Activity
+      description: All can access this endpoint
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      items:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
                         type: array
                         items:
-                          $ref: "#/components/schemas/Holiday"
-                      pagination:
-                        $ref: "#/components/schemas/Pagination"
+                          $ref: "#/components/schemas/SantriActivity"
 
     post:
       tags:
-        - Holiday
-      summary: Create Holiday
-      description: Admin, and Superadmin can manage this endpoint
+        - Santri Activity
+      summary: Create Santri Activity
+      description: Only Superadmin can manage this endpoint
       security:
         - cookieAuth: []
       requestBody:
@@ -373,14 +452,168 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                start_date:
-                  type: string
-                end_date:
-                  type: string
+              $ref: "#/components/schemas/NewSantriActivity"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/SantriActivity"
+        "409":
+          description: Duplicate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseMessage"
+              example:
+                code: 409
+                status: error
+                example: Activity time already exist
+  /santri-activity/{id}:
+    parameters:
+      - in: path
+        required: true
+        name: id
+        schema:
+          type: integer
+    put:
+      tags:
+        - Santri Activity
+      summary: Update Santri Activity
+      security:
+        - cookieAuth: []
+      description: Only Superadmin can manage this endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewSantriActivity"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/SantriActivity"
+        "409":
+          description: Duplicate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseMessage"
+              example:
+                code: 409
+                status: error
+                message: Activity time already exist
+    delete:
+      tags:
+        - Santri Activity
+      summary: Delete Santri Activity
+      security:
+        - cookieAuth: []
+      description: Only Superadmin can manage this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/SantriActivity"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseMessage"
+              example:
+                code: 404
+                status: error
+                message: Santri Activity not found
+
+  /holiday:
+    get:
+      tags:
+        - Holiday
+      summary: Get All Holiday
+      description: Get All Holiday
+      parameters:
+        - in: query
+          name: q
+          description: Name of the holiday
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit per page
+        - in: query
+          name: start
+          schema:
+            type: string
+          required: false
+          example: "2024-12-25"
+          description: Filter by start date
+        - in: query
+          name: end
+          schema:
+            type: string
+          required: false
+          example: "2024-12-27"
+          description: Filter by end date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Holiday"
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+
+    post:
+      tags:
+        - Holiday
+      summary: Create Holiday
+      description: Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewHoliday"
       responses:
         "201":
           description: Created
@@ -388,13 +621,25 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/Holiday"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Holiday"
+        "409":
+          description: Duplicate
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+                example:
+                  code: 409
+                  status: error
+                  message: Date range already exists
+                
+              
   /holiday/{id}:
     parameters:
       - in: path
@@ -406,21 +651,14 @@ paths:
       tags:
         - Holiday
       summary: Update Holiday By ID
-      description: Only Admin and Superadmin can manage this endpoint
+      description: Only Superadmin can manage this endpoint
       security:
         - cookieAuth: []
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                start_date:
-                  type: string
-                end_date:
-                  type: string
+              $ref: "#/components/schemas/NewHoliday"
       responses:
         "200":
           description: OK
@@ -428,32 +666,54 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/Holiday"
-    delete:
-      tags:
-        - Holiday
-      summary: Delete Holiday By ID
-      description: Only Admin and Superadmin can manage this endpoint
-      security:
-        - cookieAuth: []
-      responses:
-        "204":
-          description: No Content
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Holiday"
+        "409":
+          description: Duplicate
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
-                  code: 204
-                  status: success
-                  message: "Holiday deleted"
-      
+                  code: 409
+                  status: error
+                  message: Date range already exists
+    delete:
+      tags:
+        - Holiday
+      summary: Delete Holiday By ID
+      description: Only Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Holiday"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+                example:
+                  code: 404
+                  status: error
+                  message: "Santri Occupation not found"
       
   /santri-occupation:
     get:
@@ -476,17 +736,19 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/SantriOccupation"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/SantriOccupation"
+                          properties:
+                            count:
+                              type: integer
+                              description: Count of santri
+                          
     post:
       tags:
         - Santri Occupation
@@ -499,12 +761,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
+              $ref: "#/components/schemas/NewSantriOccupation"
       responses:
         "201":
           description: Created
@@ -512,13 +769,11 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/SantriOccupation"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/SantriOccupation"
   /santri-occupation/{id}:
     parameters:
       - in: path
@@ -538,19 +793,24 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/SantriOccupation"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/SantriOccupation"
+                        properties:
+                          count:
+                            type: integer
+                            description: Count of santri
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -567,12 +827,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
+              $ref: "#/components/schemas/NewSantriOccupation"
       responses:
         "200":
           description: OK
@@ -580,19 +835,19 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/SantriOccupation"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/SantriOccupation"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -605,22 +860,25 @@ paths:
         - cookieAuth: []
       description: Delete Santri Occupation By ID
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                example:
-                  code: 204
-                  status: success
-                  message: "Santri Occupation deleted"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/SantriOccupation"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -651,6 +909,41 @@ paths:
           required: false
           description: Search Santri by name
           example: "Muhammad"
+        - in: query
+          name: parent
+          schema:
+            type: integer
+          required: false
+          description: Search Santri by parent id 
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - asc:name
+              - desc:name
+          examples:
+            asc-name:
+              value: asc:name
+            desc-name:
+              value: desc:name
+        - in: query
+          name: occupation
+          schema:
+            type: integer
+          required: false
+          description: Filter Santri by occupation
+        - in: query
+          name: generation
+          schema:
+            type: integer
+          required: false
+          description: Filter santri by generation
+          examples:
+            2024:
+              value: 2024
+            2023:
+              value: 2023
       responses:
         "200":
           description: OK
@@ -658,22 +951,31 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Santri"
-                      pagination:
-                        $ref: "#/components/schemas/Pagination"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: object
+                        description: One for Admin, and other for Parent
+                        oneOf:
+                          - properties:
+                              items:
+                                type: array
+                                items:
+                                  allOf:
+                                    - $ref: "#/components/schemas/Santri"
+                                    - properties:
+                                        occupation:
+                                          $ref: "#/components/schemas/SantriOccupation"
+                                        parent:
+                                          $ref: "#/components/schemas/Parent"
+                              pagination:
+                                $ref: "#/components/schemas/Pagination"
+                          - type: array
+                            items: 
+                              $ref: "#/components/schemas/Santri"
+                          
+                        
     post:
       tags:
         - Santri
@@ -686,38 +988,19 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                gender:
-                  $ref: "#/components/schemas/GenderEnum"
-                is_active:
-                  type: boolean
-                  default: true
-                photo:
-                  type: string
-                  nullable: true
-                  format: binary
-                occupation_id:
-                  type: integer
-                  nullable: false
+              $ref: "#/components/schemas/NewSantri"
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: "#/components/schemas/Santri"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Santri"
   /santri/{id}:
     parameters:
       - in: path
@@ -728,8 +1011,8 @@ paths:
     get:
       tags:
         - Santri
-      summary: Get Santri By NIS
-      description: Get Santri By NIS
+      summary: Get Santri By ID
+      description: Get Santri By ID
       security:
         - cookieAuth: []
       responses:
@@ -739,19 +1022,31 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/Santri"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        oneOf:
+                          - allOf:
+                            - $ref: "#/components/schemas/Santri"
+                            - properties:
+                                occupation:
+                                  $ref: "#/components/schemas/SantriOccupation"
+                                parent:
+                                  $ref: "#/components/schemas/Parent"
+                          - allOf:
+                              - $ref: "#/components/schemas/Santri"
+                            properties:
+                                occupation:
+                                  $ref: "#/components/schemas/SantriOccupation"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -759,29 +1054,16 @@ paths:
     put:
       tags:
         - Santri
-      summary: Update Santri By NIS
-      description: Update Santri By NIS
+      summary: Update Santri By ID
+      description: Only admin and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                gender:
-                  $ref: "#/components/schemas/GenderEnum"
-                is_active:
-                  type: boolean
-                  default: true
-                photo:
-                  type: string
-                  nullable: true
-                  format: binary
-                occupation_id:
-                  type: integer
-                  nullable: false
+              $ref: "#/components/schemas/NewSantri"
       responses:
         "200":
           description: OK
@@ -789,19 +1071,19 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/Santri"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Santri"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -809,31 +1091,379 @@ paths:
     delete:
       tags:
         - Santri
-      summary: Delete Santri By NIS
-      description: Delete Santri By NIS
+      summary: Delete Santri By ID
+      description: Delete Santri By ID
       security:
         - cookieAuth: []
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                example:
-                  code: 204
-                  status: success
-                  message: "Santri deleted"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Santri"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
                   message: "Santri not found"
+  /santri-permission:
+    get:
+      tags:
+        - Santri Permission
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit data per page
+        - in: query
+          name: q
+          schema:
+            type: integer
+          description: Search by santri name
+          required: false
+        - in: query
+          name: start-time
+          schema:
+            type: string
+            format: YYYY-MM-DDTHH:MM:SS±HH:MM
+          description: Search By Start time
+        - in: query
+          name: end-time
+          schema:
+            type: string
+            format: YYYY-MM-DDTHH:MM:SS±HH:MM
+          description: Search By End time
+        - in: query
+          name: go-home
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 0
+              - -1
+          examples:
+            go-home:
+              value: 1
+            not-go-home:
+              value: 0
+            all:
+              value: -1
+      summary: Get All Santri Permission
+      description: All can acesss this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/SantriPermission"
+                                - properties:
+                                    santri:
+                                      $ref: "#/components/schemas/Santri"
+                                    
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+    post:
+      tags:
+        - Santri Permission
+      summary: Create Santri Permission
+      description: Only Admin and Superadmin can manage this endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewSantriPermission"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SantriPermission"
+  /santri-permission/{id}:
+    parameters:
+       - in: path
+         name: id
+         required: true
+         schema:
+           type: integer
+    put:
+      tags:
+        - Santri Permission
+      summary: Update Santri Permission By ID
+      description: Only Admin and Superadmin can manage this endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewSantriPermission"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/SantriPermission"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+    delete:
+        tags:
+          - Santri Permission
+        summary: Delete Santri Permission By ID
+        description: Only Admin and Superadmin can manage this endpoint
+        responses:
+          "200":
+            description: OK
+            content:
+              application/json:
+                schema:
+                  allOf:
+                    - $ref: "#/components/schemas/Response"
+                    - properties:
+                        data:
+                          $ref: "#/components/schemas/SantriPermission"
+          "404":
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  allOf:
+                    - $ref: "#/components/schemas/ResponseMessage"
+  /santri-presence:
+    get:
+      tags:
+        - Santri Presence
+      summary: Get All Santri Presence
+      description: All can access this endpoint
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          description: Limit per page
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+          description: Search by santri name
+        - in: query
+          name: santri
+          schema:
+            type: integer
+          required: false
+          description: Search presence by Santri ID
+        - in: query
+          name: activity
+          schema:
+            type: integer
+          description: Search presence by Activity ID
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: YYYY-MM-DDTHH:MM:SS±HH:MM
+          description: Search By From
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: YYYY-MM-DDTHH:MM:SS±HH:MM
+          description: Search By End time
+          required: false
+        - in: query
+          name: type
+          schema:
+            $ref: "#/components/schemas/PresenceEnum"
+          examples:
+            presence:
+              value: "presence"
+            alpha:
+              value: "alpha"
+            permission:
+              value: "permission"
+            late:
+              value: "late"
+            sick:
+              value: "sick"
+
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/SantriPresence"
+                                - properties:
+                                    santri:
+                                      $ref: "#/components/schemas/Santri"
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+    post:
+      tags:
+        - Santri Presence
+      summary: Create Santri Presence
+      description: Admin and Superadmin can manage this endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/NewSantriPresence"
+                - properties:
+                    type:
+                      $ref: "#/components/schemas/PresenceEnum"
+                    santri_id:
+                      $ref: "#/components/schemas/Id"
+                    notes:
+                      nullable: true
+            examples:
+              from-admin:
+                value:
+                  type: "presence"
+                  santri_id: 1
+                  activity_id: 1
+                  activity_name: Pengajian Subuh
+                  notes: "Presence because error of RFID"
+              from-bulk-admin:
+                description: Admin can create presence in bulk
+                value:
+                  type: sick
+                  santri_id: 1
+                  notes: "Sakit"
+              from-santri-permission:
+                value:
+                  type: permission
+                  santri_id: 1
+                  activity_id: 1
+                  activity_name: Pengajian Subuh
+                  created_at: "2024-11-22T13:37:00Z"
+                  santri_permission_id: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SantriPresence"
+  /santri-presence/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Santri Presence
+      summary: Update Santri Presence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewSantriPresence"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SantriPresence"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseMessage"
+              example:
+                code: 404
+                status: error
+                message: Santri Presence not found
+    delete:
+      tags:
+        - Santri Presence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items: 
+                    $ref: "#/components/schemas/Id"
+              example:
+                ids: [1, 2, 3, 4]
+        required: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SantriPresence"
+      
   /employee-occupation:
     get:
       tags:
@@ -854,18 +1484,18 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/EmployeeOccupation"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/EmployeeOccupation"
+                            - properties:
+                                count:
+                                  type: integer
+                                  description: Count of the employee
     post:
       tags:
         - Employee Occupation
@@ -878,29 +1508,19 @@ paths:
         content:
             application/json:
               schema:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  notes:
-                    type: string
-                    nullable: true
+                $ref: "#/components/schemas/NewEmployeeOccupation"
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: "#/components/schemas/EmployeeOccupation"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/EmployeeOccupation"
   /employee-occupation/{id}:
     parameters:
       - in: path
@@ -918,10 +1538,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EmployeeOccupation"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/EmployeeOccupation"
     put:
       tags:
         - Employee Occupation
+      summary: Update Occupation By ID
       description: Admin, Superadmin can manage this endpoint
       security:
         - cookieAuth: []
@@ -929,41 +1554,136 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                notes:
-                  type: string
-                  nullable: true
+              $ref: "#/components/schemas/NewEmployeeOccupation"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EmployeeOccupation"
+                allOf:
+                    - $ref: "#/components/schemas/Response"
+                    - properties:
+                        data:
+                          $ref: "#/components/schemas/EmployeeOccupation"
     delete:
       tags: 
         - Employee Occupation
+      summary: Delete Employee Occupation by ID
       description: Admin, Superadmin can manage this endpoint
       security:
         - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/EmployeeOccupation"
+
+  /employee-schedule:
+    get:
+      tags: 
+        - Employee Schedule
+      summary: Get All Employee Schedule
+      description: Admin and Superadmin can access this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: 
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                          - $ref: "#/components/schemas/EmployeeSchedule"
+    post:
+      tags:
+        - Employee Schedule
+      summary: Create Employee Schedule
+      description: Superadmin can manage this endpoint
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                notes:
-                  type: string
-                  nullable: true
+              $ref: "#/components/schemas/NewEmployeeSchedule"
       responses:
         "200":
           description: OK
-
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/EmployeeSchedule"
+  /employee-schedule/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Employee Schedule
+      summary: Update Employee Schedule By ID
+      description: Superadmin can manage this endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewEmployeeSchedule"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/EmployeeSchedule"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+    delete:
+      tags:
+        - Employee Schedule
+      summary: Delete Employee Schedule By ID
+      description: Superadmin can manage this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/EmployeeSchedule"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
   /employee:
     get:
       tags:
@@ -986,11 +1706,39 @@ paths:
           required: false
           description: Limit per page
         - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - asc:name
+              - desc:name
+          examples:
+            asc-name:
+              value: asc:name
+            desc-name:
+              value: desc:name
+        - in: query
+          name: has-user
+          schema:
+            type: integer
+            nullable: false
+            enum:
+              - 1
+              - 0
+              - -1
+          examples:
+            has-user:
+              value: 1
+            no-user:
+              value: 0
+            all:
+              value: -1
+        - in: query
           name: q
           schema:
             type: string
           required: false
-          description: Search Parent by name
+          description: Search Employee by name
           example: "Muhammad"
       responses:
         "200":
@@ -999,22 +1747,18 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Employee"
-                      pagination:
-                        $ref: "#/components/schemas/Pagination"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Employee"
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
     post:
       tags:
         - Employee
@@ -1027,24 +1771,10 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                nip:
-                  type: string
-                  maxLength: 18
-                  minLength: 18
-                name:
-                  type: string
-                gender:
-                  $ref: "#/components/schemas/GenderEnum"
-                photo:
-                  type: string
-                  format: binary
-                occupation_id:
-                  type: integer
+              $ref: "#/components/schemas/NewEmployee"
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           content:
             application/json:
               schema:
@@ -1068,19 +1798,19 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/Employee"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Employee"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -1097,24 +1827,31 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                nip:
-                  type: string
-                  maxLength: 18
-                  minLength: 18
-                name:
-                  type: string
-                gender:
-                  $ref: "#/components/schemas/GenderEnum"
-                photo:
-                  type: string
-                  format: binary
-                occupation_id:
-                  type: integer
+              $ref: "#/components/schemas/NewEmployee"
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Employee"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+                example:
+                  code: 404
+                  status: error
+                  message: "Employee not found"
     delete:
       tags:
         - Employee
@@ -1123,22 +1860,25 @@ paths:
         - cookieAuth: []
       description: Only Admin and Superadmin can manage this endpoint
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                example:
-                  code: 204
-                  status: success
-                  message: "Employee deleted"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Employee"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -1174,6 +1914,34 @@ paths:
           required: false
           description: Search Parent by name
           example: "Muhammad"
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - asc:name
+              - desc:name
+          examples:
+            asc-name:
+              value: asc:name
+            desc-name:
+              value: desc:name
+        - in: query
+          name: has-user
+          schema:
+            type: integer
+            nullable: true
+            enum:
+              - 1
+              - 0
+              - -1
+          examples:
+            has-user:
+              value: 1
+            no-user:
+              value: 0
+            all:
+              value: -1
       responses:
         "200":
           description: OK
@@ -1181,22 +1949,18 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Parent"
-                      pagination:
-                        $ref: "#/components/schemas/Pagination"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Parent"
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
     post:
       tags:
         - Parent
@@ -1209,19 +1973,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                address:
-                  type: string
-                no_wa:
-                  type: string
-                  minLength: 10
-                  maxLength: 13
-                photo:
-                  type: string
-                  format: binary
+              $ref: "#/components/schemas/NewParent"
       responses:
         "200":
           description: OK
@@ -1229,15 +1981,11 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: "#/components/schemas/Parent"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                          $ref: "#/components/schemas/Parent"
   /parent/{id}:
     parameters:
       - in: path
@@ -1249,7 +1997,9 @@ paths:
       tags:
         - Parent
       summary: Get Parent By ID
-      description: Get Parent By ID
+      security:
+        - cookieAuth: []
+      description: Admin, Parent that match the id, superadmin can access this endpoint
       responses:
         "200":
           description: OK
@@ -1257,19 +2007,25 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/Parent"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:   
+                      data:
+                        $ref: "#/components/schemas/Parent"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -1286,19 +2042,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                address:
-                  type: string
-                no_wa:
-                  type: string
-                  minLength: 10
-                  maxLength: 13
-                photo:
-                  type: string
-                  format: binary
+              $ref: "#/components/schemas/NewParent"
       responses:
         "200":
           description: OK
@@ -1306,19 +2050,19 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: integer
-                  status:
-                    type: string
-                  data:
-                    $ref: "#/components/schemas/Parent"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Parent"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -1331,22 +2075,25 @@ paths:
       security:
         - cookieAuth: []
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                example:
-                  code: 204
-                  status: success
-                  message: "Parent deleted"
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Parent"
         "404":
           description: Not Found
           content:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
                 example:
                   code: 404
                   status: error
@@ -1395,23 +2142,85 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code: 
-                    type: integer
-                    example: 200
-                  message:
-                    type: string
-                    example: sucess
-                  data:
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/RFID"
-                      pagination:
-                        $ref: "#/components/schemas/Pagination"
-                    
-  
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data: 
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/RFID"
+                                - properties:
+                                    details:
+                                      oneOf:
+                                        - $ref: "#/components/schemas/Santri"
+                                        - $ref: "#/components/schemas/Employee"
+                          pagination:
+                              $ref: "#/components/schemas/Pagination"
+  /rfid/{id}:
+    parameters:
+      - in: path
+        name: Id
+        schema:
+          type: integer
+        required: true
+
+    put:
+      tags:
+        - RFID
+      summary: Update RFID by ID
+      description: Only Admin and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_active:
+                  type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RFID"
+    delete:
+      tags:
+        - RFID
+      summary: Delete RFID by Id
+      description: Only Admin and Superadmin can manage this endpoint
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/RFID"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ResponseMessage"
+                example:
+                  code: 404
+                  status: error
+                  message: "RFID not found"
 components:
   securitySchemes:
     cookieAuth:
@@ -1426,80 +2235,151 @@ components:
         - admin
         - superadmin
         - employee
+    Id:
+      type: integer
+      uniqueItems: true
     GenderEnum:
       type: string
       enum:
         - male
         - female
+    PresenceEnum:
+      type: string
+      enum:
+        - "alpha"
+        - "permission"
+        - "sick"
+        - "late"
+        - "present"
     Response:
       type: object
       properties:
         code:
           type: integer
-          example: 200
+          enum:
+            - 200
+            - 201
+            - 204
+            - 401
+            - 403
+            - 404
+            - 500
         status:
           type: string
-          example: success
-        data:
-          type: object
-    User:
+          enum:
+            - success
+            - error
+    ResponseMessage:
+      allOf:
+        - $ref: "#/components/schemas/Response"
+        - properties:
+            message:
+              type: string
+    NewUser:
       type: object
       properties:
-        id:
-          type: integer
-          uniqueItems: true
         role:
           type: string
         username:
           type: string
           uniqueItems: true
-        details:
-          type: object
-          nullable: true
-          description: It can be null because if is admin, or superadmin, doesn't need details of related account
-
-          properties:
-            id:
-              type: integer
-            name:
+    NewUserWithPassword:
+      allOf:
+        - $ref: "#/components/schemas/NewUser"
+        - properties:
+            password:
               type: string
-
-    Holiday:
+              nullable: true
+              default: "indonesia123"
+              description: System will create default password for user, if it's blank
+    User:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewUser"
+    UserWithRelation:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - properties:
+            details:
+              type: object
+              nullable: true
+              description: It can be null because if is admin, or superadmin, doesn't need details of related account
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+    NewSantriActivity:
       type:
         object
       properties:
-        id:
-          type: integer
-          uniqueItems: true
-        name:
-          type: string
-        start_date:
-          type: string
-        end_date:
-          type: string              
-    SantriOccupation:
-      type:
-        object
-      properties:
-        id:
-          type: integer
-          uniqueItems: true
         name:
           type: string
         description:
           type: string
-        count: 
-          type: integer
-    Parent:
+          nullable: true
+        start_presence:
+          type: string
+          example:
+            "07:45:00"
+        start_time:
+          type: string
+          example:
+            "08:00:00"
+        end_time:
+          type: string
+          example:
+            "15:00:00"
+    SantriActivity:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewSantriActivity"
+    NewHoliday:
+      type:
+        object
+      properties:
+        name:
+          type: string
+          example: Kemerdekaan
+        start_date:
+            type: string
+            example: "2024-8-17"
+        end_date:
+            type: string              
+            example: "2024-8-18"
+    Holiday:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewHoliday"
+    NewSantriOccupation:
+      type:
+        object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    SantriOccupation:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewSantriOccupation"
+    NewParent:
       type: object
       properties:
-        id:
-          type: integer
-          uniqueItems: true
         name:
           type: string
         address:
           type: string
+        gender:
+          $ref: "#/components/schemas/GenderEnum"
         no_wa:
           type: string
           minLength: 10
@@ -1511,12 +2391,15 @@ components:
         user_id:
           type: integer
           nullable: true
-    Santri:
+    Parent:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewParent"
+    NewSantri:
       type: object
       properties:
-        id:
-          type: integer
-          uniqueItems: true
         name:
           type: string
         gender:
@@ -1526,24 +2409,115 @@ components:
         photo:
           type: string
           nullable: true
-        occupation:
-          $ref: "#/components/schemas/SantriOccupation"
-    EmployeeOccupation:
+        occupation_id:
+          type: integer
+          nullable: true
+        parent_id:
+          type: integer
+          nullable: true
+    Santri:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewSantri"
+    NewSantriPermission:
       type: object
       properties:
-        id:
+        santri_id:
           type: integer
-          uniqueItems: true
+        start_permission:
+          type: string
+          example:
+            "2024-10-09T07:45:00Z"
+          nullable: false
+        end_permission:
+          type: string
+          example:
+            "2024-10-09T15:00:00Z"
+          nullable: true
+        excuse:
+          type: string
+        is_go_home:
+          type: boolean
+    SantriPermission:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewSantriPermission"
+    NewSantriPresence:
+      type: object
+      properties:
+        activity_id:
+          type: integer
+          nullable: false
+        activity_name:
+          type: string
+        type:
+          $ref: "#/components/schemas/PresenceEnum"
+        santri_id:
+          type: integer
+          nullable: false
+        created_at:
+          type: string
+          example: "2024-11-22T13:37:00Z"
+        notes:
+          type: string
+          nullable: true
+        santri_permission_id:
+          type: integer
+          nullable: true
+    SantriPresence:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewSantriPresence"
+    NewEmployeeOccupation:
+      type: object
+      properties:
         name: 
           type: string
         description:
           type: string
-    Employee:
+    EmployeeOccupation:
+       allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewEmployeeOccupation"
+    NewEmployeeSchedule:
+      type:
+        object
+      properties:
+        name:
+          type: string
+          example: Pagi
+        description:
+          type: string
+          nullable: true
+        start_presence:
+          type: string
+          example:
+            "07:45:00"
+        start_time:
+          type: string
+          example:
+            "08:00:00"
+        end_time:
+          type: string
+          example:
+            "15:00:00"
+    EmployeeSchedule:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewEmployeeSchedule"
+    NewEmployee:
       type: object
       properties:
-        id:
-          type: integer
-          uniqueItems: true
         nip:
           type: string
           maxLength: 18
@@ -1560,19 +2534,23 @@ components:
         occupation_id:
           type: integer
           nullable: false
-    RFID:
+    Employee:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewEmployee"
+    # NewEmployeePresence:
+
+    NewRFID:
       type: object
       properties:
-        id:
-          type: integer
-          uniqueItems: true
         uid:
           type: string
           uniqueItems: true
         created_at:
           type: string
-        updated_at:
-          type: string
+          description: Date when RFID created
         role:
           type: string
           enum:
@@ -1580,10 +2558,12 @@ components:
             - santri
         is_active: 
           type: boolean
-        details: 
-          oneOf:
-            - $ref: "#/components/schemas/Employee"
-            - $ref: "#/components/schemas/Santri"
+    RFID:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewRFID"
     Pagination:
       type: object
       properties:
@@ -1601,13 +2581,9 @@ components:
           example: 10
     Forbidden:
       type: object
-      properties:
-        code:
-          type: integer
-          example: 403
-        status:
-          type: string
-          example: forbidden
-        message:
-          type: string
-          example: "You don't have permission to access this resource"
+      allOf:
+        - $ref: "#/components/schemas/ResponseMessage"
+        - example:
+            code: 403
+            status: error
+            message: "Forbidden"
