@@ -16,9 +16,9 @@ INSERT INTO "user" ("role", "username", "password") VALUES ($1, $2, $3) RETURNIN
 `
 
 type CreateUserParams struct {
-	Role     NullUserRole `json:"role"`
-	Username pgtype.Text  `json:"username"`
-	Password pgtype.Text  `json:"password"`
+	Role     NullUserRole
+	Username pgtype.Text
+	Password pgtype.Text
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -31,49 +31,4 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Password,
 	)
 	return i, err
-}
-
-const getUserByUsernameAndRole = `-- name: GetUserByUsernameAndRole :many
-SELECT id, role, username, password FROM "user"
-WHERE "username" = $1
-AND ($2::text IS NULL OR "role" = $2)
-ORDER BY "username"
-LIMIT $3 OFFSET $4
-`
-
-type GetUserByUsernameAndRoleParams struct {
-	Username pgtype.Text `json:"username"`
-	Role  	 string      `json:"role"`
-	Limit    int32       `json:"limit"`
-	Offset   int32       `json:"offset"`
-}
-
-func (q *Queries) GetUserByUsernameAndRole(ctx context.Context, arg GetUserByUsernameAndRoleParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, getUserByUsernameAndRole,
-		arg.Username,
-		arg.Role,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []User{}
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.ID,
-			&i.Role,
-			&i.Username,
-			&i.Password,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }

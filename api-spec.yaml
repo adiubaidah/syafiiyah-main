@@ -1958,7 +1958,11 @@ paths:
                           items:
                             type: array
                             items:
-                              $ref: "#/components/schemas/Parent"
+                              allOf:
+                                - $ref: "#/components/schemas/Parent"
+                                - properties:
+                                    user:
+                                      $ref: "#/components/schemas/User"
                           pagination:
                             $ref: "#/components/schemas/Pagination"
     post:
@@ -2345,18 +2349,22 @@ components:
         name:
           type: string
           example: Kemerdekaan
-        start_date:
+        days:
+          type: array
+          items:
             type: string
-            example: "2024-8-17"
-        end_date:
-            type: string              
-            example: "2024-8-18"
+            example: 
+              - "2024-12-25"
+              - "2024-12-26"
+              - "2024-12-27"
+              - "2024-12-28"
+            nullable: false
     Holiday:
       allOf:
         - properties:
             id:
               $ref: "#/components/schemas/Id"
-        - $ref: "#/components/schemas/NewHoliday"
+        - $ref: "#/components/schemas/NewHoliday"    
     NewSantriOccupation:
       type:
         object
@@ -2389,8 +2397,9 @@ components:
           format: binary
           nullable: true
         user_id:
-          type: integer
-          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Id"
+            - nullable: true
     Parent:
       allOf:
         - properties:
@@ -2408,6 +2417,7 @@ components:
           type: boolean
         photo:
           type: string
+          format: binary
           nullable: true
         occupation_id:
           type: integer
@@ -2531,17 +2541,20 @@ components:
         photo:
           type: string
           format: binary
+          nullable: true
         occupation_id:
           type: integer
           nullable: false
+        user_id:
+          allOf:
+            - $ref: "#/components/schemas/Id"
+            - nullable: true
     Employee:
       allOf:
         - properties:
             id:
               $ref: "#/components/schemas/Id"
         - $ref: "#/components/schemas/NewEmployee"
-    # NewEmployeePresence:
-
     NewRFID:
       type: object
       properties:

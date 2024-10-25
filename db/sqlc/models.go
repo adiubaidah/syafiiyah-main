@@ -32,8 +32,8 @@ func (e *ArduinoModeType) Scan(src interface{}) error {
 }
 
 type NullArduinoModeType struct {
-	ArduinoModeType ArduinoModeType `json:"arduino_mode_type"`
-	Valid           bool            `json:"valid"` // Valid is true if ArduinoModeType is not NULL
+	ArduinoModeType ArduinoModeType
+	Valid           bool // Valid is true if ArduinoModeType is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -74,8 +74,8 @@ func (e *Gender) Scan(src interface{}) error {
 }
 
 type NullGender struct {
-	Gender Gender `json:"gender"`
-	Valid  bool   `json:"valid"` // Valid is true if Gender is not NULL
+	Gender Gender
+	Valid  bool // Valid is true if Gender is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -99,11 +99,11 @@ func (ns NullGender) Value() (driver.Value, error) {
 type PresenceType string
 
 const (
-	PresenceTypeAlpha   PresenceType = "alpha"
-	PresenceTypeExcuse  PresenceType = "excuse"
-	PresenceTypeSick    PresenceType = "sick"
-	PresenceTypeLate    PresenceType = "late"
-	PresenceTypePresent PresenceType = "present"
+	PresenceTypeAlpha      PresenceType = "alpha"
+	PresenceTypePermission PresenceType = "permission"
+	PresenceTypeSick       PresenceType = "sick"
+	PresenceTypeLate       PresenceType = "late"
+	PresenceTypePresent    PresenceType = "present"
 )
 
 func (e *PresenceType) Scan(src interface{}) error {
@@ -119,8 +119,8 @@ func (e *PresenceType) Scan(src interface{}) error {
 }
 
 type NullPresenceType struct {
-	PresenceType PresenceType `json:"presence_type"`
-	Valid        bool         `json:"valid"` // Valid is true if PresenceType is not NULL
+	PresenceType PresenceType
+	Valid        bool // Valid is true if PresenceType is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -163,8 +163,8 @@ func (e *UserRole) Scan(src interface{}) error {
 }
 
 type NullUserRole struct {
-	UserRole UserRole `json:"user_role"`
-	Valid    bool     `json:"valid"` // Valid is true if UserRole is not NULL
+	UserRole UserRole
+	Valid    bool // Valid is true if UserRole is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -186,160 +186,160 @@ func (ns NullUserRole) Value() (driver.Value, error) {
 }
 
 type Arduino struct {
-	ID int32 `json:"id"`
+	ID int32
 	// ex: arduino1
-	Name string `json:"name"`
+	Name string
 }
 
 type ArduinoMode struct {
-	ID             int32               `json:"id"`
-	Mode           NullArduinoModeType `json:"mode"`
-	TopicPublish   string              `json:"topic_publish"`
-	TopicSubscribe string              `json:"topic_subscribe"`
-	ArduinoID      int32               `json:"arduino_id"`
+	ID             int32
+	Mode           ArduinoModeType
+	TopicPublish   string
+	TopicSubscribe string
+	ArduinoID      int32
 }
 
 type Employee struct {
-	ID           int32       `json:"id"`
-	Nip          pgtype.Text `json:"nip"`
-	Name         string      `json:"name"`
-	Gender       Gender      `json:"gender"`
-	Photo        interface{} `json:"photo"`
-	OccupationID int32       `json:"occupation_id"`
+	ID           int32
+	Nip          pgtype.Text
+	Name         string
+	Gender       Gender
+	Photo        pgtype.Text
+	OccupationID int32
+	UserID       pgtype.Int4
 }
 
 type EmployeeOccupation struct {
-	ID          int32       `json:"id"`
-	Name        string      `json:"name"`
-	Description pgtype.Text `json:"description"`
+	ID          int32
+	Name        string
+	Description pgtype.Text
 }
 
 type EmployeePermission struct {
-	ID           int32       `json:"id"`
-	EmployeeID   int32       `json:"employee_id"`
-	ScheduleID   int32       `json:"schedule_id"`
-	ScheduleName string      `json:"schedule_name"`
-	StartIzin    interface{} `json:"start_izin"`
+	ID           int32
+	EmployeeID   int32
+	ScheduleID   int32
+	ScheduleName string
+	StartIzin    pgtype.Time
 	// waktu kembali, null berarti pulang
-	EndIzin interface{} `json:"end_izin"`
-	Reason  string      `json:"reason"`
+	EndIzin pgtype.Time
+	Reason  string
 	// Pulang, keluar sementara
-	IsGoHome pgtype.Bool `json:"is_go_home"`
+	IsGoHome pgtype.Bool
 }
 
 type EmployeePresence struct {
-	ID         pgtype.Int4  `json:"id"`
-	ScheduleID pgtype.Int4  `json:"schedule_id"`
-	Type       PresenceType `json:"type"`
-	EmployeeID int32        `json:"employee_id"`
-	Notes      pgtype.Text  `json:"notes"`
+	ID         pgtype.Int4
+	ScheduleID pgtype.Int4
+	Type       PresenceType
+	EmployeeID int32
+	Notes      pgtype.Text
 }
 
 type EmployeeSchedule struct {
-	ID int32 `json:"id"`
+	ID int32
 	// ex: Pagi, siang, sore, malam
-	Name          string      `json:"name"`
-	StartPresence interface{} `json:"start_presence"`
+	Name          string
+	StartPresence pgtype.Time
 	// Waktu jenis
-	StartTime  interface{} `json:"start_time"`
-	FinishTime interface{} `json:"finish_time"`
+	StartTime  pgtype.Time
+	FinishTime pgtype.Time
 }
 
 type Holiday struct {
-	ID int32 `json:"id"`
+	ID int32
 	// Optional description of the holiday
-	Name string `json:"name"`
-	// The date that is considered a start holiday
-	StartDate pgtype.Date `json:"start_date"`
-	// the date that us considered a end holiday
-	EndDate pgtype.Date `json:"end_date"`
+	Name  string
+	Color pgtype.Text
+}
+
+type HolidayDay struct {
+	ID        int32
+	Day       pgtype.Date
+	HolidayID int32
 }
 
 type Parent struct {
-	ID      int32       `json:"id"`
-	Name    string      `json:"name"`
-	Address string      `json:"address"`
-	Gender  Gender      `json:"gender"`
-	NoWa    pgtype.Text `json:"no_wa"`
-	Photo   interface{} `json:"photo"`
-	UserID  int32       `json:"user_id"`
+	ID      int32
+	Name    string
+	Address string
+	Gender  Gender
+	NoWa    pgtype.Text
+	Photo   pgtype.Text
+	UserID  pgtype.Int4
 }
 
 type Rfid struct {
-	ID        int32       `json:"id"`
-	Uid       pgtype.Text `json:"uid"`
-	CreatedAt interface{} `json:"created_at"`
-	IsActive  pgtype.Bool `json:"is_active"`
+	ID        int32
+	Uid       pgtype.Text
+	CreatedAt pgtype.Timestamp
+	IsActive  pgtype.Bool
 	// Rfid bisa milik santri
-	SantriID pgtype.Text `json:"santri_id"`
+	SantriID pgtype.Int4
 	// Rfid bisa milik employee
-	EmployeeID pgtype.Text `json:"employee_id"`
+	EmployeeID pgtype.Int4
 }
 
 type Santri struct {
-	ID     int32       `json:"id"`
-	Nis    pgtype.Text `json:"nis"`
-	Name   string      `json:"name"`
-	Gender Gender      `json:"gender"`
+	ID     int32
+	Nis    pgtype.Text
+	Name   string
+	Gender Gender
 	// ex: 2024, 2022
-	Generation int32       `json:"generation"`
-	Photo      interface{} `json:"photo"`
+	Generation int32
+	Photo      pgtype.Text
 	// awalnya tidak memiliki jabatan
-	OccupationID pgtype.Int4 `json:"occupation_id"`
+	OccupationID pgtype.Int4
 	// Semua santri bisa memiliki orang tua
-	ParentID pgtype.Int4 `json:"parent_id"`
+	ParentID pgtype.Int4
 }
 
 type SantriActivity struct {
-	ID            int32       `json:"id"`
-	Name          string      `json:"name"`
-	Description   pgtype.Text `json:"description"`
-	StartPresence interface{} `json:"start_presence"`
+	ID            int32
+	Name          string
+	Description   pgtype.Text
+	StartPresence pgtype.Time
 	// Waktu mulai kegiatan
-	StartTime interface{} `json:"start_time"`
+	StartTime pgtype.Time
 	// Waktu berakhirnya kegiatan
-	FinishTime interface{} `json:"finish_time"`
+	FinishTime pgtype.Time
 }
 
 type SantriOccupation struct {
-	ID          int32       `json:"id"`
-	Name        pgtype.Text `json:"name"`
-	Description pgtype.Text `json:"description"`
+	ID          int32
+	Name        pgtype.Text
+	Description pgtype.Text
 }
 
 type SantriPermission struct {
-	ID       int32 `json:"id"`
-	SantriID int32 `json:"santri_id"`
-	// bersifat history
-	ActivityID int32 `json:"activity_id"`
-	// bersifat history
-	ActivityName string      `json:"activity_name"`
-	StartIzin    interface{} `json:"start_izin"`
+	ID              int32
+	SantriID        int32
+	StartPermission pgtype.Time
 	// waktu kembali, null berarti pulang
-	EndIzin interface{} `json:"end_izin"`
-	Reason  string      `json:"reason"`
+	EndPermission pgtype.Time
+	Excuse        string
 	// Pulang, keluar sementara
-	IsGoHome pgtype.Bool `json:"is_go_home"`
+	IsGoHome pgtype.Bool
 }
 
 type SantriPresence struct {
-	ID pgtype.Int4 `json:"id"`
+	ID pgtype.Int4
 	// Karena bisa saja activitynya dihapus
-	ActivityID int32 `json:"activity_id"`
+	ActivityID int32
 	// menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history
-	ActivityName string       `json:"activity_name"`
-	Type         PresenceType `json:"type"`
-	SantriID     int32        `json:"santri_id"`
-	// Waktu presensi
-	CreateAt interface{} `json:"create_at"`
-	Notes    pgtype.Text `json:"notes"`
+	ActivityName string
+	Type         PresenceType
+	SantriID     int32
+	// Waktu presensi, bisa null karena jika sakit, maka diisi oleh Admin
+	CreatedAt pgtype.Timestamp
+	Notes     pgtype.Text
 	// Jika izin, maka ini diisi
-	SantriPermissionID pgtype.Int4 `json:"santri_permission_id"`
+	SantriPermissionID pgtype.Int4
 }
 
 type User struct {
-	ID       int32        `json:"id"`
-	Role     NullUserRole `json:"role"`
-	Username pgtype.Text  `json:"username"`
-	Password pgtype.Text  `json:"password"`
+	ID       int32
+	Role     NullUserRole
+	Username pgtype.Text
+	Password pgtype.Text
 }

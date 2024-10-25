@@ -9,8 +9,21 @@ import (
 )
 
 type Querier interface {
+	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (Employee, error)
+	CreateEmployeeOccupation(ctx context.Context, arg CreateEmployeeOccupationParams) (EmployeeOccupation, error)
+	CreateParent(ctx context.Context, arg CreateParentParams) (Parent, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	GetUserByUsernameAndRole(ctx context.Context, arg GetUserByUsernameAndRoleParams) ([]User, error)
+	DeleteEmployee(ctx context.Context, id int32) (Employee, error)
+	DeleteEmployeeOccupation(ctx context.Context, id int32) (EmployeeOccupation, error)
+	DeleteParent(ctx context.Context, id int32) (Parent, error)
+	GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, error)
+	GetParent(ctx context.Context, id int32) (GetParentRow, error)
+	QueryEmployeeOccupations(ctx context.Context) ([]QueryEmployeeOccupationsRow, error)
+	QueryEmployeesAsc(ctx context.Context, arg QueryEmployeesAscParams) ([]QueryEmployeesAscRow, error)
+	QueryParentsAsc(ctx context.Context, arg QueryParentsAscParams) ([]QueryParentsAscRow, error)
+	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) (Employee, error)
+	UpdateEmployeeOccupation(ctx context.Context, arg UpdateEmployeeOccupationParams) (EmployeeOccupation, error)
+	UpdateParent(ctx context.Context, arg UpdateParentParams) (Parent, error)
 }
 
 var _ Querier = (*Queries)(nil)
