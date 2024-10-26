@@ -9,6 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func clearEmployeeOccupationTable(t *testing.T) {
+	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
+	require.NoError(t, err)
+}
+
 func createRandomEmployeeOccupation(t *testing.T) EmployeeOccupation {
 	arg := CreateEmployeeOccupationParams{
 		Name:        util.RandomString(8),
@@ -25,10 +30,12 @@ func createRandomEmployeeOccupation(t *testing.T) EmployeeOccupation {
 }
 
 func TestCreateEmployeeOccupation(t *testing.T) {
+	clearEmployeeOccupationTable(t)
 	createRandomEmployeeOccupation(t)
 }
 
 func TestQueryEmployeeOccupation(t *testing.T) {
+	clearEmployeeOccupationTable(t)
 	createRandomEmployeeOccupation(t)
 	createRandomEmployeeOccupation(t)
 	createRandomEmployeeOccupation(t)
@@ -39,6 +46,7 @@ func TestQueryEmployeeOccupation(t *testing.T) {
 }
 
 func TestUpdateEmployeeOccupation(t *testing.T) {
+	clearEmployeeOccupationTable(t)
 	employeeOccupation := createRandomEmployeeOccupation(t)
 
 	arg := UpdateEmployeeOccupationParams{
@@ -56,6 +64,7 @@ func TestUpdateEmployeeOccupation(t *testing.T) {
 }
 
 func TestDeleteEmployeeOccupation(t *testing.T) {
+	clearEmployeeOccupationTable(t)
 	employeeOccupation := createRandomEmployeeOccupation(t)
 	deletedEmployeeOccupation, err := testQueries.DeleteEmployeeOccupation(context.Background(), employeeOccupation.ID)
 
@@ -64,15 +73,3 @@ func TestDeleteEmployeeOccupation(t *testing.T) {
 
 	require.Equal(t, employeeOccupation.ID, deletedEmployeeOccupation.ID)
 }
-
-// func TestDeleteEmployeeOccupation(t *testing.T) {
-// 	employeeOccupation := createRandomEmployeeOccupation(t)
-
-// 	err := testQueries.DeleteEmployeeOccupation(context.Background(), employeeOccupation.ID)
-// 	require.NoError(t, err)
-
-// 	employeeOccupation, err = testQueries.GetEmployeeOccupation(context.Background(), employeeOccupation.ID)
-// 	require.Error(t, err)
-// 	require.EqualError(t, err, ErrNotFound.Error())
-// 	require.Empty(t, employeeOccupation)
-// }

@@ -1,17 +1,18 @@
 -- name: QueryParentsAsc :many
 SELECT
-    "parent".*, "user"."id" AS "userId", "user"."username" AS "userUsername"
+    "parent".*,
+    "user"."id" AS "userId",
+    "user"."username" AS "userUsername"
 FROM
     "parent"
-LEFT JOIN
-    "user" ON "parent"."user_id" = "user"."id"
+    LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
 WHERE
     (
-        sqlc.narg(q)::text IS NULL
+        sqlc.narg(q) :: text IS NULL
         OR "name" ILIKE '%' || sqlc.narg(q) || '%'
     )
     AND (
-        @has_user::smallint IS NULL
+        @has_user :: smallint IS NULL
         OR (
             @has_user = 1
             AND "user_id" IS NOT NULL
@@ -26,6 +27,59 @@ ORDER BY
     "name" ASC
 LIMIT
     @limit_number OFFSET @offset_number;
+
+-- name: QueryParentsDesc :many
+SELECT
+    "parent".*,
+    "user"."id" AS "userId",
+    "user"."username" AS "userUsername"
+FROM
+    "parent"
+    LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
+WHERE
+    (
+        sqlc.narg(q) :: text IS NULL
+        OR "name" ILIKE '%' || sqlc.narg(q) || '%'
+    )
+    AND (
+        @has_user :: smallint IS NULL
+        OR (
+            @has_user = 1
+            AND "user_id" IS NOT NULL
+        )
+        OR (
+            @has_user = 0
+            AND "user_id" IS NULL
+        )
+        OR (@has_user = -1)
+    )
+ORDER BY
+    "name" ASC
+LIMIT
+    @limit_number OFFSET @offset_number;
+
+-- name: CountParents :one
+SELECT
+    COUNT(*) AS "count"
+FROM
+    "parent"
+WHERE
+    (
+        sqlc.narg(q) :: text IS NULL
+        OR "name" ILIKE '%' || sqlc.narg(q) || '%'
+    )
+    AND (
+        @has_user :: smallint IS NULL
+        OR (
+            @has_user = 1
+            AND "user_id" IS NOT NULL
+        )
+        OR (
+            @has_user = 0
+            AND "user_id" IS NULL
+        )
+        OR (@has_user = -1)
+    );
 
 -- name: CreateParent :one
 INSERT INTO
@@ -62,7 +116,9 @@ WHERE
 
 -- name: GetParent :one
 SELECT
-    "parent".*, "user"."id" AS "userId", "user"."username" AS "userUsername"
+    "parent".*,
+    "user"."id" AS "userId",
+    "user"."username" AS "userUsername"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
@@ -70,4 +126,7 @@ WHERE
     "parent"."id" = @id;
 
 -- name: DeleteParent :one
-DELETE FROM "parent" WHERE "id" = @id RETURNING *;
+DELETE FROM
+    "parent"
+WHERE
+    "id" = @id RETURNING *;

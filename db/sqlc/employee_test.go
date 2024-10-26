@@ -6,8 +6,14 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/util"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func clearEmployeeTable(t *testing.T) {
+	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "employee"`)
+	require.NoError(t, err)
+}
 
 func createRandomEmployee(t *testing.T) Employee {
 	occupation := createRandomEmployeeOccupation(t)
@@ -32,7 +38,7 @@ func createRandomEmployee(t *testing.T) Employee {
 }
 func createRandomEmployeeWithUser(t *testing.T) (Employee, User) {
 	occupation := createRandomEmployeeOccupation(t)
-	user := createRandomUser(t)
+	user := createRandomUser(t, UserRoleEmployee)
 	arg := CreateEmployeeParams{
 		Nip:          pgtype.Text{String: util.RandomString(18), Valid: true},
 		Name:         util.RandomString(8),
@@ -50,6 +56,7 @@ func createRandomEmployeeWithUser(t *testing.T) (Employee, User) {
 	require.Equal(t, arg.Gender, employee.Gender)
 	require.Equal(t, arg.Photo.String, employee.Photo.String)
 	require.Equal(t, arg.OccupationID, employee.OccupationID)
+	require.Equal(t, arg.UserID.Int32, employee.UserID.Int32)
 
 	return employee, user
 }
@@ -59,6 +66,7 @@ func TestCreateEmployee(t *testing.T) {
 }
 
 func TestQueryEmployeeWithQ(t *testing.T) {
+	clearEmployeeTable(t)
 	// Create test data with different names
 	employee1 := createRandomEmployee(t)
 	createRandomEmployee(t)
@@ -88,63 +96,113 @@ func TestQueryEmployeeWithQ(t *testing.T) {
 }
 
 func TestQueryEmployeeWithHasUser(t *testing.T) {
-
+	clearEmployeeTable(t)
 	_, user := createRandomEmployeeWithUser(t)
 	createRandomEmployee(t)
 
-	argWithUser := QueryEmployeesAscParams{
-		HasUser:      1,
-		LimitNumber:  10,
-		OffsetNumber: 0,
-	}
-	employeessWithUser, err := testQueries.QueryEmployeesAsc(context.Background(), argWithUser)
-	require.NoError(t, err)
-	require.NotEmpty(t, employeessWithUser)
-
-	for _, employee := range employeessWithUser {
-		require.NotNil(t, employee.UserID, "Expected employee to have a user_id")
-		if employee.UserID.Int32 == user.ID {
-			require.Equal(t, user.Username.String, employee.UserUsername.String)
+	t.Run("Query with `has_user = 1` (only parents with user_id)", func(t *testing.T) {
+		arg := QueryEmployeesAscParams{
+			HasUser:      1,
+			LimitNumber:  10,
+			OffsetNumber: 0,
 		}
-	}
+		employeessWithUser, err := testQueries.QueryEmployeesAsc(context.Background(), arg)
+		require.NoError(t, err)
+		require.NotEmpty(t, employeessWithUser)
 
-	// Query with `has_user = 0` (only parents without user_id)
-	argWithoutUser := QueryEmployeesAscParams{
-		HasUser:      0,
-		LimitNumber:  10,
-		OffsetNumber: 0,
-	}
-	employeesWithoutUser, err := testQueries.QueryEmployeesAsc(context.Background(), argWithoutUser)
-	require.NoError(t, err)
-	require.NotEmpty(t, employeesWithoutUser)
-
-	for _, employee := range employeesWithoutUser {
-		require.Zero(t, employee.UserID, "Expected employee to not have a user_id (0)")
-	}
-
-	// Query with `has_user = -1` (all parents)
-	argAll := QueryEmployeesAscParams{
-		HasUser:      -1,
-		LimitNumber:  10,
-		OffsetNumber: 0,
-	}
-	allEmployees, err := testQueries.QueryEmployeesAsc(context.Background(), argAll)
-	require.NoError(t, err)
-	require.NotEmpty(t, allEmployees)
-
-	// Check that all parents are included
-	hasUserCount := 0
-	noUserCount := 0
-	for _, employee := range allEmployees {
-		if employee.UserID.Valid {
-			hasUserCount++
-		} else {
-			noUserCount++
+		for _, employee := range employeessWithUser {
+			require.NotNil(t, employee.UserID, "Expected employee to have a user_id")
+			if employee.UserID.Int32 == user.ID {
+				require.Equal(t, user.Username.String, employee.UserUsername.String)
+			}
 		}
+	})
+
+	t.Run("Query with `has_user = 0` (only parents without user_id)", func(t *testing.T) {
+		arg := QueryEmployeesAscParams{
+			HasUser:      0,
+			LimitNumber:  10,
+			OffsetNumber: 0,
+		}
+		employeesWithoutUser, err := testQueries.QueryEmployeesAsc(context.Background(), arg)
+		require.NoError(t, err)
+		require.NotEmpty(t, employeesWithoutUser)
+
+		for _, employee := range employeesWithoutUser {
+			require.Zero(t, employee.UserID, "Expected employee to not have a user_id (0)")
+		}
+	})
+
+	t.Run("Query with `has_user = -1` (all parents)", func(t *testing.T) {
+		arg := QueryEmployeesAscParams{
+			HasUser:      -1,
+			LimitNumber:  10,
+			OffsetNumber: 0,
+		}
+		allEmployees, err := testQueries.QueryEmployeesAsc(context.Background(), arg)
+		require.NoError(t, err)
+		require.NotEmpty(t, allEmployees)
+
+		// Check that all parents are included
+		hasUserCount := 0
+		noUserCount := 0
+		for _, employee := range allEmployees {
+			if employee.UserID.Valid {
+				hasUserCount++
+			} else {
+				noUserCount++
+			}
+		}
+		require.GreaterOrEqual(t, len(allEmployees), 2, "Expected to retrieve all employees")
+		require.GreaterOrEqual(t, hasUserCount, 1, "Expected to find parents that has user_id")
+		require.GreaterOrEqual(t, noUserCount, 1, "Expected to find parents without user_id")
+	})
+}
+
+func TestQueryEmployeePagination(t *testing.T) {
+	clearEmployeeTable(t)
+	for i := 0; i < 10; i++ {
+		createRandomEmployee(t)
 	}
-	require.GreaterOrEqual(t, len(allEmployees), 2, "Expected to retrieve all employees")
-	require.GreaterOrEqual(t, hasUserCount, 1, "Expected to find parents with user_id")
-	require.GreaterOrEqual(t, noUserCount, 1, "Expected to find parents without user_id")
+
+	testCases := []struct {
+		name     string
+		arg      QueryEmployeesAscParams
+		expected int
+	}{
+		{
+			name: "Limit 5",
+			arg: QueryEmployeesAscParams{
+				LimitNumber:  5,
+				OffsetNumber: 0,
+			},
+			expected: 5,
+		},
+		{
+			name: "Limit 5 Offset 5",
+			arg: QueryEmployeesAscParams{
+				LimitNumber:  5,
+				OffsetNumber: 5,
+			},
+			expected: 5,
+		},
+		{
+			name: "Limit 5 Offset 10",
+			arg: QueryEmployeesAscParams{
+				LimitNumber:  5,
+				OffsetNumber: 10,
+			},
+			expected: 0,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			employees, err := testQueries.QueryEmployeesAsc(context.Background(), tt.arg)
+			require.NoError(t, err)
+			require.Len(t, employees, tt.expected)
+		})
+	}
 }
 
 func TestUpdateEmployee(t *testing.T) {
@@ -152,28 +210,45 @@ func TestUpdateEmployee(t *testing.T) {
 
 	// Update parent details
 	newName := util.RandomString(8)
-	newAddress := util.RandomString(50)
-	newNoWa := util.RandomString(12)
 	newPhoto := util.RandomString(12)
 
-	arg := UpdateParentParams{
-		ID:      employee1.ID,
-		Name:    newName,
-		Gender:  GenderMale,
-		Address: newAddress,
-		NoWa:    pgtype.Text{String: newNoWa, Valid: true},
-		Photo:   pgtype.Text{String: newPhoto, Valid: true},
+	arg := UpdateEmployeeParams{
+		ID:           employee1.ID,
+		Nip:          pgtype.Text{String: util.RandomString(18), Valid: true},
+		Name:         newName,
+		Gender:       GenderMale,
+		Photo:        pgtype.Text{String: newPhoto, Valid: true},
+		OccupationID: employee1.OccupationID,
+		UserID:       employee1.UserID,
 	}
 
-	parent2, err := testQueries.UpdateParent(context.Background(), arg)
+	employeeUpdated, err := testQueries.UpdateEmployee(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, parent2)
+	require.NotEmpty(t, employeeUpdated)
 
-	require.Equal(t, employee1.ID, parent2.ID)
-	require.Equal(t, newName, parent2.Name)
-	require.Equal(t, newAddress, parent2.Address)
-	require.Equal(t, employee1.Gender, parent2.Gender) // Gender should remain unchanged
-	require.Equal(t, newNoWa, parent2.NoWa.String)
-	require.Equal(t, newPhoto, parent2.Photo.String)
-	require.Equal(t, employee1.UserID, parent2.UserID) // UserID should remain unchanged
+	require.Equal(t, employee1.ID, employeeUpdated.ID)
+	require.Equal(t, newName, employeeUpdated.Name)
+	require.Equal(t, arg.Nip.String, employeeUpdated.Nip.String)
+	require.Equal(t, employee1.OccupationID, employeeUpdated.OccupationID)
+	require.Equal(t, employee1.Gender, employeeUpdated.Gender) // Gender should remain unchanged
+	require.Equal(t, newPhoto, employeeUpdated.Photo.String)
+	require.Equal(t, employee1.UserID, employeeUpdated.UserID) // UserID should remain unchanged
+}
+
+func TestDeleteEmployee(t *testing.T) {
+	clearEmployeeTable(t)
+	employee := createRandomEmployee(t)
+	deletedEmployee, err := testQueries.DeleteEmployee(context.Background(), employee.ID)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, deletedEmployee)
+
+	// Check that the deleted employee is the same as the one we created
+	assert.Equal(t, employee.ID, deletedEmployee.ID)
+	assert.Equal(t, employee.Nip.String, deletedEmployee.Nip.String)
+	assert.Equal(t, employee.Name, deletedEmployee.Name)
+	assert.Equal(t, employee.Gender, deletedEmployee.Gender)
+	assert.Equal(t, employee.Photo.String, deletedEmployee.Photo.String)
+	assert.Equal(t, employee.OccupationID, deletedEmployee.OccupationID)
+	assert.Equal(t, employee.UserID, deletedEmployee.UserID)
 }

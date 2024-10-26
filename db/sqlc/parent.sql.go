@@ -11,6 +11,42 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countParents = `-- name: CountParents :one
+SELECT
+    COUNT(*) AS "count"
+FROM
+    "parent"
+WHERE
+    (
+        $1 :: text IS NULL
+        OR "name" ILIKE '%' || $1 || '%'
+    )
+    AND (
+        $2 :: smallint IS NULL
+        OR (
+            $2 = 1
+            AND "user_id" IS NOT NULL
+        )
+        OR (
+            $2 = 0
+            AND "user_id" IS NULL
+        )
+        OR ($2 = -1)
+    )
+`
+
+type CountParentsParams struct {
+	Q       pgtype.Text
+	HasUser int16
+}
+
+func (q *Queries) CountParents(ctx context.Context, arg CountParentsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countParents, arg.Q, arg.HasUser)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createParent = `-- name: CreateParent :one
 INSERT INTO
     "parent" (
@@ -64,7 +100,10 @@ func (q *Queries) CreateParent(ctx context.Context, arg CreateParentParams) (Par
 }
 
 const deleteParent = `-- name: DeleteParent :one
-DELETE FROM "parent" WHERE "id" = $1 RETURNING id, name, address, gender, no_wa, photo, user_id
+DELETE FROM
+    "parent"
+WHERE
+    "id" = $1 RETURNING id, name, address, gender, no_wa, photo, user_id
 `
 
 func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
@@ -84,7 +123,9 @@ func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
 
 const getParent = `-- name: GetParent :one
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id, "user"."id" AS "userId", "user"."username" AS "userUsername"
+    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id,
+    "user"."id" AS "userId",
+    "user"."username" AS "userUsername"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
@@ -123,18 +164,19 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 
 const queryParentsAsc = `-- name: QueryParentsAsc :many
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id, "user"."id" AS "userId", "user"."username" AS "userUsername"
+    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id,
+    "user"."id" AS "userId",
+    "user"."username" AS "userUsername"
 FROM
     "parent"
-LEFT JOIN
-    "user" ON "parent"."user_id" = "user"."id"
+    LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
 WHERE
     (
-        $1::text IS NULL
+        $1 :: text IS NULL
         OR "name" ILIKE '%' || $1 || '%'
     )
     AND (
-        $2::smallint IS NULL
+        $2 :: smallint IS NULL
         OR (
             $2 = 1
             AND "user_id" IS NOT NULL
@@ -184,6 +226,91 @@ func (q *Queries) QueryParentsAsc(ctx context.Context, arg QueryParentsAscParams
 	items := []QueryParentsAscRow{}
 	for rows.Next() {
 		var i QueryParentsAscRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Address,
+			&i.Gender,
+			&i.NoWa,
+			&i.Photo,
+			&i.UserID,
+			&i.UserId,
+			&i.UserUsername,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const queryParentsDesc = `-- name: QueryParentsDesc :many
+SELECT
+    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id,
+    "user"."id" AS "userId",
+    "user"."username" AS "userUsername"
+FROM
+    "parent"
+    LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
+WHERE
+    (
+        $1 :: text IS NULL
+        OR "name" ILIKE '%' || $1 || '%'
+    )
+    AND (
+        $2 :: smallint IS NULL
+        OR (
+            $2 = 1
+            AND "user_id" IS NOT NULL
+        )
+        OR (
+            $2 = 0
+            AND "user_id" IS NULL
+        )
+        OR ($2 = -1)
+    )
+ORDER BY
+    "name" ASC
+LIMIT
+    $4 OFFSET $3
+`
+
+type QueryParentsDescParams struct {
+	Q            pgtype.Text
+	HasUser      int16
+	OffsetNumber int32
+	LimitNumber  int32
+}
+
+type QueryParentsDescRow struct {
+	ID           int32
+	Name         string
+	Address      string
+	Gender       Gender
+	NoWa         pgtype.Text
+	Photo        pgtype.Text
+	UserID       pgtype.Int4
+	UserId       pgtype.Int4
+	UserUsername pgtype.Text
+}
+
+func (q *Queries) QueryParentsDesc(ctx context.Context, arg QueryParentsDescParams) ([]QueryParentsDescRow, error) {
+	rows, err := q.db.Query(ctx, queryParentsDesc,
+		arg.Q,
+		arg.HasUser,
+		arg.OffsetNumber,
+		arg.LimitNumber,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []QueryParentsDescRow{}
+	for rows.Next() {
+		var i QueryParentsDescRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,

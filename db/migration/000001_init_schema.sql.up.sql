@@ -208,11 +208,11 @@ COMMENT ON COLUMN "arduino"."name" IS 'ex: arduino1';
 
 ALTER TABLE "holiday_days" ADD FOREIGN KEY ("holiday_id") REFERENCES "holiday" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "santri" ADD FOREIGN KEY ("occupation_id") REFERENCES "santri_occupation" ("id");
+ALTER TABLE "santri" ADD FOREIGN KEY ("occupation_id") REFERENCES "santri_occupation" ("id") ON DELETE SET NULL;
 
-ALTER TABLE "santri" ADD FOREIGN KEY ("parent_id") REFERENCES "parent" ("id");
+ALTER TABLE "santri" ADD FOREIGN KEY ("parent_id") REFERENCES "parent" ("id") ON DELETE SET NULL;
 
-ALTER TABLE "parent" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("id");
+ALTER TABLE "parent" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE SET NULL;
 
 ALTER TABLE "rfid" ADD FOREIGN KEY ("santri_id") REFERENCES "santri" ("id");
 
@@ -226,7 +226,7 @@ ALTER TABLE "santri_permission" ADD FOREIGN KEY ("santri_id") REFERENCES "santri
 
 ALTER TABLE "employee" ADD FOREIGN KEY ("occupation_id") REFERENCES "employee_occupation" ("id");
 
-ALTER TABLE "employee" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("id");
+ALTER TABLE "employee" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE SET NULL;
 
 ALTER TABLE "employee_presence" ADD FOREIGN KEY ("employee_id") REFERENCES "employee" ("id") ON DELETE CASCADE;
 
