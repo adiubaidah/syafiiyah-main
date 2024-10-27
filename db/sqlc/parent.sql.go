@@ -53,7 +53,7 @@ INSERT INTO
         "name",
         "address",
         "gender",
-        "no_wa",
+        "wa_phone",
         "photo",
         "user_id"
     )
@@ -65,7 +65,7 @@ VALUES
         $4,
         $5,
         $6
-    ) RETURNING id, name, address, gender, no_wa, photo, user_id
+    ) RETURNING id, name, address, gender, wa_phone, photo, user_id
 `
 
 type CreateParentParams struct {
@@ -92,7 +92,7 @@ func (q *Queries) CreateParent(ctx context.Context, arg CreateParentParams) (Par
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.NoWa,
+		&i.WaPhone,
 		&i.Photo,
 		&i.UserID,
 	)
@@ -103,7 +103,7 @@ const deleteParent = `-- name: DeleteParent :one
 DELETE FROM
     "parent"
 WHERE
-    "id" = $1 RETURNING id, name, address, gender, no_wa, photo, user_id
+    "id" = $1 RETURNING id, name, address, gender, wa_phone, photo, user_id
 `
 
 func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
@@ -114,7 +114,7 @@ func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.NoWa,
+		&i.WaPhone,
 		&i.Photo,
 		&i.UserID,
 	)
@@ -123,7 +123,7 @@ func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
 
 const getParent = `-- name: GetParent :one
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id,
+    parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
     "user"."id" AS "userId",
     "user"."username" AS "userUsername"
 FROM
@@ -138,7 +138,7 @@ type GetParentRow struct {
 	Name         string
 	Address      string
 	Gender       Gender
-	NoWa         pgtype.Text
+	WaPhone      pgtype.Text
 	Photo        pgtype.Text
 	UserID       pgtype.Int4
 	UserId       pgtype.Int4
@@ -153,7 +153,7 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.NoWa,
+		&i.WaPhone,
 		&i.Photo,
 		&i.UserID,
 		&i.UserId,
@@ -164,7 +164,7 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 
 const queryParentsAsc = `-- name: QueryParentsAsc :many
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id,
+    parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
     "user"."id" AS "userId",
     "user"."username" AS "userUsername"
 FROM
@@ -205,7 +205,7 @@ type QueryParentsAscRow struct {
 	Name         string
 	Address      string
 	Gender       Gender
-	NoWa         pgtype.Text
+	WaPhone      pgtype.Text
 	Photo        pgtype.Text
 	UserID       pgtype.Int4
 	UserId       pgtype.Int4
@@ -231,7 +231,7 @@ func (q *Queries) QueryParentsAsc(ctx context.Context, arg QueryParentsAscParams
 			&i.Name,
 			&i.Address,
 			&i.Gender,
-			&i.NoWa,
+			&i.WaPhone,
 			&i.Photo,
 			&i.UserID,
 			&i.UserId,
@@ -249,7 +249,7 @@ func (q *Queries) QueryParentsAsc(ctx context.Context, arg QueryParentsAscParams
 
 const queryParentsDesc = `-- name: QueryParentsDesc :many
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.no_wa, parent.photo, parent.user_id,
+    parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
     "user"."id" AS "userId",
     "user"."username" AS "userUsername"
 FROM
@@ -290,7 +290,7 @@ type QueryParentsDescRow struct {
 	Name         string
 	Address      string
 	Gender       Gender
-	NoWa         pgtype.Text
+	WaPhone      pgtype.Text
 	Photo        pgtype.Text
 	UserID       pgtype.Int4
 	UserId       pgtype.Int4
@@ -316,7 +316,7 @@ func (q *Queries) QueryParentsDesc(ctx context.Context, arg QueryParentsDescPara
 			&i.Name,
 			&i.Address,
 			&i.Gender,
-			&i.NoWa,
+			&i.WaPhone,
 			&i.Photo,
 			&i.UserID,
 			&i.UserId,
@@ -339,11 +339,11 @@ SET
     "name" = $1,
     "address" = $2,
     "gender" = $3,
-    "no_wa" = $4,
+    "wa_phone" = $4,
     "photo" = $5,
     "user_id" = $6
 WHERE
-    "id" = $7 RETURNING id, name, address, gender, no_wa, photo, user_id
+    "id" = $7 RETURNING id, name, address, gender, wa_phone, photo, user_id
 `
 
 type UpdateParentParams struct {
@@ -372,7 +372,7 @@ func (q *Queries) UpdateParent(ctx context.Context, arg UpdateParentParams) (Par
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.NoWa,
+		&i.WaPhone,
 		&i.Photo,
 		&i.UserID,
 	)

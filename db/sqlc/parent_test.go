@@ -29,7 +29,7 @@ func createRandomParent(t *testing.T) Parent {
 	require.Equal(t, arg.Name, parent.Name)
 	require.Equal(t, arg.Address, parent.Address)
 	require.Equal(t, arg.Gender, parent.Gender)
-	require.Equal(t, arg.NoWa.String, parent.NoWa.String)
+	require.Equal(t, arg.NoWa.String, parent.WaPhone.String)
 	require.Equal(t, arg.Photo.String, parent.Photo.String)
 
 	return parent
@@ -52,7 +52,7 @@ func createRandomParentWithUser(t *testing.T) (Parent, User) {
 	require.Equal(t, arg.Name, parent.Name)
 	require.Equal(t, arg.Address, parent.Address)
 	require.Equal(t, arg.Gender, parent.Gender)
-	require.Equal(t, arg.NoWa.String, parent.NoWa.String)
+	require.Equal(t, arg.NoWa.String, parent.WaPhone.String)
 	require.Equal(t, arg.Photo.String, parent.Photo.String)
 	require.Equal(t, arg.UserID.Int32, parent.UserID.Int32)
 	return parent, user
@@ -257,7 +257,7 @@ func TestUpdateParent(t *testing.T) {
 	require.Equal(t, newName, parent2.Name)
 	require.Equal(t, newAddress, parent2.Address)
 	require.Equal(t, parent1.Gender, parent2.Gender) // Gender should remain unchanged
-	require.Equal(t, newNoWa, parent2.NoWa.String)
+	require.Equal(t, newNoWa, parent2.WaPhone.String)
 	require.Equal(t, newPhoto, parent2.Photo.String)
 	require.Equal(t, parent1.UserID, parent2.UserID) // UserID should remain unchanged
 }

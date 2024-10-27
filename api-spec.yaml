@@ -568,19 +568,19 @@ paths:
           required: false
           description: Limit per page
         - in: query
-          name: start
+          name: from
           schema:
             type: string
           required: false
           example: "2024-12-25"
-          description: Filter by start date
+          description: Filter by from date
         - in: query
-          name: end
+          name: to
           schema:
             type: string
           required: false
           example: "2024-12-27"
-          description: Filter by end date
+          description: Filter by to date
       responses:
         "200":
           description: OK
@@ -971,9 +971,11 @@ paths:
                                           $ref: "#/components/schemas/Parent"
                               pagination:
                                 $ref: "#/components/schemas/Pagination"
+                            description: For Admin
                           - type: array
                             items: 
                               $ref: "#/components/schemas/Santri"
+                            description: For Parent
                           
                         
     post:
@@ -2409,6 +2411,9 @@ components:
     NewSantri:
       type: object
       properties:
+        nis:
+          type: string
+          uniqueItems: true
         name:
           type: string
         gender:

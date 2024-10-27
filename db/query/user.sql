@@ -4,7 +4,7 @@ INSERT INTO
 VALUES
     (@role::user_role, @username::text, @password::text) RETURNING *;
 
--- name: QueryUserAscUsername :many
+-- name: QueryUsersAscUsername :many
 SELECT
     "user"."id",
     "user"."username",
@@ -43,7 +43,7 @@ ORDER BY
 LIMIT
     @limit_number OFFSET @offset_number;
 
--- name: QueryUserDescUsername :many
+-- name: QueryUsersDescUsername :many
 SELECT
     "user"."id",
     "user"."username",
@@ -82,7 +82,7 @@ ORDER BY
 LIMIT
     @limit_number OFFSET @offset_number;
 
--- name: CountUser :one
+-- name: CountUsers :one
 SELECT
     COUNT(*) AS "count"
 FROM

@@ -29,7 +29,7 @@ VALUES
         $4::text,
         $5,
         $6::integer
-    ) RETURNING id, nip, name, gender, photo, occupation_id, user_id
+    ) RETURNING id, nip, name, gender, photo, occupation_id, is_active, user_id
 `
 
 type CreateEmployeeParams struct {
@@ -58,6 +58,7 @@ func (q *Queries) CreateEmployee(ctx context.Context, arg CreateEmployeeParams) 
 		&i.Gender,
 		&i.Photo,
 		&i.OccupationID,
+		&i.IsActive,
 		&i.UserID,
 	)
 	return i, err
@@ -68,7 +69,7 @@ DELETE FROM
     "employee"
 WHERE
     "id" = $1
-RETURNING id, nip, name, gender, photo, occupation_id, user_id
+RETURNING id, nip, name, gender, photo, occupation_id, is_active, user_id
 `
 
 func (q *Queries) DeleteEmployee(ctx context.Context, id int32) (Employee, error) {
@@ -81,6 +82,7 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int32) (Employee, error
 		&i.Gender,
 		&i.Photo,
 		&i.OccupationID,
+		&i.IsActive,
 		&i.UserID,
 	)
 	return i, err
@@ -88,7 +90,7 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int32) (Employee, error
 
 const getEmployee = `-- name: GetEmployee :one
 SELECT
-    employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.user_id,
+    employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.is_active, employee.user_id,
     "user"."id" AS "userId",
     "user"."username" AS "userUsername"
 FROM
@@ -105,6 +107,7 @@ type GetEmployeeRow struct {
 	Gender       Gender
 	Photo        pgtype.Text
 	OccupationID int32
+	IsActive     pgtype.Bool
 	UserID       pgtype.Int4
 	UserId       pgtype.Int4
 	UserUsername pgtype.Text
@@ -120,6 +123,7 @@ func (q *Queries) GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, er
 		&i.Gender,
 		&i.Photo,
 		&i.OccupationID,
+		&i.IsActive,
 		&i.UserID,
 		&i.UserId,
 		&i.UserUsername,
@@ -129,7 +133,7 @@ func (q *Queries) GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, er
 
 const queryEmployeesAsc = `-- name: QueryEmployeesAsc :many
 SELECT
-    employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.user_id,
+    employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.is_active, employee.user_id,
     "user"."id" AS "userId",
     "user"."username" AS "userUsername"
 FROM
@@ -172,6 +176,7 @@ type QueryEmployeesAscRow struct {
 	Gender       Gender
 	Photo        pgtype.Text
 	OccupationID int32
+	IsActive     pgtype.Bool
 	UserID       pgtype.Int4
 	UserId       pgtype.Int4
 	UserUsername pgtype.Text
@@ -198,6 +203,7 @@ func (q *Queries) QueryEmployeesAsc(ctx context.Context, arg QueryEmployeesAscPa
 			&i.Gender,
 			&i.Photo,
 			&i.OccupationID,
+			&i.IsActive,
 			&i.UserID,
 			&i.UserId,
 			&i.UserUsername,
@@ -223,7 +229,7 @@ SET
     "occupation_id" = $5,
     "user_id" = $6
 WHERE
-    "id" = $7 RETURNING id, nip, name, gender, photo, occupation_id, user_id
+    "id" = $7 RETURNING id, nip, name, gender, photo, occupation_id, is_active, user_id
 `
 
 type UpdateEmployeeParams struct {
@@ -254,6 +260,7 @@ func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) 
 		&i.Gender,
 		&i.Photo,
 		&i.OccupationID,
+		&i.IsActive,
 		&i.UserID,
 	)
 	return i, err

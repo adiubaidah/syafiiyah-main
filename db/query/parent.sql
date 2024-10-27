@@ -87,7 +87,7 @@ INSERT INTO
         "name",
         "address",
         "gender",
-        "no_wa",
+        "wa_phone",
         "photo",
         "user_id"
     )
@@ -108,7 +108,7 @@ SET
     "name" = @name,
     "address" = @address,
     "gender" = @gender,
-    "no_wa" = @no_wa,
+    "wa_phone" = @no_wa,
     "photo" = sqlc.narg(photo),
     "user_id" = sqlc.narg(user_id)
 WHERE

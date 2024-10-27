@@ -206,6 +206,7 @@ type Employee struct {
 	Gender       Gender
 	Photo        pgtype.Text
 	OccupationID int32
+	IsActive     pgtype.Bool
 	UserID       pgtype.Int4
 }
 
@@ -249,13 +250,14 @@ type EmployeeSchedule struct {
 type Holiday struct {
 	ID int32
 	// Optional description of the holiday
-	Name  string
-	Color pgtype.Text
+	Name        string
+	Description pgtype.Text
+	Color       pgtype.Text
 }
 
 type HolidayDay struct {
 	ID        int32
-	Day       pgtype.Date
+	Date      pgtype.Date
 	HolidayID int32
 }
 
@@ -264,16 +266,16 @@ type Parent struct {
 	Name    string
 	Address string
 	Gender  Gender
-	NoWa    pgtype.Text
+	WaPhone pgtype.Text
 	Photo   pgtype.Text
 	UserID  pgtype.Int4
 }
 
 type Rfid struct {
 	ID        int32
-	Uid       pgtype.Text
+	Uid       string
 	CreatedAt pgtype.Timestamp
-	IsActive  pgtype.Bool
+	IsActive  bool
 	// Rfid bisa milik santri
 	SantriID pgtype.Int4
 	// Rfid bisa milik employee
@@ -281,10 +283,11 @@ type Rfid struct {
 }
 
 type Santri struct {
-	ID     int32
-	Nis    pgtype.Text
-	Name   string
-	Gender Gender
+	ID       int32
+	Nis      pgtype.Text
+	Name     string
+	Gender   Gender
+	IsActive bool
 	// ex: 2024, 2022
 	Generation int32
 	Photo      pgtype.Text
@@ -307,7 +310,7 @@ type SantriActivity struct {
 
 type SantriOccupation struct {
 	ID          int32
-	Name        pgtype.Text
+	Name        string
 	Description pgtype.Text
 }
 

@@ -46,7 +46,7 @@ func TestQueryUsersRelation(t *testing.T) {
 		createRandomUser(t, UserRoleEmployee)
 		createRandomUser(t, UserRoleParent)
 
-		arg := QueryUserAscUsernameParams{
+		arg := QueryUsersAscUsernameParams{
 			Q:            pgtype.Text{String: user1.Username.String[:3], Valid: true},
 			Role:         NullUserRole{Valid: false},
 			LimitNumber:  10,
@@ -54,7 +54,7 @@ func TestQueryUsersRelation(t *testing.T) {
 			HasRelation:  -1,
 		}
 
-		users, err := testQueries.QueryUserAscUsername(context.Background(), arg)
+		users, err := testQueries.QueryUsersAscUsername(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, users)
 	})
@@ -66,7 +66,7 @@ func TestQueryUsersRelation(t *testing.T) {
 		createRandomUser(t, UserRoleEmployee)
 		createRandomUser(t, UserRoleParent)
 
-		arg := QueryUserAscUsernameParams{
+		arg := QueryUsersAscUsernameParams{
 			Q:            pgtype.Text{String: "", Valid: false},
 			Role:         NullUserRole{Valid: false},
 			LimitNumber:  10,
@@ -74,7 +74,7 @@ func TestQueryUsersRelation(t *testing.T) {
 			HasRelation:  1,
 		}
 
-		users, err := testQueries.QueryUserAscUsername(context.Background(), arg)
+		users, err := testQueries.QueryUsersAscUsername(context.Background(), arg)
 		require.NoError(t, err)
 		require.Empty(t, users)
 	})
@@ -84,14 +84,14 @@ func TestQueryUsersRelation(t *testing.T) {
 		_, user := createRandomParentWithUser(t)
 		createRandomUser(t, UserRoleSuperadmin)
 
-		arg := QueryUserAscUsernameParams{
+		arg := QueryUsersAscUsernameParams{
 			Q:            pgtype.Text{String: "", Valid: false},
 			Role:         NullUserRole{Valid: false},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 			HasRelation:  1,
 		}
-		users, err := testQueries.QueryUserAscUsername(context.Background(), arg)
+		users, err := testQueries.QueryUsersAscUsername(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, users)
 		require.Equal(t, user.Username.String, users[0].Username.String)
@@ -106,12 +106,12 @@ func TestQueryUserPagination(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		arg      QueryUserAscUsernameParams
+		arg      QueryUsersAscUsernameParams
 		expected int
 	}{
 		{
 			name: "Limit 5",
-			arg: QueryUserAscUsernameParams{
+			arg: QueryUsersAscUsernameParams{
 				LimitNumber:  5,
 				OffsetNumber: 0,
 			},
@@ -119,7 +119,7 @@ func TestQueryUserPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 5",
-			arg: QueryUserAscUsernameParams{
+			arg: QueryUsersAscUsernameParams{
 				LimitNumber:  5,
 				OffsetNumber: 5,
 			},
@@ -127,7 +127,7 @@ func TestQueryUserPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: QueryUserAscUsernameParams{
+			arg: QueryUsersAscUsernameParams{
 				LimitNumber:  5,
 				OffsetNumber: 10,
 			},
@@ -137,7 +137,7 @@ func TestQueryUserPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testQueries.QueryUserAscUsername(context.Background(), tt.arg)
+			employees, err := testQueries.QueryUsersAscUsername(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})
