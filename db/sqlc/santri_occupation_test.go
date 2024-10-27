@@ -34,13 +34,13 @@ func TestCreateSantriOccupation(t *testing.T) {
 	createRandomSantriOccupation(t)
 }
 
-func TestQuerySantriOccupation(t *testing.T) {
+func TestListSantriOccupation(t *testing.T) {
 	clearSantriOccupation(t)
 	createRandomSantriOccupation(t)
 	createRandomSantriOccupation(t)
 	createRandomSantriOccupation(t)
 
-	santriOccupation, err := testQueries.QuerySantriOccupations(context.Background())
+	santriOccupation, err := testQueries.ListSantriOccupations(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, santriOccupation)
 

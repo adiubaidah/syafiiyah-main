@@ -44,7 +44,7 @@ func (q *Queries) DeleteHolidayDay(ctx context.Context, id int32) (HolidayDay, e
 	return i, err
 }
 
-const queryHolidayDays = `-- name: QueryHolidayDays :many
+const listHolidayDays = `-- name: ListHolidayDays :many
 SELECT
     holiday_day.id, date, holiday_id, holiday.id, name, description, color
 FROM
@@ -63,7 +63,7 @@ WHERE
     LIMIT $6 OFFSET $5
 `
 
-type QueryHolidayDaysParams struct {
+type ListHolidayDaysParams struct {
 	FromDate     pgtype.Date
 	ToDate       pgtype.Date
 	HolidayID    pgtype.Int4
@@ -72,7 +72,7 @@ type QueryHolidayDaysParams struct {
 	LimitNumber  int32
 }
 
-type QueryHolidayDaysRow struct {
+type ListHolidayDaysRow struct {
 	ID          int32
 	Date        pgtype.Date
 	HolidayID   int32
@@ -82,8 +82,8 @@ type QueryHolidayDaysRow struct {
 	Color       pgtype.Text
 }
 
-func (q *Queries) QueryHolidayDays(ctx context.Context, arg QueryHolidayDaysParams) ([]QueryHolidayDaysRow, error) {
-	rows, err := q.db.Query(ctx, queryHolidayDays,
+func (q *Queries) ListHolidayDays(ctx context.Context, arg ListHolidayDaysParams) ([]ListHolidayDaysRow, error) {
+	rows, err := q.db.Query(ctx, listHolidayDays,
 		arg.FromDate,
 		arg.ToDate,
 		arg.HolidayID,
@@ -95,9 +95,9 @@ func (q *Queries) QueryHolidayDays(ctx context.Context, arg QueryHolidayDaysPara
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QueryHolidayDaysRow{}
+	items := []ListHolidayDaysRow{}
 	for rows.Next() {
-		var i QueryHolidayDaysRow
+		var i ListHolidayDaysRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Date,

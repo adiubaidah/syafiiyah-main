@@ -4,7 +4,7 @@ INSERT INTO
 VALUES
     (@date, @holiday_id) RETURNING *;
 
--- name: QueryHolidayDays :many
+-- name: ListHolidayDays :many
 SELECT
     *
 FROM

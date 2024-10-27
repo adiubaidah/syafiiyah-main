@@ -121,7 +121,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (GetUserByIDRow, er
 	return i, err
 }
 
-const queryUsersAscUsername = `-- name: QueryUsersAscUsername :many
+const listUsersAscUsername = `-- name: ListUsersAscUsername :many
 SELECT
     "user"."id",
     "user"."username",
@@ -161,7 +161,7 @@ LIMIT
     $5 OFFSET $4
 `
 
-type QueryUsersAscUsernameParams struct {
+type ListUsersAscUsernameParams struct {
 	Q            pgtype.Text
 	Role         NullUserRole
 	HasRelation  int16
@@ -169,7 +169,7 @@ type QueryUsersAscUsernameParams struct {
 	LimitNumber  int32
 }
 
-type QueryUsersAscUsernameRow struct {
+type ListUsersAscUsernameRow struct {
 	ID           int32
 	Username     pgtype.Text
 	Role         NullUserRole
@@ -179,8 +179,8 @@ type QueryUsersAscUsernameRow struct {
 	EmployeeName pgtype.Text
 }
 
-func (q *Queries) QueryUsersAscUsername(ctx context.Context, arg QueryUsersAscUsernameParams) ([]QueryUsersAscUsernameRow, error) {
-	rows, err := q.db.Query(ctx, queryUsersAscUsername,
+func (q *Queries) ListUsersAscUsername(ctx context.Context, arg ListUsersAscUsernameParams) ([]ListUsersAscUsernameRow, error) {
+	rows, err := q.db.Query(ctx, listUsersAscUsername,
 		arg.Q,
 		arg.Role,
 		arg.HasRelation,
@@ -191,9 +191,9 @@ func (q *Queries) QueryUsersAscUsername(ctx context.Context, arg QueryUsersAscUs
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QueryUsersAscUsernameRow{}
+	items := []ListUsersAscUsernameRow{}
 	for rows.Next() {
-		var i QueryUsersAscUsernameRow
+		var i ListUsersAscUsernameRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
@@ -213,7 +213,7 @@ func (q *Queries) QueryUsersAscUsername(ctx context.Context, arg QueryUsersAscUs
 	return items, nil
 }
 
-const queryUsersDescUsername = `-- name: QueryUsersDescUsername :many
+const listUsersDescUsername = `-- name: ListUsersDescUsername :many
 SELECT
     "user"."id",
     "user"."username",
@@ -253,7 +253,7 @@ LIMIT
     $5 OFFSET $4
 `
 
-type QueryUsersDescUsernameParams struct {
+type ListUsersDescUsernameParams struct {
 	Q            pgtype.Text
 	Role         pgtype.Text
 	HasRelation  int16
@@ -261,7 +261,7 @@ type QueryUsersDescUsernameParams struct {
 	LimitNumber  int32
 }
 
-type QueryUsersDescUsernameRow struct {
+type ListUsersDescUsernameRow struct {
 	ID           int32
 	Username     pgtype.Text
 	Role         NullUserRole
@@ -271,8 +271,8 @@ type QueryUsersDescUsernameRow struct {
 	EmployeeName pgtype.Text
 }
 
-func (q *Queries) QueryUsersDescUsername(ctx context.Context, arg QueryUsersDescUsernameParams) ([]QueryUsersDescUsernameRow, error) {
-	rows, err := q.db.Query(ctx, queryUsersDescUsername,
+func (q *Queries) ListUsersDescUsername(ctx context.Context, arg ListUsersDescUsernameParams) ([]ListUsersDescUsernameRow, error) {
+	rows, err := q.db.Query(ctx, listUsersDescUsername,
 		arg.Q,
 		arg.Role,
 		arg.HasRelation,
@@ -283,9 +283,9 @@ func (q *Queries) QueryUsersDescUsername(ctx context.Context, arg QueryUsersDesc
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QueryUsersDescUsernameRow{}
+	items := []ListUsersDescUsernameRow{}
 	for rows.Next() {
-		var i QueryUsersDescUsernameRow
+		var i ListUsersDescUsernameRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,

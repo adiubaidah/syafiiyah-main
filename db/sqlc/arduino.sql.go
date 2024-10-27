@@ -33,18 +33,18 @@ func (q *Queries) DeleteArduino(ctx context.Context, id int32) (Arduino, error) 
 	return i, err
 }
 
-const queryArduino = `-- name: QueryArduino :many
+const listArduinos = `-- name: ListArduinos :many
 SELECT id, name FROM "arduino" WHERE "name" ILIKE '%' || $1 || '%' LIMIT $3 OFFSET $2
 `
 
-type QueryArduinoParams struct {
+type ListArduinosParams struct {
 	Name         pgtype.Text
 	OffsetNumber int32
 	LimitNumber  int32
 }
 
-func (q *Queries) QueryArduino(ctx context.Context, arg QueryArduinoParams) ([]Arduino, error) {
-	rows, err := q.db.Query(ctx, queryArduino, arg.Name, arg.OffsetNumber, arg.LimitNumber)
+func (q *Queries) ListArduinos(ctx context.Context, arg ListArduinosParams) ([]Arduino, error) {
+	rows, err := q.db.Query(ctx, listArduinos, arg.Name, arg.OffsetNumber, arg.LimitNumber)
 	if err != nil {
 		return nil, err
 	}

@@ -1444,6 +1444,8 @@ paths:
     delete:
       tags:
         - Santri Presence
+      summary: Delete Santri Presence By ID
+      description: Only Admin and Superadmin can manage this endpoint
       requestBody:
         content:
           application/json:

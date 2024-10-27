@@ -1,4 +1,4 @@
--- name: QueryParentsAsc :many
+-- name: ListParentsAsc :many
 SELECT
     "parent".*,
     "user"."id" AS "userId",
@@ -28,7 +28,7 @@ ORDER BY
 LIMIT
     @limit_number OFFSET @offset_number;
 
--- name: QueryParentsDesc :many
+-- name: ListParentsDesc :many
 SELECT
     "parent".*,
     "user"."id" AS "userId",

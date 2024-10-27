@@ -131,7 +131,7 @@ func (q *Queries) GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, er
 	return i, err
 }
 
-const queryEmployeesAsc = `-- name: QueryEmployeesAsc :many
+const listEmployeesAsc = `-- name: ListEmployeesAsc :many
 SELECT
     employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.is_active, employee.user_id,
     "user"."id" AS "userId",
@@ -162,14 +162,14 @@ LIMIT
     $4 OFFSET $3
 `
 
-type QueryEmployeesAscParams struct {
+type ListEmployeesAscParams struct {
 	Q            pgtype.Text
 	HasUser      int16
 	OffsetNumber int32
 	LimitNumber  int32
 }
 
-type QueryEmployeesAscRow struct {
+type ListEmployeesAscRow struct {
 	ID           int32
 	Nip          pgtype.Text
 	Name         string
@@ -182,8 +182,8 @@ type QueryEmployeesAscRow struct {
 	UserUsername pgtype.Text
 }
 
-func (q *Queries) QueryEmployeesAsc(ctx context.Context, arg QueryEmployeesAscParams) ([]QueryEmployeesAscRow, error) {
-	rows, err := q.db.Query(ctx, queryEmployeesAsc,
+func (q *Queries) ListEmployeesAsc(ctx context.Context, arg ListEmployeesAscParams) ([]ListEmployeesAscRow, error) {
+	rows, err := q.db.Query(ctx, listEmployeesAsc,
 		arg.Q,
 		arg.HasUser,
 		arg.OffsetNumber,
@@ -193,9 +193,9 @@ func (q *Queries) QueryEmployeesAsc(ctx context.Context, arg QueryEmployeesAscPa
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QueryEmployeesAscRow{}
+	items := []ListEmployeesAscRow{}
 	for rows.Next() {
-		var i QueryEmployeesAscRow
+		var i ListEmployeesAscRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Nip,

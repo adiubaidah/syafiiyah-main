@@ -62,23 +62,23 @@ func TestCreateParent(t *testing.T) {
 	createRandomParent(t)
 }
 
-func TestQueryParentsWithQ(t *testing.T) {
+func TestListParentsWithQ(t *testing.T) {
 	clearParentTable(t)
 	// Create test data with different names
 	parent1 := createRandomParent(t)
 	createRandomParent(t)
 	createRandomParent(t)
 
-	t.Run("Query by partial parent name", func(t *testing.T) {
+	t.Run("List by partial parent name", func(t *testing.T) {
 		// Search for a specific parent name using `q`
-		arg := QueryParentsAscParams{
+		arg := ListParentsAscParams{
 			Q:            pgtype.Text{String: parent1.Name[:3], Valid: true}, // Partially match the first 3 characters of name
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		// Perform query
-		parents, err := testQueries.QueryParentsAsc(context.Background(), arg)
+		// Perform List
+		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -90,25 +90,25 @@ func TestQueryParentsWithQ(t *testing.T) {
 				break
 			}
 		}
-		require.True(t, found, "Expected to find a parent matching the query")
+		require.True(t, found, "Expected to find a parent matching the List")
 	})
 }
 
-func TestQueryParentWithHasUser(t *testing.T) {
+func TestListParentWithHasUser(t *testing.T) {
 	clearParentTable(t)
 	// Create test data with and without user IDs
 	_, user := createRandomParentWithUser(t)
 	createRandomParent(t)
 
-	t.Run("Query parents with user ID", func(t *testing.T) {
-		// Query with `has_user = 1` (only parents with user_id)
-		arg := QueryParentsAscParams{
+	t.Run("List parents with user ID", func(t *testing.T) {
+		// List with `has_user = 1` (only parents with user_id)
+		arg := ListParentsAscParams{
 			HasUser:      1,
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		parents, err := testQueries.QueryParentsAsc(context.Background(), arg)
+		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -120,15 +120,15 @@ func TestQueryParentWithHasUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Query parents without user ID", func(t *testing.T) {
-		// Query with `has_user = 0` (only parents without user_id)
-		arg := QueryParentsAscParams{
+	t.Run("List parents without user ID", func(t *testing.T) {
+		// List with `has_user = 0` (only parents without user_id)
+		arg := ListParentsAscParams{
 			HasUser:      0,
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		parents, err := testQueries.QueryParentsAsc(context.Background(), arg)
+		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -137,15 +137,15 @@ func TestQueryParentWithHasUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Query all parents regardless of user ID", func(t *testing.T) {
-		// Query with `has_user = -1` (all parents)
-		arg := QueryParentsAscParams{
+	t.Run("List all parents regardless of user ID", func(t *testing.T) {
+		// List with `has_user = -1` (all parents)
+		arg := ListParentsAscParams{
 			HasUser:      -1,
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		parents, err := testQueries.QueryParentsAsc(context.Background(), arg)
+		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -165,7 +165,7 @@ func TestQueryParentWithHasUser(t *testing.T) {
 	})
 }
 
-func TestQueryParentPagination(t *testing.T) {
+func TestListParentPagination(t *testing.T) {
 	clearParentTable(t)
 	for i := 0; i < 10; i++ {
 		createRandomParent(t)
@@ -173,12 +173,12 @@ func TestQueryParentPagination(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		arg      QueryParentsAscParams
+		arg      ListParentsAscParams
 		expected int
 	}{
 		{
 			name: "Limit 5",
-			arg: QueryParentsAscParams{
+			arg: ListParentsAscParams{
 				LimitNumber:  5,
 				OffsetNumber: 0,
 			},
@@ -186,7 +186,7 @@ func TestQueryParentPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 5",
-			arg: QueryParentsAscParams{
+			arg: ListParentsAscParams{
 				LimitNumber:  5,
 				OffsetNumber: 5,
 			},
@@ -194,7 +194,7 @@ func TestQueryParentPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: QueryParentsAscParams{
+			arg: ListParentsAscParams{
 				LimitNumber:  5,
 				OffsetNumber: 10,
 			},
@@ -204,7 +204,7 @@ func TestQueryParentPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testQueries.QueryParentsAsc(context.Background(), tt.arg)
+			employees, err := testQueries.ListParentsAsc(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})

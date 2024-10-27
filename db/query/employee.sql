@@ -1,4 +1,4 @@
--- name: QueryEmployeesAsc :many
+-- name: ListEmployeesAsc :many
 SELECT
     "employee".*,
     "user"."id" AS "userId",

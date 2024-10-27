@@ -152,7 +152,7 @@ func (q *Queries) GetSantri(ctx context.Context, id int32) (GetSantriRow, error)
 	return i, err
 }
 
-const querySantriAscGeneration = `-- name: QuerySantriAscGeneration :many
+const listSantriAscGeneration = `-- name: ListSantriAscGeneration :many
 SELECT
     santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
     "parent"."id" AS "parentId",
@@ -188,7 +188,7 @@ LIMIT
     $6 OFFSET $5
 `
 
-type QuerySantriAscGenerationParams struct {
+type ListSantriAscGenerationParams struct {
 	Q            pgtype.Text
 	ParentID     pgtype.Int4
 	OccupationID pgtype.Int4
@@ -197,7 +197,7 @@ type QuerySantriAscGenerationParams struct {
 	LimitNumber  int32
 }
 
-type QuerySantriAscGenerationRow struct {
+type ListSantriAscGenerationRow struct {
 	ID             int32
 	Nis            pgtype.Text
 	Name           string
@@ -214,8 +214,8 @@ type QuerySantriAscGenerationRow struct {
 	OccupationName pgtype.Text
 }
 
-func (q *Queries) QuerySantriAscGeneration(ctx context.Context, arg QuerySantriAscGenerationParams) ([]QuerySantriAscGenerationRow, error) {
-	rows, err := q.db.Query(ctx, querySantriAscGeneration,
+func (q *Queries) ListSantriAscGeneration(ctx context.Context, arg ListSantriAscGenerationParams) ([]ListSantriAscGenerationRow, error) {
+	rows, err := q.db.Query(ctx, listSantriAscGeneration,
 		arg.Q,
 		arg.ParentID,
 		arg.OccupationID,
@@ -227,9 +227,9 @@ func (q *Queries) QuerySantriAscGeneration(ctx context.Context, arg QuerySantriA
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QuerySantriAscGenerationRow{}
+	items := []ListSantriAscGenerationRow{}
 	for rows.Next() {
-		var i QuerySantriAscGenerationRow
+		var i ListSantriAscGenerationRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Nis,
@@ -256,7 +256,7 @@ func (q *Queries) QuerySantriAscGeneration(ctx context.Context, arg QuerySantriA
 	return items, nil
 }
 
-const querySantriAscName = `-- name: QuerySantriAscName :many
+const listSantriAscName = `-- name: ListSantriAscName :many
 SELECT
     santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
     "parent"."id" AS "parentId",
@@ -292,7 +292,7 @@ LIMIT
     $6 OFFSET $5
 `
 
-type QuerySantriAscNameParams struct {
+type ListSantriAscNameParams struct {
 	Q            pgtype.Text
 	ParentID     pgtype.Int4
 	OccupationID pgtype.Int4
@@ -301,7 +301,7 @@ type QuerySantriAscNameParams struct {
 	LimitNumber  int32
 }
 
-type QuerySantriAscNameRow struct {
+type ListSantriAscNameRow struct {
 	ID             int32
 	Nis            pgtype.Text
 	Name           string
@@ -318,8 +318,8 @@ type QuerySantriAscNameRow struct {
 	OccupationName pgtype.Text
 }
 
-func (q *Queries) QuerySantriAscName(ctx context.Context, arg QuerySantriAscNameParams) ([]QuerySantriAscNameRow, error) {
-	rows, err := q.db.Query(ctx, querySantriAscName,
+func (q *Queries) ListSantriAscName(ctx context.Context, arg ListSantriAscNameParams) ([]ListSantriAscNameRow, error) {
+	rows, err := q.db.Query(ctx, listSantriAscName,
 		arg.Q,
 		arg.ParentID,
 		arg.OccupationID,
@@ -331,9 +331,9 @@ func (q *Queries) QuerySantriAscName(ctx context.Context, arg QuerySantriAscName
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QuerySantriAscNameRow{}
+	items := []ListSantriAscNameRow{}
 	for rows.Next() {
-		var i QuerySantriAscNameRow
+		var i ListSantriAscNameRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Nis,
@@ -360,7 +360,7 @@ func (q *Queries) QuerySantriAscName(ctx context.Context, arg QuerySantriAscName
 	return items, nil
 }
 
-const querySantriAscNis = `-- name: QuerySantriAscNis :many
+const listSantriAscNis = `-- name: ListSantriAscNis :many
 SELECT
     santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
     "parent"."id" AS "parentId",
@@ -396,7 +396,7 @@ LIMIT
     $6 OFFSET $5
 `
 
-type QuerySantriAscNisParams struct {
+type ListSantriAscNisParams struct {
 	Q            pgtype.Text
 	ParentID     pgtype.Int4
 	OccupationID pgtype.Int4
@@ -405,7 +405,7 @@ type QuerySantriAscNisParams struct {
 	LimitNumber  int32
 }
 
-type QuerySantriAscNisRow struct {
+type ListSantriAscNisRow struct {
 	ID             int32
 	Nis            pgtype.Text
 	Name           string
@@ -422,8 +422,8 @@ type QuerySantriAscNisRow struct {
 	OccupationName pgtype.Text
 }
 
-func (q *Queries) QuerySantriAscNis(ctx context.Context, arg QuerySantriAscNisParams) ([]QuerySantriAscNisRow, error) {
-	rows, err := q.db.Query(ctx, querySantriAscNis,
+func (q *Queries) ListSantriAscNis(ctx context.Context, arg ListSantriAscNisParams) ([]ListSantriAscNisRow, error) {
+	rows, err := q.db.Query(ctx, listSantriAscNis,
 		arg.Q,
 		arg.ParentID,
 		arg.OccupationID,
@@ -435,9 +435,9 @@ func (q *Queries) QuerySantriAscNis(ctx context.Context, arg QuerySantriAscNisPa
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QuerySantriAscNisRow{}
+	items := []ListSantriAscNisRow{}
 	for rows.Next() {
-		var i QuerySantriAscNisRow
+		var i ListSantriAscNisRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Nis,
@@ -464,7 +464,7 @@ func (q *Queries) QuerySantriAscNis(ctx context.Context, arg QuerySantriAscNisPa
 	return items, nil
 }
 
-const querySantriAscOccupation = `-- name: QuerySantriAscOccupation :many
+const listSantriAscOccupation = `-- name: ListSantriAscOccupation :many
 SELECT
     santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
     "parent"."id" AS "parentId",
@@ -500,7 +500,7 @@ LIMIT
     $6 OFFSET $5
 `
 
-type QuerySantriAscOccupationParams struct {
+type ListSantriAscOccupationParams struct {
 	Q            pgtype.Text
 	ParentID     pgtype.Int4
 	OccupationID pgtype.Int4
@@ -509,7 +509,7 @@ type QuerySantriAscOccupationParams struct {
 	LimitNumber  int32
 }
 
-type QuerySantriAscOccupationRow struct {
+type ListSantriAscOccupationRow struct {
 	ID             int32
 	Nis            pgtype.Text
 	Name           string
@@ -526,8 +526,8 @@ type QuerySantriAscOccupationRow struct {
 	OccupationName pgtype.Text
 }
 
-func (q *Queries) QuerySantriAscOccupation(ctx context.Context, arg QuerySantriAscOccupationParams) ([]QuerySantriAscOccupationRow, error) {
-	rows, err := q.db.Query(ctx, querySantriAscOccupation,
+func (q *Queries) ListSantriAscOccupation(ctx context.Context, arg ListSantriAscOccupationParams) ([]ListSantriAscOccupationRow, error) {
+	rows, err := q.db.Query(ctx, listSantriAscOccupation,
 		arg.Q,
 		arg.ParentID,
 		arg.OccupationID,
@@ -539,9 +539,9 @@ func (q *Queries) QuerySantriAscOccupation(ctx context.Context, arg QuerySantriA
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QuerySantriAscOccupationRow{}
+	items := []ListSantriAscOccupationRow{}
 	for rows.Next() {
-		var i QuerySantriAscOccupationRow
+		var i ListSantriAscOccupationRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Nis,

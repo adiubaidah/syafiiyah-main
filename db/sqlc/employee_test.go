@@ -65,7 +65,7 @@ func TestCreateEmployee(t *testing.T) {
 	createRandomEmployee(t)
 }
 
-func TestQueryEmployeeWithQ(t *testing.T) {
+func TestListEmployeeWithQ(t *testing.T) {
 	clearEmployeeTable(t)
 	// Create test data with different names
 	employee1 := createRandomEmployee(t)
@@ -73,14 +73,14 @@ func TestQueryEmployeeWithQ(t *testing.T) {
 	createRandomEmployee(t)
 
 	// Search for a specific parent name using `q`
-	arg := QueryEmployeesAscParams{
+	arg := ListEmployeesAscParams{
 		Q:            pgtype.Text{String: employee1.Name[:3], Valid: true},
 		LimitNumber:  10,
 		OffsetNumber: 0,
 	}
 
-	// Perform query
-	employees, err := testQueries.QueryEmployeesAsc(context.Background(), arg)
+	// Perform List
+	employees, err := testQueries.ListEmployeesAsc(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employees)
 
@@ -92,21 +92,21 @@ func TestQueryEmployeeWithQ(t *testing.T) {
 			break
 		}
 	}
-	require.True(t, found, "Expected to find a employee matching the query")
+	require.True(t, found, "Expected to find a employee matching the List")
 }
 
-func TestQueryEmployeeWithHasUser(t *testing.T) {
+func TestListEmployeeWithHasUser(t *testing.T) {
 	clearEmployeeTable(t)
 	_, user := createRandomEmployeeWithUser(t)
 	createRandomEmployee(t)
 
-	t.Run("Query with `has_user = 1` (only parents with user_id)", func(t *testing.T) {
-		arg := QueryEmployeesAscParams{
+	t.Run("List with `has_user = 1` (only parents with user_id)", func(t *testing.T) {
+		arg := ListEmployeesAscParams{
 			HasUser:      1,
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		employeessWithUser, err := testQueries.QueryEmployeesAsc(context.Background(), arg)
+		employeessWithUser, err := testQueries.ListEmployeesAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, employeessWithUser)
 
@@ -118,13 +118,13 @@ func TestQueryEmployeeWithHasUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Query with `has_user = 0` (only parents without user_id)", func(t *testing.T) {
-		arg := QueryEmployeesAscParams{
+	t.Run("List with `has_user = 0` (only parents without user_id)", func(t *testing.T) {
+		arg := ListEmployeesAscParams{
 			HasUser:      0,
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		employeesWithoutUser, err := testQueries.QueryEmployeesAsc(context.Background(), arg)
+		employeesWithoutUser, err := testQueries.ListEmployeesAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, employeesWithoutUser)
 
@@ -133,13 +133,13 @@ func TestQueryEmployeeWithHasUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Query with `has_user = -1` (all parents)", func(t *testing.T) {
-		arg := QueryEmployeesAscParams{
+	t.Run("List with `has_user = -1` (all parents)", func(t *testing.T) {
+		arg := ListEmployeesAscParams{
 			HasUser:      -1,
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		allEmployees, err := testQueries.QueryEmployeesAsc(context.Background(), arg)
+		allEmployees, err := testQueries.ListEmployeesAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allEmployees)
 
@@ -159,7 +159,7 @@ func TestQueryEmployeeWithHasUser(t *testing.T) {
 	})
 }
 
-func TestQueryEmployeePagination(t *testing.T) {
+func TestListEmployeePagination(t *testing.T) {
 	clearEmployeeTable(t)
 	for i := 0; i < 10; i++ {
 		createRandomEmployee(t)
@@ -167,12 +167,12 @@ func TestQueryEmployeePagination(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		arg      QueryEmployeesAscParams
+		arg      ListEmployeesAscParams
 		expected int
 	}{
 		{
 			name: "Limit 5",
-			arg: QueryEmployeesAscParams{
+			arg: ListEmployeesAscParams{
 				LimitNumber:  5,
 				OffsetNumber: 0,
 			},
@@ -180,7 +180,7 @@ func TestQueryEmployeePagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 5",
-			arg: QueryEmployeesAscParams{
+			arg: ListEmployeesAscParams{
 				LimitNumber:  5,
 				OffsetNumber: 5,
 			},
@@ -188,7 +188,7 @@ func TestQueryEmployeePagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: QueryEmployeesAscParams{
+			arg: ListEmployeesAscParams{
 				LimitNumber:  5,
 				OffsetNumber: 10,
 			},
@@ -198,7 +198,7 @@ func TestQueryEmployeePagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testQueries.QueryEmployeesAsc(context.Background(), tt.arg)
+			employees, err := testQueries.ListEmployeesAsc(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})

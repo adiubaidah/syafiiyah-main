@@ -1,7 +1,7 @@
 -- name: CreateArduino :one
 INSERT INTO "arduino" ("name") VALUES (@name) RETURNING *;
 
--- name: QueryArduino :many
+-- name: ListArduinos :many
 SELECT * FROM "arduino" WHERE "name" ILIKE '%' || @name || '%' LIMIT @limit_number OFFSET @offset_number;
 
 -- name: UpdateArduino :one

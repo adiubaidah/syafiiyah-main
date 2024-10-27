@@ -40,7 +40,7 @@ func TestQueryEmployeeOccupation(t *testing.T) {
 	createRandomEmployeeOccupation(t)
 	createRandomEmployeeOccupation(t)
 
-	employeeOccupations, err := testQueries.QueryEmployeeOccupations(context.Background())
+	employeeOccupations, err := testQueries.ListEmployeeOccupations(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, employeeOccupations)
 }

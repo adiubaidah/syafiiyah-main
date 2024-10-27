@@ -1,5 +1,5 @@
 
--- name: QueryEmployeeOccupations :many
+-- name: ListEmployeeOccupations :many
 SELECT 
     *,
     COUNT(*) OVER () AS "count"

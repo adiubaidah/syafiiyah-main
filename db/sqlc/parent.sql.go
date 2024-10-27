@@ -162,7 +162,7 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 	return i, err
 }
 
-const queryParentsAsc = `-- name: QueryParentsAsc :many
+const listParentsAsc = `-- name: ListParentsAsc :many
 SELECT
     parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
     "user"."id" AS "userId",
@@ -193,14 +193,14 @@ LIMIT
     $4 OFFSET $3
 `
 
-type QueryParentsAscParams struct {
+type ListParentsAscParams struct {
 	Q            pgtype.Text
 	HasUser      int16
 	OffsetNumber int32
 	LimitNumber  int32
 }
 
-type QueryParentsAscRow struct {
+type ListParentsAscRow struct {
 	ID           int32
 	Name         string
 	Address      string
@@ -212,8 +212,8 @@ type QueryParentsAscRow struct {
 	UserUsername pgtype.Text
 }
 
-func (q *Queries) QueryParentsAsc(ctx context.Context, arg QueryParentsAscParams) ([]QueryParentsAscRow, error) {
-	rows, err := q.db.Query(ctx, queryParentsAsc,
+func (q *Queries) ListParentsAsc(ctx context.Context, arg ListParentsAscParams) ([]ListParentsAscRow, error) {
+	rows, err := q.db.Query(ctx, listParentsAsc,
 		arg.Q,
 		arg.HasUser,
 		arg.OffsetNumber,
@@ -223,9 +223,9 @@ func (q *Queries) QueryParentsAsc(ctx context.Context, arg QueryParentsAscParams
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QueryParentsAscRow{}
+	items := []ListParentsAscRow{}
 	for rows.Next() {
-		var i QueryParentsAscRow
+		var i ListParentsAscRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -247,7 +247,7 @@ func (q *Queries) QueryParentsAsc(ctx context.Context, arg QueryParentsAscParams
 	return items, nil
 }
 
-const queryParentsDesc = `-- name: QueryParentsDesc :many
+const listParentsDesc = `-- name: ListParentsDesc :many
 SELECT
     parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
     "user"."id" AS "userId",
@@ -278,14 +278,14 @@ LIMIT
     $4 OFFSET $3
 `
 
-type QueryParentsDescParams struct {
+type ListParentsDescParams struct {
 	Q            pgtype.Text
 	HasUser      int16
 	OffsetNumber int32
 	LimitNumber  int32
 }
 
-type QueryParentsDescRow struct {
+type ListParentsDescRow struct {
 	ID           int32
 	Name         string
 	Address      string
@@ -297,8 +297,8 @@ type QueryParentsDescRow struct {
 	UserUsername pgtype.Text
 }
 
-func (q *Queries) QueryParentsDesc(ctx context.Context, arg QueryParentsDescParams) ([]QueryParentsDescRow, error) {
-	rows, err := q.db.Query(ctx, queryParentsDesc,
+func (q *Queries) ListParentsDesc(ctx context.Context, arg ListParentsDescParams) ([]ListParentsDescRow, error) {
+	rows, err := q.db.Query(ctx, listParentsDesc,
 		arg.Q,
 		arg.HasUser,
 		arg.OffsetNumber,
@@ -308,9 +308,9 @@ func (q *Queries) QueryParentsDesc(ctx context.Context, arg QueryParentsDescPara
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QueryParentsDescRow{}
+	items := []ListParentsDescRow{}
 	for rows.Next() {
-		var i QueryParentsDescRow
+		var i ListParentsDescRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,

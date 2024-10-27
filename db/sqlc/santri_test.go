@@ -67,7 +67,7 @@ func TestCreateSantri(t *testing.T) {
 	createRandomSantri(t)
 }
 
-func TestQuerySantri(t *testing.T) {
+func TestListSantri(t *testing.T) {
 	clearSantriTable(t)
 	randomSantri, randomParent := createRandomSantriWithParent(t)
 	santris := []Santri{}
@@ -75,14 +75,14 @@ func TestQuerySantri(t *testing.T) {
 		santris = append(santris, createRandomSantri(t))
 	}
 
-	t.Run("Run with Query name", func(t *testing.T) {
-		arg := QuerySantriAscNameParams{
+	t.Run("Run with List name", func(t *testing.T) {
+		arg := ListSantriAscNameParams{
 			Q:            pgtype.Text{String: randomSantri.Name[:3], Valid: true},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		allSantri, err := testQueries.QuerySantriAscName(context.Background(), arg)
+		allSantri, err := testQueries.ListSantriAscName(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allSantri)
 
@@ -93,17 +93,17 @@ func TestQuerySantri(t *testing.T) {
 				break
 			}
 		}
-		require.True(t, found, "Expected to find a santri matching the query")
+		require.True(t, found, "Expected to find a santri matching the List")
 	})
 
-	t.Run("Run with Query Nis", func(t *testing.T) {
-		arg := QuerySantriAscNameParams{
+	t.Run("Run with List Nis", func(t *testing.T) {
+		arg := ListSantriAscNameParams{
 			Q:            pgtype.Text{String: randomSantri.Nis.String, Valid: true},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		allSantri, err := testQueries.QuerySantriAscName(context.Background(), arg)
+		allSantri, err := testQueries.ListSantriAscName(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allSantri)
 
@@ -114,17 +114,17 @@ func TestQuerySantri(t *testing.T) {
 				break
 			}
 		}
-		require.True(t, found, "Expected to find a santri matching the query")
+		require.True(t, found, "Expected to find a santri matching the List")
 	})
 
-	t.Run("Run with Query Parent Id", func(t *testing.T) {
-		arg := QuerySantriAscNameParams{
+	t.Run("Run with List Parent Id", func(t *testing.T) {
+		arg := ListSantriAscNameParams{
 			ParentID:     randomSantri.ParentID,
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		allSantri, err := testQueries.QuerySantriAscName(context.Background(), arg)
+		allSantri, err := testQueries.ListSantriAscName(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allSantri)
 
@@ -138,7 +138,7 @@ func TestQuerySantri(t *testing.T) {
 	require.Equal(t, len(santris), 10)
 }
 
-func TestQuerySantriPagination(t *testing.T) {
+func TestListSantriPagination(t *testing.T) {
 	clearSantriTable(t)
 	for i := 0; i < 15; i++ {
 		createRandomSantri(t)
@@ -146,12 +146,12 @@ func TestQuerySantriPagination(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		arg      QuerySantriAscNameParams
+		arg      ListSantriAscNameParams
 		expected int
 	}{
 		{
 			name: "Limit 5",
-			arg: QuerySantriAscNameParams{
+			arg: ListSantriAscNameParams{
 				LimitNumber:  5,
 				OffsetNumber: 0,
 			},
@@ -159,7 +159,7 @@ func TestQuerySantriPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 5",
-			arg: QuerySantriAscNameParams{
+			arg: ListSantriAscNameParams{
 				LimitNumber:  5,
 				OffsetNumber: 5,
 			},
@@ -167,7 +167,7 @@ func TestQuerySantriPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: QuerySantriAscNameParams{
+			arg: ListSantriAscNameParams{
 				LimitNumber:  5,
 				OffsetNumber: 10,
 			},
@@ -175,7 +175,7 @@ func TestQuerySantriPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: QuerySantriAscNameParams{
+			arg: ListSantriAscNameParams{
 				LimitNumber:  5,
 				OffsetNumber: 15,
 			},
@@ -185,7 +185,7 @@ func TestQuerySantriPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			allSantri, err := testQueries.QuerySantriAscName(context.Background(), tt.arg)
+			allSantri, err := testQueries.ListSantriAscName(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, allSantri, tt.expected)
 		})

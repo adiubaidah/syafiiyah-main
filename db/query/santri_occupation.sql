@@ -1,7 +1,7 @@
 -- name: CreateSantriOccupation :one
 INSERT INTO "santri_occupation" ("name", "description") VALUES (@name, @description) RETURNING *;
 
--- name: QuerySantriOccupations :many
+-- name: ListSantriOccupations :many
 SELECT 
     *,
     COUNT(*) OVER () AS "count"

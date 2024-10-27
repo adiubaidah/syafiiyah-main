@@ -38,7 +38,7 @@ func (q *Queries) DeleteSantriOccupation(ctx context.Context, id int32) (SantriO
 	return i, err
 }
 
-const querySantriOccupations = `-- name: QuerySantriOccupations :many
+const listSantriOccupations = `-- name: ListSantriOccupations :many
 SELECT 
     id, name, description,
     COUNT(*) OVER () AS "count"
@@ -46,22 +46,22 @@ FROM
     "santri_occupation"
 `
 
-type QuerySantriOccupationsRow struct {
+type ListSantriOccupationsRow struct {
 	ID          int32
 	Name        string
 	Description pgtype.Text
 	Count       int64
 }
 
-func (q *Queries) QuerySantriOccupations(ctx context.Context) ([]QuerySantriOccupationsRow, error) {
-	rows, err := q.db.Query(ctx, querySantriOccupations)
+func (q *Queries) ListSantriOccupations(ctx context.Context) ([]ListSantriOccupationsRow, error) {
+	rows, err := q.db.Query(ctx, listSantriOccupations)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []QuerySantriOccupationsRow{}
+	items := []ListSantriOccupationsRow{}
 	for rows.Next() {
-		var i QuerySantriOccupationsRow
+		var i ListSantriOccupationsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,

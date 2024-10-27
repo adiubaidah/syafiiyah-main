@@ -297,17 +297,6 @@ type Santri struct {
 	ParentID pgtype.Int4
 }
 
-type SantriActivity struct {
-	ID            int32
-	Name          string
-	Description   pgtype.Text
-	StartPresence pgtype.Time
-	// Waktu mulai kegiatan
-	StartTime pgtype.Time
-	// Waktu berakhirnya kegiatan
-	FinishTime pgtype.Time
-}
-
 type SantriOccupation struct {
 	ID          int32
 	Name        string
@@ -328,9 +317,9 @@ type SantriPermission struct {
 type SantriPresence struct {
 	ID pgtype.Int4
 	// Karena bisa saja activitynya dihapus
-	ActivityID int32
+	ScheduleID int32
 	// menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history
-	ActivityName string
+	ScheduleName string
 	Type         PresenceType
 	SantriID     int32
 	// Waktu presensi, bisa null karena jika sakit, maka diisi oleh Admin
@@ -338,6 +327,17 @@ type SantriPresence struct {
 	Notes     pgtype.Text
 	// Jika izin, maka ini diisi
 	SantriPermissionID pgtype.Int4
+}
+
+type SantriSchedule struct {
+	ID            int32
+	Name          string
+	Description   pgtype.Text
+	StartPresence pgtype.Time
+	// Waktu mulai kegiatan
+	StartTime pgtype.Time
+	// Waktu berakhirnya kegiatan
+	FinishTime pgtype.Time
 }
 
 type User struct {

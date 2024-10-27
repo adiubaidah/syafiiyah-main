@@ -22,7 +22,7 @@ VALUES
         @parent_id
     ) RETURNING *;
 
--- name: QuerySantriAscName :many
+-- name: ListSantriAscName :many
 SELECT
     "santri".*,
     "parent"."id" AS "parentId",
@@ -57,7 +57,7 @@ ORDER BY
 LIMIT
     @limit_number OFFSET @offset_number;
 
--- name: QuerySantriAscNis :many
+-- name: ListSantriAscNis :many
 SELECT
     "santri".*,
     "parent"."id" AS "parentId",
@@ -92,7 +92,7 @@ ORDER BY
 LIMIT
     @limit_number OFFSET @offset_number;
 
--- name: QuerySantriAscGeneration :many
+-- name: ListSantriAscGeneration :many
 SELECT
     "santri".*,
     "parent"."id" AS "parentId",
@@ -127,7 +127,7 @@ ORDER BY
 LIMIT
     @limit_number OFFSET @offset_number;
 
--- name: QuerySantriAscOccupation :many
+-- name: ListSantriAscOccupation :many
 SELECT
     "santri".*,
     "parent"."id" AS "parentId",
