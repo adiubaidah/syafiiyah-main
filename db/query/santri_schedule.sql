@@ -21,7 +21,13 @@ RETURNING *;
 SELECT
     *
 FROM
-    "santri_schedule";
+    "santri_schedule"
+ORDER BY
+    "start_time" ASC;
+
+-- name: GetLastSantriSchedule :one
+SELECT * FROM "santri_schedule"
+WHERE start_time = (SELECT MAX(start_time) FROM "santri_schedule");
 
 -- name: UpdateSantriSchedule :one
 UPDATE

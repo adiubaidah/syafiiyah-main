@@ -29,7 +29,7 @@ VALUES
         $4,
         $5,
         $6
-    ) RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, notes, santri_permission_id
+    ) RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
 `
 
 type CreateSantriPresenceParams struct {
@@ -58,6 +58,7 @@ func (q *Queries) CreateSantriPresence(ctx context.Context, arg CreateSantriPres
 		&i.Type,
 		&i.SantriID,
 		&i.CreatedAt,
+		&i.CreatedBy,
 		&i.Notes,
 		&i.SantriPermissionID,
 	)
@@ -66,7 +67,7 @@ func (q *Queries) CreateSantriPresence(ctx context.Context, arg CreateSantriPres
 
 const listSantriPresences = `-- name: ListSantriPresences :many
 SELECT
-    santri_presence.id, schedule_id, schedule_name, type, santri_id, created_at, notes, santri_permission_id, santri.id, nis, name, gender, is_active, generation, photo, occupation_id, parent_id
+    santri_presence.id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, santri.id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
 FROM
     "santri_presence"
     INNER JOIN "santri" ON "santri_presence"."santri_id" = "santri"."id"
@@ -116,15 +117,16 @@ type ListSantriPresencesRow struct {
 	ScheduleName       string
 	Type               PresenceType
 	SantriID           int32
-	CreatedAt          pgtype.Timestamp
+	CreatedAt          pgtype.Timestamptz
+	CreatedBy          SantriPresenceCreatedBy
 	Notes              pgtype.Text
 	SantriPermissionID pgtype.Int4
 	ID_2               int32
 	Nis                pgtype.Text
 	Name               string
 	Gender             Gender
-	IsActive           bool
 	Generation         int32
+	IsActive           pgtype.Bool
 	Photo              pgtype.Text
 	OccupationID       pgtype.Int4
 	ParentID           pgtype.Int4
@@ -155,14 +157,15 @@ func (q *Queries) ListSantriPresences(ctx context.Context, arg ListSantriPresenc
 			&i.Type,
 			&i.SantriID,
 			&i.CreatedAt,
+			&i.CreatedBy,
 			&i.Notes,
 			&i.SantriPermissionID,
 			&i.ID_2,
 			&i.Nis,
 			&i.Name,
 			&i.Gender,
-			&i.IsActive,
 			&i.Generation,
+			&i.IsActive,
 			&i.Photo,
 			&i.OccupationID,
 			&i.ParentID,

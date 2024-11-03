@@ -1,0 +1,210 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Project project_name {
+  database_type: 'PostgreSQL'
+  Note: 'Desain database pondok as syaifiiah'
+}
+
+enum user_role {
+  "superadmin"
+  "admin"
+  "employee"
+  "parent"
+}
+
+Table user {
+  id int [primary key, increment]
+  role user_role
+  username varchar(50) [unique]
+  password varchar(255)
+
+  Indexes {
+    username
+  }
+}
+
+Table holiday {
+  id int [primary key, increment]
+  name varchar(100) [not null, note: "Optional description of the holiday"]
+  color char(7) [null]
+  description varchar(255) [null]
+}
+
+Table holiday_day {
+  id int [primary key, increment]
+  date date [not null]
+  holiday_id int [not null]
+}
+Ref: holiday_day.holiday_id > holiday.id [delete: cascade]
+
+Table santri_schedule {
+  id int [primary key, increment]
+  name varchar(100) [not null]
+  description varchar(255) [null]
+  start_presence time [not null]
+  start_time time [not null, note: "Waktu mulai kegiatan"]
+  finish_time time [not null, note: "Waktu berakhirnya kegiatan"]
+}
+
+enum gender {
+  male
+  female
+}
+
+Table santri_occupation {
+  id int [increment, primary key]
+  name varchar(255) [not null]
+  description varchar(255) [null]
+}
+
+Table santri {
+  id int [primary key, increment]
+  nis varchar(15) [unique]
+  name varchar(255) [not null]
+  gender gender [not null]
+  generation int [not null, note: "ex: 2024, 2022"]
+  is_active boolean [default: true]
+  photo varchar(100) [null]
+  occupation_id int
+  parent_id int
+}
+Ref: santri.occupation_id > santri_occupation.id [delete: set null]
+Ref: santri.parent_id > parent.id [delete: set null]
+
+Table parent {
+  id int [primary key, increment]
+  name varchar(255) [not null]
+  address varchar(255) [not null]
+  gender gender [not null]
+  wa_phone varchar(13) [null, unique]
+  photo varchar(100) [null]
+  user_id int [unique]
+}
+Ref: parent.user_id - user.id [delete: set null]
+
+Table rfid {
+  id int [primary key, increment]
+  uid char(12) [unique, not null]
+  created_at timestamptz [not null, default: 'now()']
+  is_active boolean [default:false, not null]
+  santri_id int [null,ref: - santri.id, note: "Rfid bisa milik santri"]
+  employee_id int [null, ref: - employee.id, note : "Rfid bisa milik employee"]
+}
+
+enum presence_type {
+  "alpha"
+  "permission"
+  "sick"
+  "late"
+  "present"
+}
+
+enum santri_presence_created_by {
+  "system"
+  "tap"
+  "admin"
+}
+
+Table santri_presence {
+  id int [increment]
+  schedule_id int [not null, note: "Karena bisa saja activitynya dihapus"]
+  schedule_name varchar(100) [not null, note: "menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history"]
+  type presence_type [not null]
+  santri_id int [not null] 
+  created_at timestamptz [not null, default: `now()`]
+  created_by santri_presence_created_by [not null]
+  notes text [null]
+  santri_permission_id int [null, note: "Jika izin ditengah kegiatan maka akan diisi"]
+}
+Ref: santri_presence.santri_id > santri.id [delete: cascade]
+Ref: santri_presence.santri_permission_id > santri_permission.id [delete: cascade]
+
+enum santri_permission_type {
+  "sick"
+  "permission"
+}
+
+Table santri_permission {
+  id int [primary key, increment]
+  santri_id int [ref: > santri.id, not null]
+  type santri_permission_type [not null]
+  start_permission timestamptz [not null, default: 'now()']
+  end_permission timestamptz [null, note: "Waktu berakhir, jika pulang, maka setting end permissionnya di akhir waktu berakhirnya schedule yang terakhir"]
+  excuse varchar(255) [not null]
+}
+
+Table employee_occupation {
+  id int [primary key, increment]
+  name varchar(100) [not null]
+  description varchar(255) [null]
+}
+
+Table employee {
+  id int [primary key, increment]
+  nip char(18) [unique]
+  name varchar(100) [not null]
+  gender gender [not null]
+  photo varchar(100) [null]
+  occupation_id int [ref: > employee_occupation.id, not null]
+  user_id int [unique]
+
+  Indexes {
+    name
+  }
+}
+Ref: employee.user_id - user.id [delete: set null]
+
+Table employee_schedule {
+  id int [increment, primary key]
+  name varchar(100) [note: "ex: Pagi, siang, sore, malam", not null]
+  start_presence time [not null]
+  start_time time [not null, note: "Waktu jenis"]
+  finish_time time [not null]
+}
+
+Table employee_presence {
+  id int [increment]
+  schedule_id int [null]
+  type presence_type [not null]
+  employee_id int [not null]
+  notes text
+}
+Ref: employee_presence.employee_id > employee.id [delete: cascade]
+
+Table employee_permission {
+  id int [primary key, increment]
+  employee_id int [not null]
+  schedule_id int [not null]
+  schedule_name varchar(100) [not null]
+  start_permission time [not null, default: 'now()']
+  end_permission time [null, note: "waktu kembali, null berarti pulang"]
+  reason varchar(255) [not null]
+  is_go_home boolean [null, note: "Pulang, keluar sementara"]
+}
+
+Ref: employee_permission.employee_id > employee.id [delete: cascade]
+
+Table arduino {
+  id int [primary key, increment]
+  name varchar(100) [not null, note: 'ex: arduino1']
+}
+
+enum arduino_mode_type {
+  "entry"
+  "presence"
+  "excuse"
+}
+
+Table arduino_mode {
+  id int [primary key, increment]
+  mode arduino_mode_type [not null]
+  topic_publish varchar(100) [not null]
+  topic_subscribe varchar(100) [not null]
+  arduino_id int [not null]
+}
+
+Ref: arduino_mode.arduino_id > arduino.id [delete: cascade]
+
+//arduino1/publish || arduino1//subscribe
+

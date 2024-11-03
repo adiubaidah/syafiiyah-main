@@ -12,7 +12,7 @@ import (
 )
 
 const createHoliday = `-- name: CreateHoliday :one
-INSERT INTO "holiday" ("name", "color", "description") VALUES ($1, $2, $3) RETURNING id, name, description, color
+INSERT INTO "holiday" ("name", "color", "description") VALUES ($1, $2, $3) RETURNING id, name, color, description
 `
 
 type CreateHolidayParams struct {
@@ -27,14 +27,14 @@ func (q *Queries) CreateHoliday(ctx context.Context, arg CreateHolidayParams) (H
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.Description,
 		&i.Color,
+		&i.Description,
 	)
 	return i, err
 }
 
 const deleteHoliday = `-- name: DeleteHoliday :one
-DELETE FROM "holiday" WHERE "id" = $1 RETURNING id, name, description, color
+DELETE FROM "holiday" WHERE "id" = $1 RETURNING id, name, color, description
 `
 
 func (q *Queries) DeleteHoliday(ctx context.Context, id int32) (Holiday, error) {
@@ -43,14 +43,14 @@ func (q *Queries) DeleteHoliday(ctx context.Context, id int32) (Holiday, error) 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.Description,
 		&i.Color,
+		&i.Description,
 	)
 	return i, err
 }
 
 const updateHoliday = `-- name: UpdateHoliday :one
-UPDATE "holiday" SET "name" = $1, "color" = $2, "description" = $3 WHERE "id" = $4 RETURNING id, name, description, color
+UPDATE "holiday" SET "name" = $1, "color" = $2, "description" = $3 WHERE "id" = $4 RETURNING id, name, color, description
 `
 
 type UpdateHolidayParams struct {
@@ -71,8 +71,8 @@ func (q *Queries) UpdateHoliday(ctx context.Context, arg UpdateHolidayParams) (H
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.Description,
 		&i.Color,
+		&i.Description,
 	)
 	return i, err
 }

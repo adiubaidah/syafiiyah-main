@@ -141,6 +141,91 @@ func (ns NullPresenceType) Value() (driver.Value, error) {
 	return string(ns.PresenceType), nil
 }
 
+type SantriPermissionType string
+
+const (
+	SantriPermissionTypeSick       SantriPermissionType = "sick"
+	SantriPermissionTypePermission SantriPermissionType = "permission"
+)
+
+func (e *SantriPermissionType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SantriPermissionType(s)
+	case string:
+		*e = SantriPermissionType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SantriPermissionType: %T", src)
+	}
+	return nil
+}
+
+type NullSantriPermissionType struct {
+	SantriPermissionType SantriPermissionType
+	Valid                bool // Valid is true if SantriPermissionType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSantriPermissionType) Scan(value interface{}) error {
+	if value == nil {
+		ns.SantriPermissionType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SantriPermissionType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSantriPermissionType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SantriPermissionType), nil
+}
+
+type SantriPresenceCreatedBy string
+
+const (
+	SantriPresenceCreatedBySystem SantriPresenceCreatedBy = "system"
+	SantriPresenceCreatedByTap    SantriPresenceCreatedBy = "tap"
+	SantriPresenceCreatedByAdmin  SantriPresenceCreatedBy = "admin"
+)
+
+func (e *SantriPresenceCreatedBy) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SantriPresenceCreatedBy(s)
+	case string:
+		*e = SantriPresenceCreatedBy(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SantriPresenceCreatedBy: %T", src)
+	}
+	return nil
+}
+
+type NullSantriPresenceCreatedBy struct {
+	SantriPresenceCreatedBy SantriPresenceCreatedBy
+	Valid                   bool // Valid is true if SantriPresenceCreatedBy is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSantriPresenceCreatedBy) Scan(value interface{}) error {
+	if value == nil {
+		ns.SantriPresenceCreatedBy, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SantriPresenceCreatedBy.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSantriPresenceCreatedBy) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SantriPresenceCreatedBy), nil
+}
+
 type UserRole string
 
 const (
@@ -206,7 +291,6 @@ type Employee struct {
 	Gender       Gender
 	Photo        pgtype.Text
 	OccupationID int32
-	IsActive     pgtype.Bool
 	UserID       pgtype.Int4
 }
 
@@ -217,14 +301,14 @@ type EmployeeOccupation struct {
 }
 
 type EmployeePermission struct {
-	ID           int32
-	EmployeeID   int32
-	ScheduleID   int32
-	ScheduleName string
-	StartIzin    pgtype.Time
+	ID              int32
+	EmployeeID      int32
+	ScheduleID      int32
+	ScheduleName    string
+	StartPermission pgtype.Time
 	// waktu kembali, null berarti pulang
-	EndIzin pgtype.Time
-	Reason  string
+	EndPermission pgtype.Time
+	Reason        string
 	// Pulang, keluar sementara
 	IsGoHome pgtype.Bool
 }
@@ -251,8 +335,8 @@ type Holiday struct {
 	ID int32
 	// Optional description of the holiday
 	Name        string
-	Description pgtype.Text
 	Color       pgtype.Text
+	Description pgtype.Text
 }
 
 type HolidayDay struct {
@@ -274,7 +358,7 @@ type Parent struct {
 type Rfid struct {
 	ID        int32
 	Uid       string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 	IsActive  bool
 	// Rfid bisa milik santri
 	SantriID pgtype.Int4
@@ -283,18 +367,16 @@ type Rfid struct {
 }
 
 type Santri struct {
-	ID       int32
-	Nis      pgtype.Text
-	Name     string
-	Gender   Gender
-	IsActive bool
+	ID     int32
+	Nis    pgtype.Text
+	Name   string
+	Gender Gender
 	// ex: 2024, 2022
-	Generation int32
-	Photo      pgtype.Text
-	// awalnya tidak memiliki jabatan
+	Generation   int32
+	IsActive     pgtype.Bool
+	Photo        pgtype.Text
 	OccupationID pgtype.Int4
-	// Semua santri bisa memiliki orang tua
-	ParentID pgtype.Int4
+	ParentID     pgtype.Int4
 }
 
 type SantriOccupation struct {
@@ -306,12 +388,11 @@ type SantriOccupation struct {
 type SantriPermission struct {
 	ID              int32
 	SantriID        int32
-	StartPermission pgtype.Time
-	// waktu kembali, null berarti pulang
-	EndPermission pgtype.Time
+	Type            SantriPermissionType
+	StartPermission pgtype.Timestamptz
+	// Waktu berakhir, jika pulang, maka setting end permissionnya di akhir waktu berakhirnya schedule yang terakhir
+	EndPermission pgtype.Timestamptz
 	Excuse        string
-	// Pulang, keluar sementara
-	IsGoHome pgtype.Bool
 }
 
 type SantriPresence struct {
@@ -322,10 +403,10 @@ type SantriPresence struct {
 	ScheduleName string
 	Type         PresenceType
 	SantriID     int32
-	// Waktu presensi, bisa null karena jika sakit, maka diisi oleh Admin
-	CreatedAt pgtype.Timestamp
-	Notes     pgtype.Text
-	// Jika izin, maka ini diisi
+	CreatedAt    pgtype.Timestamptz
+	CreatedBy    SantriPresenceCreatedBy
+	Notes        pgtype.Text
+	// Jika izin ditengah kegiatan maka akan diisi
 	SantriPermissionID pgtype.Int4
 }
 

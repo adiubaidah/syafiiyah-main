@@ -6,15 +6,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func ConvertToPgxTime(timeStr string) (pgtype.Time, error) {
-	parsedTime, err := time.Parse("15:04", timeStr)
-	if err != nil {
-		return pgtype.Time{}, err
-	}
+var loc *time.Location
 
-	microseconds := int64(parsedTime.Hour()*3600+parsedTime.Minute()*60) * 1e6
+func ConvertToPgxTime(parsedTime time.Time) pgtype.Time {
+
+	microseconds := int64(parsedTime.Hour()*3600+parsedTime.Minute()*60+parsedTime.Second()) * 1e6
 	return pgtype.Time{
 		Microseconds: microseconds,
 		Valid:        true,
-	}, nil
+	}
 }

@@ -124,8 +124,8 @@ func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
 const getParent = `-- name: GetParent :one
 SELECT
     parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
+    "user"."id" AS "user_id",
+    "user"."username" AS "user_username"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
@@ -141,7 +141,7 @@ type GetParentRow struct {
 	WaPhone      pgtype.Text
 	Photo        pgtype.Text
 	UserID       pgtype.Int4
-	UserId       pgtype.Int4
+	UserID_2     pgtype.Int4
 	UserUsername pgtype.Text
 }
 
@@ -156,7 +156,7 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 		&i.WaPhone,
 		&i.Photo,
 		&i.UserID,
-		&i.UserId,
+		&i.UserID_2,
 		&i.UserUsername,
 	)
 	return i, err
@@ -165,8 +165,8 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 const listParentsAsc = `-- name: ListParentsAsc :many
 SELECT
     parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
+    "user"."id" AS "user_id",
+    "user"."username" AS "user_username"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
@@ -208,7 +208,7 @@ type ListParentsAscRow struct {
 	WaPhone      pgtype.Text
 	Photo        pgtype.Text
 	UserID       pgtype.Int4
-	UserId       pgtype.Int4
+	UserID_2     pgtype.Int4
 	UserUsername pgtype.Text
 }
 
@@ -234,7 +234,7 @@ func (q *Queries) ListParentsAsc(ctx context.Context, arg ListParentsAscParams) 
 			&i.WaPhone,
 			&i.Photo,
 			&i.UserID,
-			&i.UserId,
+			&i.UserID_2,
 			&i.UserUsername,
 		); err != nil {
 			return nil, err
@@ -250,8 +250,8 @@ func (q *Queries) ListParentsAsc(ctx context.Context, arg ListParentsAscParams) 
 const listParentsDesc = `-- name: ListParentsDesc :many
 SELECT
     parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
+    "user"."id" AS "user_id",
+    "user"."username" AS "user_username"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
@@ -293,7 +293,7 @@ type ListParentsDescRow struct {
 	WaPhone      pgtype.Text
 	Photo        pgtype.Text
 	UserID       pgtype.Int4
-	UserId       pgtype.Int4
+	UserID_2     pgtype.Int4
 	UserUsername pgtype.Text
 }
 
@@ -319,7 +319,7 @@ func (q *Queries) ListParentsDesc(ctx context.Context, arg ListParentsDescParams
 			&i.WaPhone,
 			&i.Photo,
 			&i.UserID,
-			&i.UserId,
+			&i.UserID_2,
 			&i.UserUsername,
 		); err != nil {
 			return nil, err

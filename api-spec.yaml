@@ -97,10 +97,10 @@ paths:
                             type: string
                           role:
                             $ref: "#/components/schemas/RoleEnum"
-  /auth/reset-password:
+  /reset-password:
     put:
       tags:
-        - Auth
+        - Profile
       summary: Reset password
       description: Admin, superadmin, parent, employee can manage this endpoint
       security:
@@ -130,6 +130,24 @@ paths:
                 code: 200
                 status: success
                 message: Password has ben resetted
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get Profile
+      description: Get From Cookie
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Parent"
+                  - $ref: "#/components/schemas/Employee"
+      
   /user:
     get:
       tags:
@@ -420,11 +438,11 @@ paths:
                   code: 404
                   status: error
                   message: "User not found"
-  /santri-activity:
+  /santri-schedule:
     get:
       tags:
-        - Santri Activity
-      summary: Get All Santri Activity
+        - Santri Schedule
+      summary: Get All Santri schedule
       description: All can access this endpoint
       responses:
         "200":
@@ -438,12 +456,12 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: "#/components/schemas/SantriActivity"
+                          $ref: "#/components/schemas/SantriSchedule"
 
     post:
       tags:
-        - Santri Activity
-      summary: Create Santri Activity
+        - Santri Schedule
+      summary: Create Santri schedule
       description: Only Superadmin can manage this endpoint
       security:
         - cookieAuth: []
@@ -452,7 +470,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NewSantriActivity"
+              $ref: "#/components/schemas/NewSantriSchedule"
       responses:
         "201":
           description: Created
@@ -463,7 +481,7 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/SantriActivity"
+                        $ref: "#/components/schemas/SantriSchedule"
         "409":
           description: Duplicate
           content:
@@ -473,8 +491,8 @@ paths:
               example:
                 code: 409
                 status: error
-                example: Activity time already exist
-  /santri-activity/{id}:
+                example: schedule time already exist
+  /santri-schedule/{id}:
     parameters:
       - in: path
         required: true
@@ -483,8 +501,8 @@ paths:
           type: integer
     put:
       tags:
-        - Santri Activity
-      summary: Update Santri Activity
+        - Santri Schedule
+      summary: Update Santri schedule
       security:
         - cookieAuth: []
       description: Only Superadmin can manage this endpoint
@@ -492,7 +510,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NewSantriActivity"
+              $ref: "#/components/schemas/NewSantriSchedule"
       responses:
         "200":
           description: OK
@@ -503,7 +521,7 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/SantriActivity"
+                        $ref: "#/components/schemas/SantriSchedule"
         "409":
           description: Duplicate
           content:
@@ -513,11 +531,11 @@ paths:
               example:
                 code: 409
                 status: error
-                message: Activity time already exist
+                message: schedule time already exist
     delete:
       tags:
-        - Santri Activity
-      summary: Delete Santri Activity
+        - Santri Schedule
+      summary: Delete Santri schedule
       security:
         - cookieAuth: []
       description: Only Superadmin can manage this endpoint
@@ -531,7 +549,7 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/SantriActivity"
+                        $ref: "#/components/schemas/SantriSchedule"
         "404":
           description: Not Found
           content:
@@ -541,7 +559,7 @@ paths:
               example:
                 code: 404
                 status: error
-                message: Santri Activity not found
+                message: Santri schedule not found
 
   /holiday:
     get:
@@ -1206,7 +1224,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NewSantriPermission"
+             $ref: "#/components/schemas/NewSantriPermission"
+
       responses:
         "201":
           description: Created
@@ -1304,10 +1323,10 @@ paths:
           required: false
           description: Search presence by Santri ID
         - in: query
-          name: activity
+          name: schedule
           schema:
             type: integer
-          description: Search presence by Activity ID
+          description: Search presence by schedule ID
         - in: query
           name: from
           schema:
@@ -1384,8 +1403,8 @@ paths:
                 value:
                   type: "presence"
                   santri_id: 1
-                  activity_id: 1
-                  activity_name: Pengajian Subuh
+                  schedule_id: 1
+                  schedule_name: Pengajian Subuh
                   notes: "Presence because error of RFID"
               from-bulk-admin:
                 description: Admin can create presence in bulk
@@ -1397,8 +1416,8 @@ paths:
                 value:
                   type: permission
                   santri_id: 1
-                  activity_id: 1
-                  activity_name: Pengajian Subuh
+                  schedule_id: 1
+                  schedule_name: Pengajian Subuh
                   created_at: "2024-11-22T13:37:00Z"
                   santri_permission_id: 1
       responses:
@@ -2319,7 +2338,7 @@ components:
                   type: integer
                 name:
                   type: string
-    NewSantriActivity:
+    NewSantriSchedule:
       type:
         object
       properties:
@@ -2340,12 +2359,12 @@ components:
           type: string
           example:
             "15:00:00"
-    SantriActivity:
+    SantriSchedule:
       allOf:
         - properties:
             id:
               $ref: "#/components/schemas/Id"
-        - $ref: "#/components/schemas/NewSantriActivity"
+        - $ref: "#/components/schemas/NewSantriSchedule"
     NewHoliday:
       type:
         object
@@ -2452,11 +2471,14 @@ components:
           type: string
           example:
             "2024-10-09T15:00:00Z"
-          nullable: true
+          nullable: false
+        type: 
+          type: string
+          enum:
+            - sick
+            - permission
         excuse:
           type: string
-        is_go_home:
-          type: boolean
     SantriPermission:
       allOf:
         - properties:
@@ -2466,10 +2488,10 @@ components:
     NewSantriPresence:
       type: object
       properties:
-        activity_id:
+        schedule_id:
           type: integer
           nullable: false
-        activity_name:
+        schedule_name:
           type: string
         type:
           $ref: "#/components/schemas/PresenceEnum"

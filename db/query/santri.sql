@@ -25,11 +25,11 @@ VALUES
 -- name: ListSantriAscName :many
 SELECT
     "santri".*,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -60,11 +60,11 @@ LIMIT
 -- name: ListSantriAscNis :many
 SELECT
     "santri".*,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -95,11 +95,11 @@ LIMIT
 -- name: ListSantriAscGeneration :many
 SELECT
     "santri".*,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -130,11 +130,11 @@ LIMIT
 -- name: ListSantriAscOccupation :many
 SELECT
     "santri".*,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -165,9 +165,9 @@ LIMIT
 -- name: GetSantri :one
 SELECT
     "santri".*,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
     "parent"."address" AS "parentAddress",
     "parent"."photo" AS "parentPhoto"
 FROM

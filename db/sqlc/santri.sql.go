@@ -33,14 +33,14 @@ VALUES
         $6 :: text,
         $7,
         $8
-    ) RETURNING id, nis, name, gender, is_active, generation, photo, occupation_id, parent_id
+    ) RETURNING id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
 `
 
 type CreateSantriParams struct {
 	Nis          pgtype.Text
 	Name         string
 	Gender       Gender
-	IsActive     bool
+	IsActive     pgtype.Bool
 	Generation   int32
 	Photo        pgtype.Text
 	OccupationID pgtype.Int4
@@ -64,8 +64,8 @@ func (q *Queries) CreateSantri(ctx context.Context, arg CreateSantriParams) (San
 		&i.Nis,
 		&i.Name,
 		&i.Gender,
-		&i.IsActive,
 		&i.Generation,
+		&i.IsActive,
 		&i.Photo,
 		&i.OccupationID,
 		&i.ParentID,
@@ -77,7 +77,7 @@ const deleteSantri = `-- name: DeleteSantri :one
 DELETE FROM
     "santri"
 WHERE
-    "id" = $1 RETURNING id, nis, name, gender, is_active, generation, photo, occupation_id, parent_id
+    "id" = $1 RETURNING id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
 `
 
 func (q *Queries) DeleteSantri(ctx context.Context, id int32) (Santri, error) {
@@ -88,8 +88,8 @@ func (q *Queries) DeleteSantri(ctx context.Context, id int32) (Santri, error) {
 		&i.Nis,
 		&i.Name,
 		&i.Gender,
-		&i.IsActive,
 		&i.Generation,
+		&i.IsActive,
 		&i.Photo,
 		&i.OccupationID,
 		&i.ParentID,
@@ -99,10 +99,10 @@ func (q *Queries) DeleteSantri(ctx context.Context, id int32) (Santri, error) {
 
 const getSantri = `-- name: GetSantri :one
 SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
+    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
     "parent"."address" AS "parentAddress",
     "parent"."photo" AS "parentPhoto"
 FROM
@@ -118,12 +118,12 @@ type GetSantriRow struct {
 	Nis           pgtype.Text
 	Name          string
 	Gender        Gender
-	IsActive      bool
 	Generation    int32
+	IsActive      pgtype.Bool
 	Photo         pgtype.Text
 	OccupationID  pgtype.Int4
 	ParentID      pgtype.Int4
-	ParentId      pgtype.Int4
+	ParentID_2    pgtype.Int4
 	ParentName    pgtype.Text
 	ParentWaPhone pgtype.Text
 	ParentAddress pgtype.Text
@@ -138,12 +138,12 @@ func (q *Queries) GetSantri(ctx context.Context, id int32) (GetSantriRow, error)
 		&i.Nis,
 		&i.Name,
 		&i.Gender,
-		&i.IsActive,
 		&i.Generation,
+		&i.IsActive,
 		&i.Photo,
 		&i.OccupationID,
 		&i.ParentID,
-		&i.ParentId,
+		&i.ParentID_2,
 		&i.ParentName,
 		&i.ParentWaPhone,
 		&i.ParentAddress,
@@ -154,12 +154,12 @@ func (q *Queries) GetSantri(ctx context.Context, id int32) (GetSantriRow, error)
 
 const listSantriAscGeneration = `-- name: ListSantriAscGeneration :many
 SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -202,15 +202,15 @@ type ListSantriAscGenerationRow struct {
 	Nis            pgtype.Text
 	Name           string
 	Gender         Gender
-	IsActive       bool
 	Generation     int32
+	IsActive       pgtype.Bool
 	Photo          pgtype.Text
 	OccupationID   pgtype.Int4
 	ParentID       pgtype.Int4
-	ParentId       pgtype.Int4
+	ParentID_2     pgtype.Int4
 	ParentName     pgtype.Text
 	ParentWaPhone  pgtype.Text
-	OccupationId   pgtype.Int4
+	OccupationID_2 pgtype.Int4
 	OccupationName pgtype.Text
 }
 
@@ -235,15 +235,15 @@ func (q *Queries) ListSantriAscGeneration(ctx context.Context, arg ListSantriAsc
 			&i.Nis,
 			&i.Name,
 			&i.Gender,
-			&i.IsActive,
 			&i.Generation,
+			&i.IsActive,
 			&i.Photo,
 			&i.OccupationID,
 			&i.ParentID,
-			&i.ParentId,
+			&i.ParentID_2,
 			&i.ParentName,
 			&i.ParentWaPhone,
-			&i.OccupationId,
+			&i.OccupationID_2,
 			&i.OccupationName,
 		); err != nil {
 			return nil, err
@@ -258,12 +258,12 @@ func (q *Queries) ListSantriAscGeneration(ctx context.Context, arg ListSantriAsc
 
 const listSantriAscName = `-- name: ListSantriAscName :many
 SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -306,15 +306,15 @@ type ListSantriAscNameRow struct {
 	Nis            pgtype.Text
 	Name           string
 	Gender         Gender
-	IsActive       bool
 	Generation     int32
+	IsActive       pgtype.Bool
 	Photo          pgtype.Text
 	OccupationID   pgtype.Int4
 	ParentID       pgtype.Int4
-	ParentId       pgtype.Int4
+	ParentID_2     pgtype.Int4
 	ParentName     pgtype.Text
 	ParentWaPhone  pgtype.Text
-	OccupationId   pgtype.Int4
+	OccupationID_2 pgtype.Int4
 	OccupationName pgtype.Text
 }
 
@@ -339,15 +339,15 @@ func (q *Queries) ListSantriAscName(ctx context.Context, arg ListSantriAscNamePa
 			&i.Nis,
 			&i.Name,
 			&i.Gender,
-			&i.IsActive,
 			&i.Generation,
+			&i.IsActive,
 			&i.Photo,
 			&i.OccupationID,
 			&i.ParentID,
-			&i.ParentId,
+			&i.ParentID_2,
 			&i.ParentName,
 			&i.ParentWaPhone,
-			&i.OccupationId,
+			&i.OccupationID_2,
 			&i.OccupationName,
 		); err != nil {
 			return nil, err
@@ -362,12 +362,12 @@ func (q *Queries) ListSantriAscName(ctx context.Context, arg ListSantriAscNamePa
 
 const listSantriAscNis = `-- name: ListSantriAscNis :many
 SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -410,15 +410,15 @@ type ListSantriAscNisRow struct {
 	Nis            pgtype.Text
 	Name           string
 	Gender         Gender
-	IsActive       bool
 	Generation     int32
+	IsActive       pgtype.Bool
 	Photo          pgtype.Text
 	OccupationID   pgtype.Int4
 	ParentID       pgtype.Int4
-	ParentId       pgtype.Int4
+	ParentID_2     pgtype.Int4
 	ParentName     pgtype.Text
 	ParentWaPhone  pgtype.Text
-	OccupationId   pgtype.Int4
+	OccupationID_2 pgtype.Int4
 	OccupationName pgtype.Text
 }
 
@@ -443,15 +443,15 @@ func (q *Queries) ListSantriAscNis(ctx context.Context, arg ListSantriAscNisPara
 			&i.Nis,
 			&i.Name,
 			&i.Gender,
-			&i.IsActive,
 			&i.Generation,
+			&i.IsActive,
 			&i.Photo,
 			&i.OccupationID,
 			&i.ParentID,
-			&i.ParentId,
+			&i.ParentID_2,
 			&i.ParentName,
 			&i.ParentWaPhone,
-			&i.OccupationId,
+			&i.OccupationID_2,
 			&i.OccupationName,
 		); err != nil {
 			return nil, err
@@ -466,12 +466,12 @@ func (q *Queries) ListSantriAscNis(ctx context.Context, arg ListSantriAscNisPara
 
 const listSantriAscOccupation = `-- name: ListSantriAscOccupation :many
 SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.is_active, santri.generation, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parentId",
-    "parent"."name" AS "parentName",
-    "parent"."wa_phone" AS "parentWaPhone",
-    "santri_occupation"."id" AS "occupationId",
-    "santri_occupation"."name" AS "occupationName"
+    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
+    "parent"."id" AS "parent_id",
+    "parent"."name" AS "parent_name",
+    "parent"."wa_phone" AS "parent_wa_phone",
+    "santri_occupation"."id" AS "occupation_id",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -514,15 +514,15 @@ type ListSantriAscOccupationRow struct {
 	Nis            pgtype.Text
 	Name           string
 	Gender         Gender
-	IsActive       bool
 	Generation     int32
+	IsActive       pgtype.Bool
 	Photo          pgtype.Text
 	OccupationID   pgtype.Int4
 	ParentID       pgtype.Int4
-	ParentId       pgtype.Int4
+	ParentID_2     pgtype.Int4
 	ParentName     pgtype.Text
 	ParentWaPhone  pgtype.Text
-	OccupationId   pgtype.Int4
+	OccupationID_2 pgtype.Int4
 	OccupationName pgtype.Text
 }
 
@@ -547,15 +547,15 @@ func (q *Queries) ListSantriAscOccupation(ctx context.Context, arg ListSantriAsc
 			&i.Nis,
 			&i.Name,
 			&i.Gender,
-			&i.IsActive,
 			&i.Generation,
+			&i.IsActive,
 			&i.Photo,
 			&i.OccupationID,
 			&i.ParentID,
-			&i.ParentId,
+			&i.ParentID_2,
 			&i.ParentName,
 			&i.ParentWaPhone,
-			&i.OccupationId,
+			&i.OccupationID_2,
 			&i.OccupationName,
 		); err != nil {
 			return nil, err
@@ -580,7 +580,7 @@ SET
     "occupation_id" = $6,
     "parent_id" = $7 :: integer
 WHERE
-    "id" = $8 RETURNING id, nis, name, gender, is_active, generation, photo, occupation_id, parent_id
+    "id" = $8 RETURNING id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
 `
 
 type UpdateSantriParams struct {
@@ -611,8 +611,8 @@ func (q *Queries) UpdateSantri(ctx context.Context, arg UpdateSantriParams) (San
 		&i.Nis,
 		&i.Name,
 		&i.Gender,
-		&i.IsActive,
 		&i.Generation,
+		&i.IsActive,
 		&i.Photo,
 		&i.OccupationID,
 		&i.ParentID,

@@ -46,7 +46,7 @@ func (q *Queries) DeleteHolidayDay(ctx context.Context, id int32) (HolidayDay, e
 
 const listHolidayDays = `-- name: ListHolidayDays :many
 SELECT
-    holiday_day.id, date, holiday_id, holiday.id, name, description, color
+    holiday_day.id, date, holiday_id, holiday.id, name, color, description
 FROM
     "holiday_day"
     INNER JOIN "holiday" ON "holiday_day"."holiday_id" = "holiday"."id"
@@ -78,8 +78,8 @@ type ListHolidayDaysRow struct {
 	HolidayID   int32
 	ID_2        int32
 	Name        string
-	Description pgtype.Text
 	Color       pgtype.Text
+	Description pgtype.Text
 }
 
 func (q *Queries) ListHolidayDays(ctx context.Context, arg ListHolidayDaysParams) ([]ListHolidayDaysRow, error) {
@@ -104,8 +104,8 @@ func (q *Queries) ListHolidayDays(ctx context.Context, arg ListHolidayDaysParams
 			&i.HolidayID,
 			&i.ID_2,
 			&i.Name,
-			&i.Description,
 			&i.Color,
+			&i.Description,
 		); err != nil {
 			return nil, err
 		}

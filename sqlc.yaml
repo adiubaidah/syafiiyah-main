@@ -10,6 +10,3 @@ sql:
           sql_package: "pgx/v5"
           emit_interface: true
           emit_empty_slices: true
-          overrides:
-            - db_type: "timestampz"
-              go_type: "time.Time"

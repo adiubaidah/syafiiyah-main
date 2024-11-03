@@ -13,7 +13,9 @@ import (
 var testQueries *Queries
 
 func TestMain(m *testing.M) {
-	config, err := config.LoadConfig("../..")
+	logrus := config.NewLogger()
+	config, err := config.LoadEnv("../..")
+	log.SetOutput(logrus.Writer())
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}

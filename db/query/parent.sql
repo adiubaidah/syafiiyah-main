@@ -1,8 +1,8 @@
 -- name: ListParentsAsc :many
 SELECT
     "parent".*,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
+    "user"."id" AS "user_id",
+    "user"."username" AS "user_username"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
@@ -31,8 +31,8 @@ LIMIT
 -- name: ListParentsDesc :many
 SELECT
     "parent".*,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
+    "user"."id" AS "user_id",
+    "user"."username" AS "user_username"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
@@ -117,8 +117,8 @@ WHERE
 -- name: GetParent :one
 SELECT
     "parent".*,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
+    "user"."id" AS "user_id",
+    "user"."username" AS "user_username"
 FROM
     "parent"
     LEFT JOIN "user" ON "parent"."user_id" = "user"."id"

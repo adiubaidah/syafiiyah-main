@@ -19,7 +19,6 @@ func createRandomSantri(t *testing.T) Santri {
 	arg := CreateSantriParams{
 		Name:       util.RandomString(8),
 		Nis:        pgtype.Text{String: util.RandomString(15), Valid: true},
-		IsActive:   true,
 		Gender:     GenderMale,
 		Generation: int32(util.RandomInt(2010, 2030)),
 		Photo:      pgtype.Text{String: util.RandomString(12), Valid: true},
@@ -43,7 +42,6 @@ func createRandomSantriWithParent(t *testing.T) (Santri, Parent) {
 	arg := CreateSantriParams{
 		Name:       util.RandomString(8),
 		Nis:        pgtype.Text{String: util.RandomString(15), Valid: true},
-		IsActive:   true,
 		Gender:     GenderMale,
 		Generation: int32(util.RandomInt(2010, 2030)),
 		Photo:      pgtype.Text{String: util.RandomString(12), Valid: true},

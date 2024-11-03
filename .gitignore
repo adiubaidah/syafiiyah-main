@@ -1,3 +1,5 @@
 .vscode
 app.env
 Makefile
+ignore__*
+dbml-error.log

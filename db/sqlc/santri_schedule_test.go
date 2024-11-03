@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/util"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -15,18 +16,20 @@ func clearSantriSchedule(t *testing.T) {
 }
 
 func createRandomSantriSchedule(t *testing.T) SantriSchedule {
-	startPresence, err := util.ConvertToPgxTime("07:00")
-	require.NoError(t, err)
-	startTime, err := util.ConvertToPgxTime("07:30")
-	require.NoError(t, err)
-	finishTime, err := util.ConvertToPgxTime("15:00")
-	require.NoError(t, err)
+	startPresence := util.RandomTimeOnly()
+	startTime := startPresence.Add(time.Minute * 15)
+	finishTime := startTime.Add(time.Hour * 1)
+
+	startPresencePgx := util.ConvertToPgxTime(startPresence)
+	startTimePgx := util.ConvertToPgxTime(startTime)
+	finishTimePgx := util.ConvertToPgxTime(finishTime)
+
 	arg := CreateSantriScheduleParams{
 		Name:          util.RandomString(10),
 		Description:   pgtype.Text{Valid: false},
-		StartPresence: startPresence,
-		StartTime:     startTime,
-		FinishTime:    finishTime,
+		StartPresence: startPresencePgx,
+		StartTime:     startTimePgx,
+		FinishTime:    finishTimePgx,
 	}
 	santriSchedule, err := testQueries.CreateSantriSchedule(context.Background(), arg)
 	require.NoError(t, err)
@@ -51,27 +54,34 @@ func TestListSantriSchedule(t *testing.T) {
 	}
 
 	santriSchedules, err := testQueries.ListSantriSchedules(context.Background())
-	require.NoError(t, err)
-	require.Len(t, santriSchedules, 10)
+
+	t.Run("list santri schedule should not error", func(t *testing.T) {
+		require.NoError(t, err)
+		require.Len(t, santriSchedules, 10)
+	})
+
+	t.Run("Get last santri schedule", func(t *testing.T) {
+		santriSchedule, err := testQueries.GetLastSantriSchedule(context.Background())
+		require.NoError(t, err)
+		require.NotEmpty(t, santriSchedule)
+		require.Equal(t, santriSchedules[len(santriSchedules)-1].ID, santriSchedule.ID)
+	})
 }
 
 func TestUpdateSantriSchedule(t *testing.T) {
 	clearSantriSchedule(t)
 	santriSchedule := createRandomSantriSchedule(t)
 
-	startPresence, err := util.ConvertToPgxTime("06:45")
-	require.NoError(t, err)
-	startTime, err := util.ConvertToPgxTime("07:15")
-	require.NoError(t, err)
-	finishTime, err := util.ConvertToPgxTime("14:45")
-	require.NoError(t, err)
+	startPresence := util.RandomTimeOnly()
+	startTime := startPresence.Add(time.Minute * 15)
+	finishTime := startTime.Add(time.Hour * 1)
 	arg := UpdateSantriScheduleParams{
 		ID:            santriSchedule.ID,
 		Name:          util.RandomString(10),
 		Description:   pgtype.Text{Valid: false},
-		StartPresence: startPresence,
-		StartTime:     startTime,
-		FinishTime:    finishTime,
+		StartPresence: util.ConvertToPgxTime(startPresence),
+		StartTime:     util.ConvertToPgxTime(startTime),
+		FinishTime:    util.ConvertToPgxTime(finishTime),
 	}
 	updatedSantriSchedule, err := testQueries.UpdateSantriSchedule(context.Background(), arg)
 	require.NoError(t, err)

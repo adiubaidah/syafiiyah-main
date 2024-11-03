@@ -81,11 +81,32 @@ func (q *Queries) DeleteSantriSchedule(ctx context.Context, id int32) (SantriSch
 	return i, err
 }
 
+const getLastSantriSchedule = `-- name: GetLastSantriSchedule :one
+SELECT id, name, description, start_presence, start_time, finish_time FROM "santri_schedule"
+WHERE start_time = (SELECT MAX(start_time) FROM "santri_schedule")
+`
+
+func (q *Queries) GetLastSantriSchedule(ctx context.Context) (SantriSchedule, error) {
+	row := q.db.QueryRow(ctx, getLastSantriSchedule)
+	var i SantriSchedule
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.StartPresence,
+		&i.StartTime,
+		&i.FinishTime,
+	)
+	return i, err
+}
+
 const listSantriSchedules = `-- name: ListSantriSchedules :many
 SELECT
     id, name, description, start_presence, start_time, finish_time
 FROM
     "santri_schedule"
+ORDER BY
+    "start_time" ASC
 `
 
 func (q *Queries) ListSantriSchedules(ctx context.Context) ([]SantriSchedule, error) {
