@@ -23,5 +23,5 @@ DROP TYPE IF EXISTS "user_role" CASCADE;
 DROP TYPE IF EXISTS "gender" CASCADE;
 DROP TYPE IF EXISTS "presence_type" CASCADE;
 DROP TYPE IF EXISTS "arduino_mode_type" CASCADE;
-DROP TYPE IF EXISTS "santri_presence_created_by" CASCADE;
 DROP TYPE IF EXISTS "santri_permission_type" CASCADE;
+DROP TYPE IF EXISTS "presence_created_by" CASCADE;

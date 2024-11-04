@@ -81,7 +81,7 @@ Table parent {
   photo varchar(100) [null]
   user_id int [unique]
 }
-Ref: parent.user_id - user.id [delete: set null]
+Ref: user.id - parent.user_id [delete: set null]
 
 Table rfid {
   id int [primary key, increment]
@@ -100,7 +100,7 @@ enum presence_type {
   "present"
 }
 
-enum santri_presence_created_by {
+enum presence_created_by {
   "system"
   "tap"
   "admin"
@@ -113,7 +113,7 @@ Table santri_presence {
   type presence_type [not null]
   santri_id int [not null] 
   created_at timestamptz [not null, default: `now()`]
-  created_by santri_presence_created_by [not null]
+  created_by presence_created_by [not null]
   notes text [null]
   santri_permission_id int [null, note: "Jika izin ditengah kegiatan maka akan diisi"]
 }
@@ -153,7 +153,7 @@ Table employee {
     name
   }
 }
-Ref: employee.user_id - user.id [delete: set null]
+Ref: user.id - employee.user_id [delete: set null]
 
 Table employee_schedule {
   id int [increment, primary key]

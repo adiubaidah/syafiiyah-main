@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-11-02T17:06:56.452Z
+-- Generated at: 2024-11-04T15:11:21.917Z
 
 CREATE TYPE "user_role" AS ENUM (
   'superadmin',
@@ -22,7 +22,7 @@ CREATE TYPE "presence_type" AS ENUM (
   'present'
 );
 
-CREATE TYPE "santri_presence_created_by" AS ENUM (
+CREATE TYPE "presence_created_by" AS ENUM (
   'system',
   'tap',
   'admin'
@@ -112,7 +112,7 @@ CREATE TABLE "santri_presence" (
   "type" presence_type NOT NULL,
   "santri_id" int NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "created_by" santri_presence_created_by NOT NULL,
+  "created_by" presence_created_by NOT NULL,
   "notes" text,
   "santri_permission_id" int
 );
@@ -222,7 +222,7 @@ ALTER TABLE "santri" ADD FOREIGN KEY ("occupation_id") REFERENCES "santri_occupa
 
 ALTER TABLE "santri" ADD FOREIGN KEY ("parent_id") REFERENCES "parent" ("id") ON DELETE SET NULL;
 
-ALTER TABLE "user" ADD FOREIGN KEY ("id") REFERENCES "parent" ("user_id") ON DELETE SET NULL;
+ALTER TABLE "parent" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE SET NULL;
 
 ALTER TABLE "rfid" ADD FOREIGN KEY ("santri_id") REFERENCES "santri" ("id");
 
@@ -236,7 +236,7 @@ ALTER TABLE "santri_permission" ADD FOREIGN KEY ("santri_id") REFERENCES "santri
 
 ALTER TABLE "employee" ADD FOREIGN KEY ("occupation_id") REFERENCES "employee_occupation" ("id");
 
-ALTER TABLE "user" ADD FOREIGN KEY ("id") REFERENCES "employee" ("user_id") ON DELETE SET NULL;
+ALTER TABLE "employee" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE SET NULL;
 
 ALTER TABLE "employee_presence" ADD FOREIGN KEY ("employee_id") REFERENCES "employee" ("id") ON DELETE CASCADE;
 
