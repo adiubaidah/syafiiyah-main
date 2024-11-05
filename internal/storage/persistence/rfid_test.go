@@ -10,7 +10,7 @@ import (
 )
 
 func clearRfidTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "rfid"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "rfid"`)
 	require.NoError(t, err)
 }
 
@@ -21,7 +21,7 @@ func createRandomRfidWithSantri(t *testing.T) (Rfid, Santri) {
 		IsActive: random.RandomBool(),
 		SantriID: pgtype.Int4{Int32: santri.ID, Valid: true},
 	}
-	rfid, err := testQueries.CreateRfid(context.Background(), arg)
+	rfid, err := testStore.CreateRfid(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, rfid)
 
@@ -43,7 +43,7 @@ func createRandomRfidWithEmployee(t *testing.T) (Rfid, Employee) {
 		IsActive:   random.RandomBool(),
 		EmployeeID: pgtype.Int4{Int32: employee.ID, Valid: true},
 	}
-	rfid, err := testQueries.CreateRfid(context.Background(), arg)
+	rfid, err := testStore.CreateRfid(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, rfid)
 
@@ -84,7 +84,7 @@ func TestListRfids(t *testing.T) {
 			LimitNumber:  10,
 			IsSantri:     pgtype.Bool{Bool: true, Valid: true},
 		}
-		rfids, err := testQueries.ListRfid(context.Background(), arg)
+		rfids, err := testStore.ListRfid(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, rfids)
 
@@ -108,7 +108,7 @@ func TestListRfids(t *testing.T) {
 			LimitNumber:  10,
 			IsEmployee:   pgtype.Bool{Bool: true, Valid: true},
 		}
-		rfids, err := testQueries.ListRfid(context.Background(), arg)
+		rfids, err := testStore.ListRfid(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, rfids)
 
@@ -141,7 +141,7 @@ func TestUpdateRfid(t *testing.T) {
 		SantriID:   pgtype.Int4{Int32: 0, Valid: false},
 		EmployeeID: pgtype.Int4{Int32: 0, Valid: false},
 	}
-	updatedRfid, err := testQueries.UpdateRfid(context.Background(), arg)
+	updatedRfid, err := testStore.UpdateRfid(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedRfid)
 
@@ -159,7 +159,7 @@ func TestDeleteRfid(t *testing.T) {
 
 	rfid, _ := createRandomRfidWithSantri(t)
 
-	deletedRfid, err := testQueries.DeleteRfid(context.Background(), rfid.ID)
+	deletedRfid, err := testStore.DeleteRfid(context.Background(), rfid.ID)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, deletedRfid)

@@ -10,7 +10,7 @@ import (
 )
 
 func clearSantriPresenceTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "santri_presence"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "santri_presence"`)
 	require.NoError(t, err)
 }
 
@@ -28,7 +28,7 @@ func createRandomSantriPresence(t *testing.T) SantriPresence {
 		CreatedBy:    PresenceCreatedByTap,
 	}
 
-	santriPresence, err := testQueries.CreateSantriPresence(context.Background(), arg)
+	santriPresence, err := testStore.CreateSantriPresence(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, santriPresence)
 
@@ -62,7 +62,7 @@ func TestListSantriPresence(t *testing.T) {
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		santriPresences, err := testQueries.ListSantriPresences(context.Background(), arg)
+		santriPresences, err := testStore.ListSantriPresences(context.Background(), arg)
 		require.NoError(t, err)
 		require.Len(t, santriPresences, 1)
 		require.Equal(t, santriPresences[0].ID, santriPresence.ID)
@@ -74,7 +74,7 @@ func TestListSantriPresence(t *testing.T) {
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		santriPresences, err := testQueries.ListSantriPresences(context.Background(), arg)
+		santriPresences, err := testStore.ListSantriPresences(context.Background(), arg)
 		require.NoError(t, err)
 		require.Len(t, santriPresences, 1)
 		require.Equal(t, santriPresences[0].ID, santriPresence.ID)
@@ -86,7 +86,7 @@ func TestListSantriPresence(t *testing.T) {
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		santriPresences, err := testQueries.ListSantriPresences(context.Background(), arg)
+		santriPresences, err := testStore.ListSantriPresences(context.Background(), arg)
 		require.NoError(t, err)
 		require.GreaterOrEqual(t, len(santriPresences), 1)
 	})
@@ -125,7 +125,7 @@ func TestListSantriPresence(t *testing.T) {
 
 		for _, tt := range testCases {
 			t.Run(tt.name, func(t *testing.T) {
-				employees, err := testQueries.ListSantriPresences(context.Background(), tt.arg)
+				employees, err := testStore.ListSantriPresences(context.Background(), tt.arg)
 				require.NoError(t, err)
 				require.Len(t, employees, tt.lenExpected)
 			})
@@ -148,7 +148,7 @@ func TestUpdateSantriPresence(t *testing.T) {
 		Notes:              pgtype.Text{Valid: true, String: "Example notes"},
 	}
 
-	updatedSantriPresence, err := testQueries.UpdateSantriPresence(context.Background(), arg)
+	updatedSantriPresence, err := testStore.UpdateSantriPresence(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedSantriPresence)
 
@@ -166,7 +166,7 @@ func TestDeleteSantriPresence(t *testing.T) {
 	clearSantriTable(t)
 	santriPresence := createRandomSantriPresence(t)
 
-	deletedSantriPresence, err := testQueries.DeleteSantriPresence(context.Background(), santriPresence.ID)
+	deletedSantriPresence, err := testStore.DeleteSantriPresence(context.Background(), santriPresence.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedSantriPresence)
 

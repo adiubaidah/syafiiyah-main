@@ -1,0 +1,19 @@
+services:
+  
+  rfid-syafiiyah:
+    container_name: rfid-syafiiyah
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: adiubaidah/rfid-syafiiyah:latest
+    ports:
+      - protocol: tcp
+        published: ${APP_PORT}
+        target: ${APP_PORT}
+    networks:
+      - bridge
+
+networks:
+  bridge:
+    driver: bridge
+    

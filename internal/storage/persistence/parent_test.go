@@ -10,7 +10,7 @@ import (
 )
 
 func clearParentTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), "DELETE FROM parent")
+	_, err := sqlStore.db.Exec(context.Background(), "DELETE FROM parent")
 	require.NoError(t, err)
 }
 
@@ -22,7 +22,7 @@ func createRandomParent(t *testing.T) Parent {
 		NoWa:    pgtype.Text{String: random.RandomString(12), Valid: true},
 		Photo:   pgtype.Text{String: random.RandomString(12), Valid: true},
 	}
-	parent, err := testQueries.CreateParent(context.Background(), arg)
+	parent, err := testStore.CreateParent(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, parent)
 
@@ -45,7 +45,7 @@ func createRandomParentWithUser(t *testing.T) (Parent, User) {
 		Photo:   pgtype.Text{String: random.RandomString(12), Valid: true},
 		UserID:  pgtype.Int4{Int32: user.ID, Valid: true},
 	}
-	parent, err := testQueries.CreateParent(context.Background(), arg)
+	parent, err := testStore.CreateParent(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, parent)
 
@@ -78,7 +78,7 @@ func TestListParentsWithQ(t *testing.T) {
 		}
 
 		// Perform List
-		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -108,7 +108,7 @@ func TestListParentWithHasUser(t *testing.T) {
 			OffsetNumber: 0,
 		}
 
-		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -128,7 +128,7 @@ func TestListParentWithHasUser(t *testing.T) {
 			OffsetNumber: 0,
 		}
 
-		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -145,7 +145,7 @@ func TestListParentWithHasUser(t *testing.T) {
 			OffsetNumber: 0,
 		}
 
-		parents, err := testQueries.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParentsAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -204,7 +204,7 @@ func TestListParentPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testQueries.ListParentsAsc(context.Background(), tt.arg)
+			employees, err := testStore.ListParentsAsc(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})
@@ -223,7 +223,7 @@ func TestCountParents(t *testing.T) {
 		Q:       pgtype.Text{Valid: false},
 		HasUser: -1,
 	}
-	count, err := testQueries.CountParents(context.Background(), arg)
+	count, err := testStore.CountParents(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotZero(t, count)
 
@@ -249,7 +249,7 @@ func TestUpdateParent(t *testing.T) {
 		Photo:   pgtype.Text{String: newPhoto, Valid: true},
 	}
 
-	parent2, err := testQueries.UpdateParent(context.Background(), arg)
+	parent2, err := testStore.UpdateParent(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, parent2)
 
@@ -266,13 +266,13 @@ func TestDeleteParent(t *testing.T) {
 	clearParentTable(t)
 	parent := createRandomParent(t)
 
-	deletedParent, err := testQueries.DeleteParent(context.Background(), parent.ID)
+	deletedParent, err := testStore.DeleteParent(context.Background(), parent.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedParent)
 
 	require.Equal(t, parent.ID, deletedParent.ID)
 
-	parent2, err := testQueries.GetParent(context.Background(), parent.ID)
+	parent2, err := testStore.GetParent(context.Background(), parent.ID)
 	require.Error(t, err)
 	require.Empty(t, parent2)
 }

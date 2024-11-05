@@ -11,7 +11,7 @@ import (
 )
 
 func clearUserTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "user"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "user"`)
 	require.NoError(t, err)
 }
 
@@ -23,7 +23,7 @@ func createRandomUser(t *testing.T, role UserRole) User {
 		Role:     role,
 		Password: hashedPassword,
 	}
-	user, err := testQueries.CreateUser(context.Background(), arg)
+	user, err := testStore.CreateUser(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
 
@@ -60,7 +60,7 @@ func TestListUsersRelation(t *testing.T) {
 			HasRelation:  -1,
 		}
 
-		users, err := testQueries.ListUsersAscUsername(context.Background(), arg)
+		users, err := testStore.ListUsersAscUsername(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, users)
 	})
@@ -80,7 +80,7 @@ func TestListUsersRelation(t *testing.T) {
 			HasRelation:  1,
 		}
 
-		users, err := testQueries.ListUsersAscUsername(context.Background(), arg)
+		users, err := testStore.ListUsersAscUsername(context.Background(), arg)
 		require.NoError(t, err)
 		require.Empty(t, users)
 	})
@@ -97,7 +97,7 @@ func TestListUsersRelation(t *testing.T) {
 			OffsetNumber: 0,
 			HasRelation:  1,
 		}
-		users, err := testQueries.ListUsersAscUsername(context.Background(), arg)
+		users, err := testStore.ListUsersAscUsername(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, users)
 		require.Equal(t, user.Username.String, users[0].Username.String)
@@ -143,7 +143,7 @@ func TestListUserPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testQueries.ListUsersAscUsername(context.Background(), tt.arg)
+			employees, err := testStore.ListUsersAscUsername(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})
@@ -160,7 +160,7 @@ func TestUpdateUser(t *testing.T) {
 		ID:       user1.ID,
 	}
 
-	user, err := testQueries.UpdateUser(context.Background(), arg)
+	user, err := testStore.UpdateUser(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
 
@@ -172,7 +172,7 @@ func TestDeleteUser(t *testing.T) {
 	clearUserTable(t)
 	user1 := createRandomUser(t, UserRoleSuperadmin)
 
-	userDeleted, err := testQueries.DeleteUser(context.Background(), user1.ID)
+	userDeleted, err := testStore.DeleteUser(context.Background(), user1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, userDeleted)
 

@@ -3,3 +3,4 @@ app.env
 Makefile
 ignore__*
 dbml-error.log
+main.exe

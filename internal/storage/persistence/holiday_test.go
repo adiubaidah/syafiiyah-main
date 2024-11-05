@@ -10,7 +10,7 @@ import (
 )
 
 func clearHoliday(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
 	require.NoError(t, err)
 }
 
@@ -21,7 +21,7 @@ func createRandomHoliday(t *testing.T) Holiday {
 		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
 	}
 
-	holiday, err := testQueries.CreateHoliday(context.Background(), arg)
+	holiday, err := testStore.CreateHoliday(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, holiday)
 
@@ -46,7 +46,7 @@ func TestUpdateHoliday(t *testing.T) {
 		Color:       pgtype.Text{String: random.RandomString(7), Valid: true},
 	}
 
-	updatedHoliday, err := testQueries.UpdateHoliday(context.Background(), arg)
+	updatedHoliday, err := testStore.UpdateHoliday(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, holiday)
 
@@ -58,7 +58,7 @@ func TestUpdateHoliday(t *testing.T) {
 func TestDeleteHoliday(t *testing.T) {
 	clearHoliday(t)
 	holiday := createRandomHoliday(t)
-	deletedHoliday, err := testQueries.DeleteHoliday(context.Background(), holiday.ID)
+	deletedHoliday, err := testStore.DeleteHoliday(context.Background(), holiday.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedHoliday)

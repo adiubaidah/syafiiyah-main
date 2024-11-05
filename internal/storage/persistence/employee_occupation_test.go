@@ -10,7 +10,7 @@ import (
 )
 
 func clearEmployeeOccupationTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
 	require.NoError(t, err)
 }
 
@@ -20,7 +20,7 @@ func createRandomEmployeeOccupation(t *testing.T) EmployeeOccupation {
 		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
 	}
 
-	employeeOccupation, err := testQueries.CreateEmployeeOccupation(context.Background(), arg)
+	employeeOccupation, err := testStore.CreateEmployeeOccupation(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employeeOccupation)
 
@@ -34,13 +34,13 @@ func TestCreateEmployeeOccupation(t *testing.T) {
 	createRandomEmployeeOccupation(t)
 }
 
-func TestQueryEmployeeOccupation(t *testing.T) {
+func TestListEmployeeOccupation(t *testing.T) {
 	clearEmployeeOccupationTable(t)
 	createRandomEmployeeOccupation(t)
 	createRandomEmployeeOccupation(t)
 	createRandomEmployeeOccupation(t)
 
-	employeeOccupations, err := testQueries.ListEmployeeOccupations(context.Background())
+	employeeOccupations, err := testStore.ListEmployeeOccupations(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, employeeOccupations)
 }
@@ -55,7 +55,7 @@ func TestUpdateEmployeeOccupation(t *testing.T) {
 		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
 	}
 
-	employeeOccupation, err := testQueries.UpdateEmployeeOccupation(context.Background(), arg)
+	employeeOccupation, err := testStore.UpdateEmployeeOccupation(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employeeOccupation)
 
@@ -66,7 +66,7 @@ func TestUpdateEmployeeOccupation(t *testing.T) {
 func TestDeleteEmployeeOccupation(t *testing.T) {
 	clearEmployeeOccupationTable(t)
 	employeeOccupation := createRandomEmployeeOccupation(t)
-	deletedEmployeeOccupation, err := testQueries.DeleteEmployeeOccupation(context.Background(), employeeOccupation.ID)
+	deletedEmployeeOccupation, err := testStore.DeleteEmployeeOccupation(context.Background(), employeeOccupation.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedEmployeeOccupation)

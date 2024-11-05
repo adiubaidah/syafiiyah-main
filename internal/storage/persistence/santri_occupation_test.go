@@ -10,7 +10,7 @@ import (
 )
 
 func clearSantriOccupation(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
 	require.NoError(t, err)
 }
 
@@ -20,7 +20,7 @@ func createRandomSantriOccupation(t *testing.T) SantriOccupation {
 		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
 	}
 
-	santriOccupation, err := testQueries.CreateSantriOccupation(context.Background(), arg)
+	santriOccupation, err := testStore.CreateSantriOccupation(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, santriOccupation)
 
@@ -40,7 +40,7 @@ func TestListSantriOccupation(t *testing.T) {
 	createRandomSantriOccupation(t)
 	createRandomSantriOccupation(t)
 
-	santriOccupation, err := testQueries.ListSantriOccupations(context.Background())
+	santriOccupation, err := testStore.ListSantriOccupations(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, santriOccupation)
 
@@ -56,7 +56,7 @@ func TestUpdateSantriOccupation(t *testing.T) {
 		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
 	}
 
-	santriOccupation, err := testQueries.UpdateSantriOccupation(context.Background(), arg)
+	santriOccupation, err := testStore.UpdateSantriOccupation(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, santriOccupation)
 
@@ -67,7 +67,7 @@ func TestUpdateSantriOccupation(t *testing.T) {
 func TestDeleteSantriOccupation(t *testing.T) {
 	clearSantriOccupation(t)
 	santriOccupation := createRandomSantriOccupation(t)
-	deletedEmployeeOccupation, err := testQueries.DeleteSantriOccupation(context.Background(), santriOccupation.ID)
+	deletedEmployeeOccupation, err := testStore.DeleteSantriOccupation(context.Background(), santriOccupation.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedEmployeeOccupation)

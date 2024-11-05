@@ -11,7 +11,7 @@ import (
 )
 
 func clearSantriPermissionTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), "DELETE FROM santri_permission")
+	_, err := sqlStore.db.Exec(context.Background(), "DELETE FROM santri_permission")
 	require.NoError(t, err)
 }
 
@@ -30,7 +30,7 @@ func createRandomSantriPermission(t *testing.T) (SantriPermission, Santri) {
 		Excuse:          random.RandomString(100),
 	}
 
-	santriPermission, err := testQueries.CreateSantriPermission(context.Background(), arg)
+	santriPermission, err := testStore.CreateSantriPermission(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, santriPermission)
 
@@ -63,7 +63,7 @@ func TestListSantriPermission(t *testing.T) {
 			OffsetNumber: 0,
 			LimitNumber:  10,
 		}
-		santriPermissions, err := testQueries.ListSantriPermissions(context.Background(), arg)
+		santriPermissions, err := testStore.ListSantriPermissions(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, santriPermissions)
 
@@ -77,7 +77,7 @@ func TestListSantriPermission(t *testing.T) {
 			OffsetNumber: 0,
 			LimitNumber:  10,
 		}
-		santriPermissions, err := testQueries.ListSantriPermissions(context.Background(), arg)
+		santriPermissions, err := testStore.ListSantriPermissions(context.Background(), arg)
 
 		require.NoError(t, err)
 		require.NotEmpty(t, santriPermissions)
@@ -93,7 +93,7 @@ func TestListSantriPermission(t *testing.T) {
 			OffsetNumber: 0,
 			LimitNumber:  3,
 		}
-		santriPermissions, err := testQueries.ListSantriPermissions(context.Background(), arg)
+		santriPermissions, err := testStore.ListSantriPermissions(context.Background(), arg)
 
 		require.NoError(t, err)
 		require.NotEmpty(t, santriPermissions)
@@ -109,7 +109,7 @@ func TestListSantriPermission(t *testing.T) {
 			OffsetNumber: 0,
 			LimitNumber:  3,
 		}
-		santriPermissions, err := testQueries.ListSantriPermissions(context.Background(), arg)
+		santriPermissions, err := testStore.ListSantriPermissions(context.Background(), arg)
 
 		require.NoError(t, err)
 		require.NotEmpty(t, santriPermissions)

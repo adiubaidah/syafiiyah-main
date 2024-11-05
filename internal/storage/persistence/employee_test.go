@@ -11,7 +11,7 @@ import (
 )
 
 func clearEmployeeTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "employee"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "employee"`)
 	require.NoError(t, err)
 }
 
@@ -24,7 +24,7 @@ func createRandomEmployee(t *testing.T) Employee {
 		Photo:        pgtype.Text{String: random.RandomString(12), Valid: true},
 		OccupationID: occupation.ID,
 	}
-	employee, err := testQueries.CreateEmployee(context.Background(), arg)
+	employee, err := testStore.CreateEmployee(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employee)
 
@@ -47,7 +47,7 @@ func createRandomEmployeeWithUser(t *testing.T) (Employee, User) {
 		OccupationID: occupation.ID,
 		UserID:       pgtype.Int4{Int32: user.ID, Valid: true},
 	}
-	employee, err := testQueries.CreateEmployee(context.Background(), arg)
+	employee, err := testStore.CreateEmployee(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employee)
 
@@ -80,7 +80,7 @@ func TestListEmployeeWithQ(t *testing.T) {
 	}
 
 	// Perform List
-	employees, err := testQueries.ListEmployeesAsc(context.Background(), arg)
+	employees, err := testStore.ListEmployeesAsc(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employees)
 
@@ -106,7 +106,7 @@ func TestListEmployeeWithHasUser(t *testing.T) {
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		employeessWithUser, err := testQueries.ListEmployeesAsc(context.Background(), arg)
+		employeessWithUser, err := testStore.ListEmployeesAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, employeessWithUser)
 
@@ -124,7 +124,7 @@ func TestListEmployeeWithHasUser(t *testing.T) {
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		employeesWithoutUser, err := testQueries.ListEmployeesAsc(context.Background(), arg)
+		employeesWithoutUser, err := testStore.ListEmployeesAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, employeesWithoutUser)
 
@@ -139,7 +139,7 @@ func TestListEmployeeWithHasUser(t *testing.T) {
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		allEmployees, err := testQueries.ListEmployeesAsc(context.Background(), arg)
+		allEmployees, err := testStore.ListEmployeesAsc(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allEmployees)
 
@@ -198,7 +198,7 @@ func TestListEmployeePagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testQueries.ListEmployeesAsc(context.Background(), tt.arg)
+			employees, err := testStore.ListEmployeesAsc(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})
@@ -222,7 +222,7 @@ func TestUpdateEmployee(t *testing.T) {
 		UserID:       employee1.UserID,
 	}
 
-	employeeUpdated, err := testQueries.UpdateEmployee(context.Background(), arg)
+	employeeUpdated, err := testStore.UpdateEmployee(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employeeUpdated)
 
@@ -238,7 +238,7 @@ func TestUpdateEmployee(t *testing.T) {
 func TestDeleteEmployee(t *testing.T) {
 	clearEmployeeTable(t)
 	employee := createRandomEmployee(t)
-	deletedEmployee, err := testQueries.DeleteEmployee(context.Background(), employee.ID)
+	deletedEmployee, err := testStore.DeleteEmployee(context.Background(), employee.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedEmployee)

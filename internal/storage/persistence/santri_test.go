@@ -10,7 +10,7 @@ import (
 )
 
 func clearSantriTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), `DELETE FROM "santri"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "santri"`)
 	require.NoError(t, err)
 }
 
@@ -23,7 +23,7 @@ func createRandomSantri(t *testing.T) Santri {
 		Generation: int32(random.RandomInt(2010, 2030)),
 		Photo:      pgtype.Text{String: random.RandomString(12), Valid: true},
 	}
-	santri, err := testQueries.CreateSantri(context.Background(), arg)
+	santri, err := testStore.CreateSantri(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, santri)
 
@@ -47,7 +47,7 @@ func createRandomSantriWithParent(t *testing.T) (Santri, Parent) {
 		Photo:      pgtype.Text{String: random.RandomString(12), Valid: true},
 		ParentID:   pgtype.Int4{Int32: parent.ID, Valid: true},
 	}
-	santri, err := testQueries.CreateSantri(context.Background(), arg)
+	santri, err := testStore.CreateSantri(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, santri)
 
@@ -84,7 +84,7 @@ func TestListSantri(t *testing.T) {
 			OffsetNumber: 0,
 		}
 
-		allSantri, err := testQueries.ListSantriAscName(context.Background(), arg)
+		allSantri, err := testStore.ListSantriAscName(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allSantri)
 
@@ -105,7 +105,7 @@ func TestListSantri(t *testing.T) {
 			OffsetNumber: 0,
 		}
 
-		allSantri, err := testQueries.ListSantriAscName(context.Background(), arg)
+		allSantri, err := testStore.ListSantriAscName(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allSantri)
 
@@ -126,7 +126,7 @@ func TestListSantri(t *testing.T) {
 			OffsetNumber: 0,
 		}
 
-		allSantri, err := testQueries.ListSantriAscName(context.Background(), arg)
+		allSantri, err := testStore.ListSantriAscName(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allSantri)
 
@@ -187,7 +187,7 @@ func TestListSantriPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			allSantri, err := testQueries.ListSantriAscName(context.Background(), tt.arg)
+			allSantri, err := testStore.ListSantriAscName(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, allSantri, tt.expected)
 		})
@@ -207,7 +207,7 @@ func TestUpdateSantri(t *testing.T) {
 		Photo:      pgtype.Text{String: random.RandomString(12), Valid: true},
 	}
 
-	updatedSantri, err := testQueries.UpdateSantri(context.Background(), arg)
+	updatedSantri, err := testStore.UpdateSantri(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedSantri)
 
@@ -222,11 +222,11 @@ func TestDeleteSantri(t *testing.T) {
 	clearSantriTable(t)
 	santri := createRandomSantri(t)
 
-	deletedSantri, err := testQueries.DeleteSantri(context.Background(), santri.ID)
+	deletedSantri, err := testStore.DeleteSantri(context.Background(), santri.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedSantri)
 
-	getSantri, err := testQueries.GetSantri(context.Background(), santri.ID)
+	getSantri, err := testStore.GetSantri(context.Background(), santri.ID)
 	require.Error(t, err)
 	require.Empty(t, getSantri)
 

@@ -10,24 +10,34 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var testQueries *Queries
+var testStore Store
+var sqlStore *SQLStore
 
 func TestMain(m *testing.M) {
+	// Load configuration
 	env, err := config.LoadConfig("../../..")
 	if err != nil {
-		log.Fatal("cannot load config:", err)
+		log.Fatalf("Cannot load config: %v", err)
 	}
 
-	if err != nil {
-		log.Fatal("cannot load config:", err)
-	}
-
+	// Initialize connection pool
 	connPool, err := pgxpool.New(context.Background(), env.DBSource)
 	if err != nil {
-		log.Fatal("cannot connect to database:", err)
+		log.Fatalf("Cannot connect to database: %v", err)
+	}
+	defer connPool.Close()
+
+	// Initialize store
+	testStore = NewStore(connPool)
+
+	// Type assertion to *SQLStore
+	var ok bool
+	sqlStore, ok = testStore.(*SQLStore)
+	if !ok {
+		log.Fatal("Cannot convert to *SQLStore")
 	}
 
-	testQueries = New(connPool)
-
-	os.Exit(m.Run())
+	// Run tests
+	exitCode := m.Run()
+	os.Exit(exitCode)
 }

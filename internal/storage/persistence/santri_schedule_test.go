@@ -12,7 +12,7 @@ import (
 )
 
 func clearSantriScheduleTable(t *testing.T) {
-	_, err := testQueries.db.Exec(context.Background(), "DELETE FROM santri_schedule")
+	_, err := sqlStore.db.Exec(context.Background(), "DELETE FROM santri_schedule")
 	require.NoError(t, err)
 }
 
@@ -32,7 +32,7 @@ func createRandomSantriSchedule(t *testing.T) SantriSchedule {
 		StartTime:     startTimePgx,
 		FinishTime:    finishTimePgx,
 	}
-	santriSchedule, err := testQueries.CreateSantriSchedule(context.Background(), arg)
+	santriSchedule, err := testStore.CreateSantriSchedule(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, santriSchedule)
 
@@ -54,7 +54,7 @@ func TestListSantriSchedule(t *testing.T) {
 		createRandomSantriSchedule(t)
 	}
 
-	santriSchedules, err := testQueries.ListSantriSchedules(context.Background())
+	santriSchedules, err := testStore.ListSantriSchedules(context.Background())
 
 	t.Run("list santri schedule should not error", func(t *testing.T) {
 		require.NoError(t, err)
@@ -62,7 +62,7 @@ func TestListSantriSchedule(t *testing.T) {
 	})
 
 	t.Run("Get last santri schedule", func(t *testing.T) {
-		santriSchedule, err := testQueries.GetLastSantriSchedule(context.Background())
+		santriSchedule, err := testStore.GetLastSantriSchedule(context.Background())
 		require.NoError(t, err)
 		require.NotEmpty(t, santriSchedule)
 		require.Equal(t, santriSchedules[len(santriSchedules)-1].ID, santriSchedule.ID)
@@ -84,7 +84,7 @@ func TestUpdateSantriSchedule(t *testing.T) {
 		StartTime:     util.ConvertToPgxTime(startTime),
 		FinishTime:    util.ConvertToPgxTime(finishTime),
 	}
-	updatedSantriSchedule, err := testQueries.UpdateSantriSchedule(context.Background(), arg)
+	updatedSantriSchedule, err := testStore.UpdateSantriSchedule(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedSantriSchedule)
 
@@ -100,7 +100,7 @@ func TestDeleteSantriSchedule(t *testing.T) {
 	clearSantriScheduleTable(t)
 	santriSchedule := createRandomSantriSchedule(t)
 
-	deletedSantriSchedule, err := testQueries.DeleteSantriSchedule(context.Background(), santriSchedule.ID)
+	deletedSantriSchedule, err := testStore.DeleteSantriSchedule(context.Background(), santriSchedule.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, deletedSantriSchedule)
 
