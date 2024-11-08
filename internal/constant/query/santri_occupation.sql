@@ -3,11 +3,16 @@ INSERT INTO "santri_occupation" ("name", "description") VALUES (@name, @descript
 
 -- name: ListSantriOccupations :many
 SELECT 
-    *,
-    COUNT(*) OVER () AS "count"
+    "santri_occupation".*,
+    COUNT("santri"."id") AS "count"
 FROM
-    "santri_occupation";
-
+    "santri_occupation"
+LEFT JOIN
+    "santri" ON "santri"."occupation_id" = "santri_occupation"."id"
+GROUP BY
+    "santri_occupation"."id"
+ORDER BY
+    "santri_occupation"."id" ASC;
 
 -- name: UpdateSantriOccupation :one
 UPDATE "santri_occupation" SET "name" = $1, "description" = $2 WHERE "id" = $3 RETURNING *;

@@ -22,154 +22,61 @@ VALUES
         @parent_id
     ) RETURNING *;
 
--- name: ListSantriAscName :many
+-- ListSantri :many
 SELECT
-    "santri".*,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
+    "id",
+    "name",
+    "nis",
+    "generation",
+    "parent_id",
+    "parent_name",
+    "parent_whatsapp_number",
+    "occupation_id",
+    "occupation_name"
 FROM
-    "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
-WHERE
-    (
-        sqlc.narg(q) :: text IS NULL
-        OR "santri"."name" ILIKE '%' || sqlc.narg(q) || '%'
-        OR "santri"."nis" ILIKE '%' || sqlc.narg(q) || '%'
-    )
-    AND (
-        sqlc.narg(parent_id) :: integer IS NULL
-        OR "parent_id" = sqlc.narg(parent_id) :: integer
-    )
-    AND (
-        sqlc.narg(occupation_id) :: integer IS NULL
-        OR "occupation_id" = sqlc.narg(occupation_id) :: integer
-    )
-    AND (
-        sqlc.narg(generation) :: integer IS NULL
-        OR "generation" = sqlc.narg(generation) :: integer
-    )
-ORDER BY
-    "santri"."name" ASC
-LIMIT
-    @limit_number OFFSET @offset_number;
+    list_santri(
+        sqlc.narg(q),
+        sqlc.narg(occupation_id),
+        sqlc.narg(generation),
+        @limit_number,
+        @offset_number,
+        sqlc.narg(order_by) :: santri_order_by
+    ) AS "list_santri";
 
--- name: ListSantriAscNis :many
+-- name: CountSantri :one
 SELECT
-    "santri".*,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
+    COUNT(*) AS "count"
 FROM
     "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
+    LEFT JOIN "parent" ON "santri".parent_id = "parent".id
+    LEFT JOIN santri_occupation ON "santri".occupation_id = santri_occupation.id
 WHERE
     (
-        sqlc.narg(q) :: text IS NULL
-        OR "santri"."name" ILIKE '%' || sqlc.narg(q) || '%'
-        OR "santri"."nis" ILIKE '%' || sqlc.narg(q) || '%'
+        sqlc.narg(q)::text IS NULL
+        OR "santri".name ILIKE '%' || sqlc.narg(q)::text || '%'
+        OR "santri".nis ILIKE '%' || sqlc.narg(q)::text || '%'
     )
     AND (
-        sqlc.narg(parent_id) :: integer IS NULL
-        OR "parent_id" = sqlc.narg(parent_id) :: integer
+        sqlc.narg(occupation_id)::integer IS NULL
+        OR "santri".occupation_id = sqlc.narg(occupation_id)
     )
     AND (
-        sqlc.narg(occupation_id) :: integer IS NULL
-        OR "occupation_id" = sqlc.narg(occupation_id) :: integer
+        sqlc.narg(generation)::integer IS NULL
+        OR "santri".generation = sqlc.narg(generation)
     )
     AND (
-        sqlc.narg(generation) :: integer IS NULL
-        OR "generation" = sqlc.narg(generation) :: integer
-    )
-ORDER BY
-    "nis" ASC
-LIMIT
-    @limit_number OFFSET @offset_number;
-
--- name: ListSantriAscGeneration :many
-SELECT
-    "santri".*,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
-FROM
-    "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
-WHERE
-    (
-        sqlc.narg(q) :: text IS NULL
-        OR "santri"."name" ILIKE '%' || sqlc.narg(q) || '%'
-        OR "santri"."nis" ILIKE '%' || sqlc.narg(q) || '%'
-    )
-    AND (
-        sqlc.narg(parent_id) :: integer IS NULL
-        OR "parent_id" = sqlc.narg(parent_id) :: integer
-    )
-    AND (
-        sqlc.narg(occupation_id) :: integer IS NULL
-        OR "occupation_id" = sqlc.narg(occupation_id) :: integer
-    )
-    AND (
-        sqlc.narg(generation) :: integer IS NULL
-        OR "generation" = sqlc.narg(generation) :: integer
-    )
-ORDER BY
-    "generation" ASC
-LIMIT
-    @limit_number OFFSET @offset_number;
-
--- name: ListSantriAscOccupation :many
-SELECT
-    "santri".*,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
-FROM
-    "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
-WHERE
-    (
-        sqlc.narg(q) :: text IS NULL
-        OR "santri"."name" ILIKE '%' || sqlc.narg(q) || '%'
-        OR "santri"."nis" ILIKE '%' || sqlc.narg(q) || '%'
-    )
-    AND (
-        sqlc.narg(parent_id) :: integer IS NULL
-        OR "parent_id" = sqlc.narg(parent_id) :: integer
-    )
-    AND (
-        sqlc.narg(occupation_id) :: integer IS NULL
-        OR "occupation_id" = sqlc.narg(occupation_id) :: integer
-    )
-    AND (
-        sqlc.narg(generation) :: integer IS NULL
-        OR "generation" = sqlc.narg(generation) :: integer
-    )
-ORDER BY
-    "occupation_id" ASC
-LIMIT
-    @limit_number OFFSET @offset_number;
+        sqlc.narg(is_active)::boolean IS NULL
+        OR "santri".is_active = sqlc.narg(is_active)::boolean
+    );
 
 -- name: GetSantri :one
 SELECT
     "santri".*,
     "parent"."id" AS "parent_id",
     "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "parent"."address" AS "parentAddress",
-    "parent"."photo" AS "parentPhoto"
+    "parent"."whatsapp_number" AS "parent_whatsapp_number",
+    "parent"."address" AS "parent_address",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -185,6 +92,7 @@ SET
     "name" = @name,
     "generation" = @generation,
     "is_active" = @is_active :: boolean,
+    "gender" = @gender::gender,
     "photo" = sqlc.narg(photo) :: text,
     "occupation_id" = @occupation_id,
     "parent_id" = sqlc.narg(parent_id) :: integer

@@ -16,11 +16,11 @@ func clearParentTable(t *testing.T) {
 
 func createRandomParent(t *testing.T) Parent {
 	arg := CreateParentParams{
-		Name:    random.RandomString(8),
-		Address: random.RandomString(50),
-		Gender:  GenderMale,
-		NoWa:    pgtype.Text{String: random.RandomString(12), Valid: true},
-		Photo:   pgtype.Text{String: random.RandomString(12), Valid: true},
+		Name:           random.RandomString(8),
+		Address:        random.RandomString(50),
+		Gender:         GenderMale,
+		WhatsappNumber: pgtype.Text{String: random.RandomString(12), Valid: true},
+		Photo:          pgtype.Text{String: random.RandomString(12), Valid: true},
 	}
 	parent, err := testStore.CreateParent(context.Background(), arg)
 	require.NoError(t, err)
@@ -29,7 +29,7 @@ func createRandomParent(t *testing.T) Parent {
 	require.Equal(t, arg.Name, parent.Name)
 	require.Equal(t, arg.Address, parent.Address)
 	require.Equal(t, arg.Gender, parent.Gender)
-	require.Equal(t, arg.NoWa.String, parent.WaPhone.String)
+	require.Equal(t, arg.WhatsappNumber.String, parent.WhatsappNumber.String)
 	require.Equal(t, arg.Photo.String, parent.Photo.String)
 
 	return parent
@@ -38,12 +38,12 @@ func createRandomParent(t *testing.T) Parent {
 func createRandomParentWithUser(t *testing.T) (Parent, User) {
 	user := createRandomUser(t, UserRoleParent)
 	arg := CreateParentParams{
-		Name:    random.RandomString(8),
-		Address: random.RandomString(50),
-		Gender:  GenderMale,
-		NoWa:    pgtype.Text{String: random.RandomString(12), Valid: true},
-		Photo:   pgtype.Text{String: random.RandomString(12), Valid: true},
-		UserID:  pgtype.Int4{Int32: user.ID, Valid: true},
+		Name:           random.RandomString(8),
+		Address:        random.RandomString(50),
+		Gender:         GenderMale,
+		WhatsappNumber: pgtype.Text{String: random.RandomString(12), Valid: true},
+		Photo:          pgtype.Text{String: random.RandomString(12), Valid: true},
+		UserID:         pgtype.Int4{Int32: user.ID, Valid: true},
 	}
 	parent, err := testStore.CreateParent(context.Background(), arg)
 	require.NoError(t, err)
@@ -52,7 +52,7 @@ func createRandomParentWithUser(t *testing.T) (Parent, User) {
 	require.Equal(t, arg.Name, parent.Name)
 	require.Equal(t, arg.Address, parent.Address)
 	require.Equal(t, arg.Gender, parent.Gender)
-	require.Equal(t, arg.NoWa.String, parent.WaPhone.String)
+	require.Equal(t, arg.WhatsappNumber.String, parent.WhatsappNumber.String)
 	require.Equal(t, arg.Photo.String, parent.Photo.String)
 	require.Equal(t, arg.UserID.Int32, parent.UserID.Int32)
 	return parent, user
@@ -241,12 +241,12 @@ func TestUpdateParent(t *testing.T) {
 	newPhoto := random.RandomString(12)
 
 	arg := UpdateParentParams{
-		ID:      parent1.ID,
-		Name:    newName,
-		Gender:  GenderMale,
-		Address: newAddress,
-		NoWa:    pgtype.Text{String: newNoWa, Valid: true},
-		Photo:   pgtype.Text{String: newPhoto, Valid: true},
+		ID:             parent1.ID,
+		Name:           newName,
+		Gender:         GenderMale,
+		Address:        newAddress,
+		WhatsappNumber: pgtype.Text{String: newNoWa, Valid: true},
+		Photo:          pgtype.Text{String: newPhoto, Valid: true},
 	}
 
 	parent2, err := testStore.UpdateParent(context.Background(), arg)
@@ -257,7 +257,7 @@ func TestUpdateParent(t *testing.T) {
 	require.Equal(t, newName, parent2.Name)
 	require.Equal(t, newAddress, parent2.Address)
 	require.Equal(t, parent1.Gender, parent2.Gender) // Gender should remain unchanged
-	require.Equal(t, newNoWa, parent2.WaPhone.String)
+	require.Equal(t, newNoWa, parent2.WhatsappNumber.String)
 	require.Equal(t, newPhoto, parent2.Photo.String)
 	require.Equal(t, parent1.UserID, parent2.UserID) // UserID should remain unchanged
 }

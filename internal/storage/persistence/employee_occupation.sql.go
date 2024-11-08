@@ -12,7 +12,10 @@ import (
 )
 
 const createEmployeeOccupation = `-- name: CreateEmployeeOccupation :one
-INSERT INTO "employee_occupation" ("name", "description") VALUES ($1, $2) RETURNING id, name, description
+INSERT INTO
+    "employee_occupation" ("name", "description")
+VALUES
+    ($1, $2) RETURNING id, name, description
 `
 
 type CreateEmployeeOccupationParams struct {
@@ -28,7 +31,10 @@ func (q *Queries) CreateEmployeeOccupation(ctx context.Context, arg CreateEmploy
 }
 
 const deleteEmployeeOccupation = `-- name: DeleteEmployeeOccupation :one
-DELETE FROM "employee_occupation" WHERE "id" = $1 RETURNING id, name, description
+DELETE FROM
+    "employee_occupation"
+WHERE
+    "id" = $1 RETURNING id, name, description
 `
 
 func (q *Queries) DeleteEmployeeOccupation(ctx context.Context, id int32) (EmployeeOccupation, error) {
@@ -39,11 +45,16 @@ func (q *Queries) DeleteEmployeeOccupation(ctx context.Context, id int32) (Emplo
 }
 
 const listEmployeeOccupations = `-- name: ListEmployeeOccupations :many
-SELECT 
-    id, name, description,
-    COUNT(*) OVER () AS "count"
-FROM 
+SELECT
+    employee_occupation.id, employee_occupation.name, employee_occupation.description,
+    COUNT("employee"."id") AS "count"
+FROM
     "employee_occupation"
+    LEFT JOIN "employee" ON "employee"."occupation_id" = "employee_occupation"."id"
+GROUP BY
+    "employee_occupation"."id"
+ORDER BY
+    "employee_occupation"."id" ASC
 `
 
 type ListEmployeeOccupationsRow struct {
@@ -79,7 +90,13 @@ func (q *Queries) ListEmployeeOccupations(ctx context.Context) ([]ListEmployeeOc
 }
 
 const updateEmployeeOccupation = `-- name: UpdateEmployeeOccupation :one
-UPDATE "employee_occupation" SET "name" = $1, "description" = $2 WHERE "id" = $3 RETURNING id, name, description
+UPDATE
+    "employee_occupation"
+SET
+    "name" = $1,
+    "description" = $2
+WHERE
+    "id" = $3 RETURNING id, name, description
 `
 
 type UpdateEmployeeOccupationParams struct {

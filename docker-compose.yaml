@@ -8,12 +8,24 @@ services:
     image: adiubaidah/rfid-syafiiyah:latest
     ports:
       - protocol: tcp
-        published: ${APP_PORT}
-        target: ${APP_PORT}
+        published: ${PORT}
+        target: ${PORT}
     networks:
       - bridge
+    volumes:
+      - type: volume
+        source: photo
+        target: /app/internal/storage/photo
+        read_only: true
+    env_file: app.env
+    environment:
+      - GIN_MODE=${GIN_MODE}
 
 networks:
   bridge:
     driver: bridge
+
+volumes:
+  photo:
+    name: photo
     

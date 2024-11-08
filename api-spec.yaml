@@ -1944,6 +1944,10 @@ paths:
             enum:
               - asc:name
               - desc:name
+              - asc:generation
+              - desc:generation
+              - asc:nis
+              - desc:nis
           examples:
             asc-name:
               value: asc:name
@@ -2411,7 +2415,7 @@ components:
           type: string
         gender:
           $ref: "#/components/schemas/GenderEnum"
-        no_wa:
+        whatsapp_number:
           type: string
           minLength: 10
           maxLength: 13
@@ -2609,16 +2613,16 @@ components:
     Pagination:
       type: object
       properties:
-        totalItems:
+        total_items:
           type: integer
           example: 100
-        totalPages:
+        total_pages:
           type: integer
           example: 10
-        currentPage:
+        current_page:
           type: integer
           example: 1
-        itemsPerPage:
+        items_per_page:
           type: integer
           example: 10
     Forbidden:

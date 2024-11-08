@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -13,9 +14,9 @@ import (
 
 type SantriOccupationHandler interface {
 	CreateSantriOccupationHandler(c *gin.Context)
-	// ListSantriOccupationHandler(c *gin.Context)
-	// UpdateSantriOccupationHandler(c *gin.Context)
-	// DeleteSantriOccupationHandler(c *gin.Context)
+	ListSantriOccupationHandler(c *gin.Context)
+	UpdateSantriOccupationHandler(c *gin.Context)
+	DeleteSantriOccupationHandler(c *gin.Context)
 }
 
 type santriOccupationHandler struct {
@@ -35,15 +36,72 @@ func (h *santriOccupationHandler) CreateSantriOccupationHandler(c *gin.Context) 
 	h.logger.Info("Test")
 	if err := c.ShouldBindJSON(&santriOccupationRequest); err != nil {
 		h.logger.Error(err)
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
 
-	result, err := h.usecase.CreateSantriOccupation(context.Background(), santriOccupationRequest)
+	result, err := h.usecase.CreateSantriOccupation(context.Background(), &santriOccupationRequest)
 	if err != nil {
 		h.logger.Error(err)
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, model.Response[model.SantriOccupationResponse]{Code: http.StatusCreated, Status: "Created", Data: result})
+	c.JSON(http.StatusCreated, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusCreated, Status: "Created", Data: result})
+}
+
+func (h *santriOccupationHandler) ListSantriOccupationHandler(c *gin.Context) {
+	result, err := h.usecase.ListSantriOccupation(context.Background())
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, model.ResponseData[[]model.SantriOccupationWithCountResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+}
+
+func (h *santriOccupationHandler) UpdateSantriOccupationHandler(c *gin.Context) {
+
+	idParam := c.Param("id")
+	santriOccupationId, err := strconv.Atoi(idParam)
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
+		return
+	}
+
+	var santriOccupationRequest model.UpdateSantriOccupationRequest
+	if err := c.ShouldBindJSON(&santriOccupationRequest); err != nil {
+		h.logger.Error(err)
+		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
+		return
+	}
+
+	id := int32(santriOccupationId)
+
+	result, err := h.usecase.UpdateSantriOccupation(context.Background(), &santriOccupationRequest, &id)
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+}
+
+func (h *santriOccupationHandler) DeleteSantriOccupationHandler(c *gin.Context) {
+	idParam := c.Param("id")
+	santriOccupationId, err := strconv.Atoi(idParam)
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
+		return
+	}
+
+	id := int32(santriOccupationId)
+	result, err := h.usecase.DeleteSantriOccupation(context.Background(), &id)
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusOK, Status: "OK", Data: result})
 }

@@ -51,6 +51,8 @@ WHERE
         sqlc.narg(to_date) :: timestamp IS NULL
         OR "created_at" <= sqlc.narg(to_date) :: timestamp
     )
+ORDER BY
+    "santri_presence"."id" DESC
 LIMIT
     @limit_number OFFSET @offset_number;
 

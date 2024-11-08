@@ -11,19 +11,15 @@ type CreateSantriOccupationRequest struct {
 
 type UpdateSantriOccupationRequest struct {
 	BaseSantriOccupation
-	ID int32 `json:"-" binding:"required"`
 }
 
 type SantriOccupationResponse struct {
-	BaseSantriOccupation
 	ID int32 `json:"id"`
+	BaseSantriOccupation
 }
 
 type SantriOccupationWithCountResponse struct {
+	ID int32 `json:"id"`
 	BaseSantriOccupation
 	Count int32 `json:"count"`
-}
-
-type ListSantriOccupationParams struct {
-	Q string `json:"q"`
 }

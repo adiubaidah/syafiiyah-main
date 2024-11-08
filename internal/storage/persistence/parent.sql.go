@@ -53,7 +53,7 @@ INSERT INTO
         "name",
         "address",
         "gender",
-        "wa_phone",
+        "whatsapp_number",
         "photo",
         "user_id"
     )
@@ -65,16 +65,16 @@ VALUES
         $4,
         $5,
         $6
-    ) RETURNING id, name, address, gender, wa_phone, photo, user_id
+    ) RETURNING id, name, address, gender, whatsapp_number, photo, user_id
 `
 
 type CreateParentParams struct {
-	Name    string      `db:"name" json:"name"`
-	Address string      `db:"address" json:"address"`
-	Gender  Gender      `db:"gender" json:"gender"`
-	NoWa    pgtype.Text `db:"no_wa" json:"no_wa"`
-	Photo   pgtype.Text `db:"photo" json:"photo"`
-	UserID  pgtype.Int4 `db:"user_id" json:"user_id"`
+	Name           string      `db:"name" json:"name"`
+	Address        string      `db:"address" json:"address"`
+	Gender         Gender      `db:"gender" json:"gender"`
+	WhatsappNumber pgtype.Text `db:"whatsapp_number" json:"whatsapp_number"`
+	Photo          pgtype.Text `db:"photo" json:"photo"`
+	UserID         pgtype.Int4 `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) CreateParent(ctx context.Context, arg CreateParentParams) (Parent, error) {
@@ -82,7 +82,7 @@ func (q *Queries) CreateParent(ctx context.Context, arg CreateParentParams) (Par
 		arg.Name,
 		arg.Address,
 		arg.Gender,
-		arg.NoWa,
+		arg.WhatsappNumber,
 		arg.Photo,
 		arg.UserID,
 	)
@@ -92,7 +92,7 @@ func (q *Queries) CreateParent(ctx context.Context, arg CreateParentParams) (Par
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.WaPhone,
+		&i.WhatsappNumber,
 		&i.Photo,
 		&i.UserID,
 	)
@@ -103,7 +103,7 @@ const deleteParent = `-- name: DeleteParent :one
 DELETE FROM
     "parent"
 WHERE
-    "id" = $1 RETURNING id, name, address, gender, wa_phone, photo, user_id
+    "id" = $1 RETURNING id, name, address, gender, whatsapp_number, photo, user_id
 `
 
 func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
@@ -114,7 +114,7 @@ func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.WaPhone,
+		&i.WhatsappNumber,
 		&i.Photo,
 		&i.UserID,
 	)
@@ -123,7 +123,7 @@ func (q *Queries) DeleteParent(ctx context.Context, id int32) (Parent, error) {
 
 const getParent = `-- name: GetParent :one
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
+    parent.id, parent.name, parent.address, parent.gender, parent.whatsapp_number, parent.photo, parent.user_id,
     "user"."id" AS "user_id",
     "user"."username" AS "user_username"
 FROM
@@ -134,15 +134,15 @@ WHERE
 `
 
 type GetParentRow struct {
-	ID           int32       `db:"id" json:"id"`
-	Name         string      `db:"name" json:"name"`
-	Address      string      `db:"address" json:"address"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	WaPhone      pgtype.Text `db:"wa_phone" json:"wa_phone"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
-	UserID_2     pgtype.Int4 `db:"user_id_2" json:"user_id_2"`
-	UserUsername pgtype.Text `db:"user_username" json:"user_username"`
+	ID             int32       `db:"id" json:"id"`
+	Name           string      `db:"name" json:"name"`
+	Address        string      `db:"address" json:"address"`
+	Gender         Gender      `db:"gender" json:"gender"`
+	WhatsappNumber pgtype.Text `db:"whatsapp_number" json:"whatsapp_number"`
+	Photo          pgtype.Text `db:"photo" json:"photo"`
+	UserID         pgtype.Int4 `db:"user_id" json:"user_id"`
+	UserID_2       pgtype.Int4 `db:"user_id_2" json:"user_id_2"`
+	UserUsername   pgtype.Text `db:"user_username" json:"user_username"`
 }
 
 func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error) {
@@ -153,7 +153,7 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.WaPhone,
+		&i.WhatsappNumber,
 		&i.Photo,
 		&i.UserID,
 		&i.UserID_2,
@@ -164,7 +164,7 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 
 const listParentsAsc = `-- name: ListParentsAsc :many
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
+    parent.id, parent.name, parent.address, parent.gender, parent.whatsapp_number, parent.photo, parent.user_id,
     "user"."id" AS "user_id",
     "user"."username" AS "user_username"
 FROM
@@ -201,15 +201,15 @@ type ListParentsAscParams struct {
 }
 
 type ListParentsAscRow struct {
-	ID           int32       `db:"id" json:"id"`
-	Name         string      `db:"name" json:"name"`
-	Address      string      `db:"address" json:"address"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	WaPhone      pgtype.Text `db:"wa_phone" json:"wa_phone"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
-	UserID_2     pgtype.Int4 `db:"user_id_2" json:"user_id_2"`
-	UserUsername pgtype.Text `db:"user_username" json:"user_username"`
+	ID             int32       `db:"id" json:"id"`
+	Name           string      `db:"name" json:"name"`
+	Address        string      `db:"address" json:"address"`
+	Gender         Gender      `db:"gender" json:"gender"`
+	WhatsappNumber pgtype.Text `db:"whatsapp_number" json:"whatsapp_number"`
+	Photo          pgtype.Text `db:"photo" json:"photo"`
+	UserID         pgtype.Int4 `db:"user_id" json:"user_id"`
+	UserID_2       pgtype.Int4 `db:"user_id_2" json:"user_id_2"`
+	UserUsername   pgtype.Text `db:"user_username" json:"user_username"`
 }
 
 func (q *Queries) ListParentsAsc(ctx context.Context, arg ListParentsAscParams) ([]ListParentsAscRow, error) {
@@ -231,7 +231,7 @@ func (q *Queries) ListParentsAsc(ctx context.Context, arg ListParentsAscParams) 
 			&i.Name,
 			&i.Address,
 			&i.Gender,
-			&i.WaPhone,
+			&i.WhatsappNumber,
 			&i.Photo,
 			&i.UserID,
 			&i.UserID_2,
@@ -249,7 +249,7 @@ func (q *Queries) ListParentsAsc(ctx context.Context, arg ListParentsAscParams) 
 
 const listParentsDesc = `-- name: ListParentsDesc :many
 SELECT
-    parent.id, parent.name, parent.address, parent.gender, parent.wa_phone, parent.photo, parent.user_id,
+    parent.id, parent.name, parent.address, parent.gender, parent.whatsapp_number, parent.photo, parent.user_id,
     "user"."id" AS "user_id",
     "user"."username" AS "user_username"
 FROM
@@ -286,15 +286,15 @@ type ListParentsDescParams struct {
 }
 
 type ListParentsDescRow struct {
-	ID           int32       `db:"id" json:"id"`
-	Name         string      `db:"name" json:"name"`
-	Address      string      `db:"address" json:"address"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	WaPhone      pgtype.Text `db:"wa_phone" json:"wa_phone"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
-	UserID_2     pgtype.Int4 `db:"user_id_2" json:"user_id_2"`
-	UserUsername pgtype.Text `db:"user_username" json:"user_username"`
+	ID             int32       `db:"id" json:"id"`
+	Name           string      `db:"name" json:"name"`
+	Address        string      `db:"address" json:"address"`
+	Gender         Gender      `db:"gender" json:"gender"`
+	WhatsappNumber pgtype.Text `db:"whatsapp_number" json:"whatsapp_number"`
+	Photo          pgtype.Text `db:"photo" json:"photo"`
+	UserID         pgtype.Int4 `db:"user_id" json:"user_id"`
+	UserID_2       pgtype.Int4 `db:"user_id_2" json:"user_id_2"`
+	UserUsername   pgtype.Text `db:"user_username" json:"user_username"`
 }
 
 func (q *Queries) ListParentsDesc(ctx context.Context, arg ListParentsDescParams) ([]ListParentsDescRow, error) {
@@ -316,7 +316,7 @@ func (q *Queries) ListParentsDesc(ctx context.Context, arg ListParentsDescParams
 			&i.Name,
 			&i.Address,
 			&i.Gender,
-			&i.WaPhone,
+			&i.WhatsappNumber,
 			&i.Photo,
 			&i.UserID,
 			&i.UserID_2,
@@ -339,21 +339,21 @@ SET
     "name" = $1,
     "address" = $2,
     "gender" = $3,
-    "wa_phone" = $4,
+    "whatsapp_number" = $4,
     "photo" = $5,
     "user_id" = $6
 WHERE
-    "id" = $7 RETURNING id, name, address, gender, wa_phone, photo, user_id
+    "id" = $7 RETURNING id, name, address, gender, whatsapp_number, photo, user_id
 `
 
 type UpdateParentParams struct {
-	Name    string      `db:"name" json:"name"`
-	Address string      `db:"address" json:"address"`
-	Gender  Gender      `db:"gender" json:"gender"`
-	NoWa    pgtype.Text `db:"no_wa" json:"no_wa"`
-	Photo   pgtype.Text `db:"photo" json:"photo"`
-	UserID  pgtype.Int4 `db:"user_id" json:"user_id"`
-	ID      int32       `db:"id" json:"id"`
+	Name           string      `db:"name" json:"name"`
+	Address        string      `db:"address" json:"address"`
+	Gender         Gender      `db:"gender" json:"gender"`
+	WhatsappNumber pgtype.Text `db:"whatsapp_number" json:"whatsapp_number"`
+	Photo          pgtype.Text `db:"photo" json:"photo"`
+	UserID         pgtype.Int4 `db:"user_id" json:"user_id"`
+	ID             int32       `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateParent(ctx context.Context, arg UpdateParentParams) (Parent, error) {
@@ -361,7 +361,7 @@ func (q *Queries) UpdateParent(ctx context.Context, arg UpdateParentParams) (Par
 		arg.Name,
 		arg.Address,
 		arg.Gender,
-		arg.NoWa,
+		arg.WhatsappNumber,
 		arg.Photo,
 		arg.UserID,
 		arg.ID,
@@ -372,7 +372,7 @@ func (q *Queries) UpdateParent(ctx context.Context, arg UpdateParentParams) (Par
 		&i.Name,
 		&i.Address,
 		&i.Gender,
-		&i.WaPhone,
+		&i.WhatsappNumber,
 		&i.Photo,
 		&i.UserID,
 	)

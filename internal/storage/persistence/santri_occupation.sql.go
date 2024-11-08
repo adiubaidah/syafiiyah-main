@@ -40,10 +40,16 @@ func (q *Queries) DeleteSantriOccupation(ctx context.Context, id int32) (SantriO
 
 const listSantriOccupations = `-- name: ListSantriOccupations :many
 SELECT 
-    id, name, description,
-    COUNT(*) OVER () AS "count"
+    santri_occupation.id, santri_occupation.name, santri_occupation.description,
+    COUNT("santri"."id") AS "count"
 FROM
     "santri_occupation"
+LEFT JOIN
+    "santri" ON "santri"."occupation_id" = "santri_occupation"."id"
+GROUP BY
+    "santri_occupation"."id"
+ORDER BY
+    "santri_occupation"."id" ASC
 `
 
 type ListSantriOccupationsRow struct {

@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CountParents(ctx context.Context, arg CountParentsParams) (int64, error)
+	CountSantri(ctx context.Context, arg CountSantriParams) (int64, error)
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
 	CreateArduino(ctx context.Context, name string) (Arduino, error)
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (Employee, error)
@@ -53,10 +54,6 @@ type Querier interface {
 	ListParentsAsc(ctx context.Context, arg ListParentsAscParams) ([]ListParentsAscRow, error)
 	ListParentsDesc(ctx context.Context, arg ListParentsDescParams) ([]ListParentsDescRow, error)
 	ListRfid(ctx context.Context, arg ListRfidParams) ([]ListRfidRow, error)
-	ListSantriAscGeneration(ctx context.Context, arg ListSantriAscGenerationParams) ([]ListSantriAscGenerationRow, error)
-	ListSantriAscName(ctx context.Context, arg ListSantriAscNameParams) ([]ListSantriAscNameRow, error)
-	ListSantriAscNis(ctx context.Context, arg ListSantriAscNisParams) ([]ListSantriAscNisRow, error)
-	ListSantriAscOccupation(ctx context.Context, arg ListSantriAscOccupationParams) ([]ListSantriAscOccupationRow, error)
 	ListSantriOccupations(ctx context.Context) ([]ListSantriOccupationsRow, error)
 	ListSantriPermissions(ctx context.Context, arg ListSantriPermissionsParams) ([]ListSantriPermissionsRow, error)
 	ListSantriPresences(ctx context.Context, arg ListSantriPresencesParams) ([]ListSantriPresencesRow, error)

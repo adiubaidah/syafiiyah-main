@@ -2,5 +2,6 @@
 app.env
 Makefile
 ignore__*
-dbml-error.log
+*.log
 main.exe
+internal/storage/photo/*

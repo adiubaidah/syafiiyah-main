@@ -125,6 +125,8 @@ WHERE
         $6 :: timestamp IS NULL
         OR "created_at" <= $6 :: timestamp
     )
+ORDER BY
+    "santri_presence"."id" DESC
 LIMIT
     $8 OFFSET $7
 `

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,6 +39,7 @@ func (r *routing) Serve() {
 	ginRouter.Use(gin.Logger())
 	ginRouter.Use(gin.Recovery())
 	ginRouter.Use(CORSHandler)
+	ginRouter.Static("/photo", config.PathPhoto)
 	ginRouter.Handle(http.MethodGet, "/ping", HealthCheck)
 
 	for _, router := range r.routers {

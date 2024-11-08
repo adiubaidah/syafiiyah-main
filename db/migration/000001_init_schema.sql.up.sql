@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-11-04T15:11:21.917Z
+-- Generated at: 2024-11-06T07:26:30.539Z
 
 CREATE TYPE "user_role" AS ENUM (
   'superadmin',
@@ -91,7 +91,7 @@ CREATE TABLE "parent" (
   "name" varchar(255) NOT NULL,
   "address" varchar(255) NOT NULL,
   "gender" gender NOT NULL,
-  "wa_phone" varchar(13) UNIQUE,
+  "whatsapp_number" varchar(13) UNIQUE,
   "photo" varchar(100),
   "user_id" int UNIQUE
 );

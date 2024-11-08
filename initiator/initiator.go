@@ -32,8 +32,13 @@ func Init() {
 	santriOccupationHandler := handler.NewSantriOccupationHandler(logger, santriOccupationUseCase)
 	santriOccupationRouting := routing.SantriOccupationRouting(santriOccupationHandler)
 
+	santriUseCase := usecase.NewSantriUseCase(store)
+	santriHandler := handler.NewSantriHandler(&env, logger, santriUseCase)
+	santriRouting := routing.SantriRouting(santriHandler)
+
 	var routerList []routers.Route
 	routerList = append(routerList, santriOccupationRouting...)
+	routerList = append(routerList, santriRouting...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)
 	server.Serve()

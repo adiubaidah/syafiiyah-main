@@ -184,6 +184,52 @@ func (ns NullPresenceType) Value() (driver.Value, error) {
 	return string(ns.PresenceType), nil
 }
 
+type SantriOrderBy string
+
+const (
+	SantriOrderByAscName        SantriOrderBy = "asc:name"
+	SantriOrderByAscNis         SantriOrderBy = "asc:nis"
+	SantriOrderByAscGeneration  SantriOrderBy = "asc:generation"
+	SantriOrderByDescName       SantriOrderBy = "desc:name"
+	SantriOrderByDescNis        SantriOrderBy = "desc:nis"
+	SantriOrderByDescGeneration SantriOrderBy = "desc:generation"
+)
+
+func (e *SantriOrderBy) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SantriOrderBy(s)
+	case string:
+		*e = SantriOrderBy(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SantriOrderBy: %T", src)
+	}
+	return nil
+}
+
+type NullSantriOrderBy struct {
+	SantriOrderBy SantriOrderBy `json:"santri_order_by"`
+	Valid         bool          `json:"valid"` // Valid is true if SantriOrderBy is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSantriOrderBy) Scan(value interface{}) error {
+	if value == nil {
+		ns.SantriOrderBy, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SantriOrderBy.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSantriOrderBy) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SantriOrderBy), nil
+}
+
 type SantriPermissionType string
 
 const (
@@ -346,13 +392,13 @@ type HolidayDay struct {
 }
 
 type Parent struct {
-	ID      int32       `db:"id" json:"id"`
-	Name    string      `db:"name" json:"name"`
-	Address string      `db:"address" json:"address"`
-	Gender  Gender      `db:"gender" json:"gender"`
-	WaPhone pgtype.Text `db:"wa_phone" json:"wa_phone"`
-	Photo   pgtype.Text `db:"photo" json:"photo"`
-	UserID  pgtype.Int4 `db:"user_id" json:"user_id"`
+	ID             int32       `db:"id" json:"id"`
+	Name           string      `db:"name" json:"name"`
+	Address        string      `db:"address" json:"address"`
+	Gender         Gender      `db:"gender" json:"gender"`
+	WhatsappNumber pgtype.Text `db:"whatsapp_number" json:"whatsapp_number"`
+	Photo          pgtype.Text `db:"photo" json:"photo"`
+	UserID         pgtype.Int4 `db:"user_id" json:"user_id"`
 }
 
 type Rfid struct {

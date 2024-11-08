@@ -3,7 +3,8 @@ package persistence
 import "github.com/jackc/pgx/v5/pgxpool"
 
 type Store interface {
-	Querier
+	//Querier // Uncomment this line to include Querier interface
+	QuerierV2 // Advance version of Querier interface
 }
 
 type SQLStore struct {

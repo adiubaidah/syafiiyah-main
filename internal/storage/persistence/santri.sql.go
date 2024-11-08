@@ -11,6 +11,52 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countSantri = `-- name: CountSantri :one
+SELECT
+    COUNT(*) AS "count"
+FROM
+    "santri"
+    LEFT JOIN "parent" ON "santri".parent_id = "parent".id
+    LEFT JOIN santri_occupation ON "santri".occupation_id = santri_occupation.id
+WHERE
+    (
+        $1::text IS NULL
+        OR "santri".name ILIKE '%' || $1::text || '%'
+        OR "santri".nis ILIKE '%' || $1::text || '%'
+    )
+    AND (
+        $2::integer IS NULL
+        OR "santri".occupation_id = $2
+    )
+    AND (
+        $3::integer IS NULL
+        OR "santri".generation = $3
+    )
+    AND (
+        $4::boolean IS NULL
+        OR "santri".is_active = $4::boolean
+    )
+`
+
+type CountSantriParams struct {
+	Q            pgtype.Text `db:"q" json:"q"`
+	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
+	Generation   pgtype.Int4 `db:"generation" json:"generation"`
+	IsActive     pgtype.Bool `db:"is_active" json:"is_active"`
+}
+
+func (q *Queries) CountSantri(ctx context.Context, arg CountSantriParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSantri,
+		arg.Q,
+		arg.OccupationID,
+		arg.Generation,
+		arg.IsActive,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createSantri = `-- name: CreateSantri :one
 INSERT INTO
     "santri" (
@@ -102,9 +148,9 @@ SELECT
     santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
     "parent"."id" AS "parent_id",
     "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "parent"."address" AS "parentAddress",
-    "parent"."photo" AS "parentPhoto"
+    "parent"."whatsapp_number" AS "parent_whatsapp_number",
+    "parent"."address" AS "parent_address",
+    "santri_occupation"."name" AS "occupation_name"
 FROM
     "santri"
     LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
@@ -114,20 +160,20 @@ WHERE
 `
 
 type GetSantriRow struct {
-	ID            int32       `db:"id" json:"id"`
-	Nis           pgtype.Text `db:"nis" json:"nis"`
-	Name          string      `db:"name" json:"name"`
-	Gender        Gender      `db:"gender" json:"gender"`
-	Generation    int32       `db:"generation" json:"generation"`
-	IsActive      pgtype.Bool `db:"is_active" json:"is_active"`
-	Photo         pgtype.Text `db:"photo" json:"photo"`
-	OccupationID  pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID      pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	ParentID_2    pgtype.Int4 `db:"parent_id_2" json:"parent_id_2"`
-	ParentName    pgtype.Text `db:"parent_name" json:"parent_name"`
-	ParentWaPhone pgtype.Text `db:"parent_wa_phone" json:"parent_wa_phone"`
-	ParentAddress pgtype.Text `db:"parentAddress" json:"parentAddress"`
-	ParentPhoto   pgtype.Text `db:"parentPhoto" json:"parentPhoto"`
+	ID                   int32       `db:"id" json:"id"`
+	Nis                  pgtype.Text `db:"nis" json:"nis"`
+	Name                 string      `db:"name" json:"name"`
+	Gender               Gender      `db:"gender" json:"gender"`
+	Generation           int32       `db:"generation" json:"generation"`
+	IsActive             pgtype.Bool `db:"is_active" json:"is_active"`
+	Photo                pgtype.Text `db:"photo" json:"photo"`
+	OccupationID         pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
+	ParentID             pgtype.Int4 `db:"parent_id" json:"parent_id"`
+	ParentID_2           pgtype.Int4 `db:"parent_id_2" json:"parent_id_2"`
+	ParentName           pgtype.Text `db:"parent_name" json:"parent_name"`
+	ParentWhatsappNumber pgtype.Text `db:"parent_whatsapp_number" json:"parent_whatsapp_number"`
+	ParentAddress        pgtype.Text `db:"parent_address" json:"parent_address"`
+	OccupationName       pgtype.Text `db:"occupation_name" json:"occupation_name"`
 }
 
 func (q *Queries) GetSantri(ctx context.Context, id int32) (GetSantriRow, error) {
@@ -145,427 +191,11 @@ func (q *Queries) GetSantri(ctx context.Context, id int32) (GetSantriRow, error)
 		&i.ParentID,
 		&i.ParentID_2,
 		&i.ParentName,
-		&i.ParentWaPhone,
+		&i.ParentWhatsappNumber,
 		&i.ParentAddress,
-		&i.ParentPhoto,
+		&i.OccupationName,
 	)
 	return i, err
-}
-
-const listSantriAscGeneration = `-- name: ListSantriAscGeneration :many
-SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
-FROM
-    "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
-WHERE
-    (
-        $1 :: text IS NULL
-        OR "santri"."name" ILIKE '%' || $1 || '%'
-        OR "santri"."nis" ILIKE '%' || $1 || '%'
-    )
-    AND (
-        $2 :: integer IS NULL
-        OR "parent_id" = $2 :: integer
-    )
-    AND (
-        $3 :: integer IS NULL
-        OR "occupation_id" = $3 :: integer
-    )
-    AND (
-        $4 :: integer IS NULL
-        OR "generation" = $4 :: integer
-    )
-ORDER BY
-    "generation" ASC
-LIMIT
-    $6 OFFSET $5
-`
-
-type ListSantriAscGenerationParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	Generation   pgtype.Int4 `db:"generation" json:"generation"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
-}
-
-type ListSantriAscGenerationRow struct {
-	ID             int32       `db:"id" json:"id"`
-	Nis            pgtype.Text `db:"nis" json:"nis"`
-	Name           string      `db:"name" json:"name"`
-	Gender         Gender      `db:"gender" json:"gender"`
-	Generation     int32       `db:"generation" json:"generation"`
-	IsActive       pgtype.Bool `db:"is_active" json:"is_active"`
-	Photo          pgtype.Text `db:"photo" json:"photo"`
-	OccupationID   pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID       pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	ParentID_2     pgtype.Int4 `db:"parent_id_2" json:"parent_id_2"`
-	ParentName     pgtype.Text `db:"parent_name" json:"parent_name"`
-	ParentWaPhone  pgtype.Text `db:"parent_wa_phone" json:"parent_wa_phone"`
-	OccupationID_2 pgtype.Int4 `db:"occupation_id_2" json:"occupation_id_2"`
-	OccupationName pgtype.Text `db:"occupation_name" json:"occupation_name"`
-}
-
-func (q *Queries) ListSantriAscGeneration(ctx context.Context, arg ListSantriAscGenerationParams) ([]ListSantriAscGenerationRow, error) {
-	rows, err := q.db.Query(ctx, listSantriAscGeneration,
-		arg.Q,
-		arg.ParentID,
-		arg.OccupationID,
-		arg.Generation,
-		arg.OffsetNumber,
-		arg.LimitNumber,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListSantriAscGenerationRow{}
-	for rows.Next() {
-		var i ListSantriAscGenerationRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Nis,
-			&i.Name,
-			&i.Gender,
-			&i.Generation,
-			&i.IsActive,
-			&i.Photo,
-			&i.OccupationID,
-			&i.ParentID,
-			&i.ParentID_2,
-			&i.ParentName,
-			&i.ParentWaPhone,
-			&i.OccupationID_2,
-			&i.OccupationName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listSantriAscName = `-- name: ListSantriAscName :many
-SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
-FROM
-    "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
-WHERE
-    (
-        $1 :: text IS NULL
-        OR "santri"."name" ILIKE '%' || $1 || '%'
-        OR "santri"."nis" ILIKE '%' || $1 || '%'
-    )
-    AND (
-        $2 :: integer IS NULL
-        OR "parent_id" = $2 :: integer
-    )
-    AND (
-        $3 :: integer IS NULL
-        OR "occupation_id" = $3 :: integer
-    )
-    AND (
-        $4 :: integer IS NULL
-        OR "generation" = $4 :: integer
-    )
-ORDER BY
-    "santri"."name" ASC
-LIMIT
-    $6 OFFSET $5
-`
-
-type ListSantriAscNameParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	Generation   pgtype.Int4 `db:"generation" json:"generation"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
-}
-
-type ListSantriAscNameRow struct {
-	ID             int32       `db:"id" json:"id"`
-	Nis            pgtype.Text `db:"nis" json:"nis"`
-	Name           string      `db:"name" json:"name"`
-	Gender         Gender      `db:"gender" json:"gender"`
-	Generation     int32       `db:"generation" json:"generation"`
-	IsActive       pgtype.Bool `db:"is_active" json:"is_active"`
-	Photo          pgtype.Text `db:"photo" json:"photo"`
-	OccupationID   pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID       pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	ParentID_2     pgtype.Int4 `db:"parent_id_2" json:"parent_id_2"`
-	ParentName     pgtype.Text `db:"parent_name" json:"parent_name"`
-	ParentWaPhone  pgtype.Text `db:"parent_wa_phone" json:"parent_wa_phone"`
-	OccupationID_2 pgtype.Int4 `db:"occupation_id_2" json:"occupation_id_2"`
-	OccupationName pgtype.Text `db:"occupation_name" json:"occupation_name"`
-}
-
-func (q *Queries) ListSantriAscName(ctx context.Context, arg ListSantriAscNameParams) ([]ListSantriAscNameRow, error) {
-	rows, err := q.db.Query(ctx, listSantriAscName,
-		arg.Q,
-		arg.ParentID,
-		arg.OccupationID,
-		arg.Generation,
-		arg.OffsetNumber,
-		arg.LimitNumber,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListSantriAscNameRow{}
-	for rows.Next() {
-		var i ListSantriAscNameRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Nis,
-			&i.Name,
-			&i.Gender,
-			&i.Generation,
-			&i.IsActive,
-			&i.Photo,
-			&i.OccupationID,
-			&i.ParentID,
-			&i.ParentID_2,
-			&i.ParentName,
-			&i.ParentWaPhone,
-			&i.OccupationID_2,
-			&i.OccupationName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listSantriAscNis = `-- name: ListSantriAscNis :many
-SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
-FROM
-    "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
-WHERE
-    (
-        $1 :: text IS NULL
-        OR "santri"."name" ILIKE '%' || $1 || '%'
-        OR "santri"."nis" ILIKE '%' || $1 || '%'
-    )
-    AND (
-        $2 :: integer IS NULL
-        OR "parent_id" = $2 :: integer
-    )
-    AND (
-        $3 :: integer IS NULL
-        OR "occupation_id" = $3 :: integer
-    )
-    AND (
-        $4 :: integer IS NULL
-        OR "generation" = $4 :: integer
-    )
-ORDER BY
-    "nis" ASC
-LIMIT
-    $6 OFFSET $5
-`
-
-type ListSantriAscNisParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	Generation   pgtype.Int4 `db:"generation" json:"generation"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
-}
-
-type ListSantriAscNisRow struct {
-	ID             int32       `db:"id" json:"id"`
-	Nis            pgtype.Text `db:"nis" json:"nis"`
-	Name           string      `db:"name" json:"name"`
-	Gender         Gender      `db:"gender" json:"gender"`
-	Generation     int32       `db:"generation" json:"generation"`
-	IsActive       pgtype.Bool `db:"is_active" json:"is_active"`
-	Photo          pgtype.Text `db:"photo" json:"photo"`
-	OccupationID   pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID       pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	ParentID_2     pgtype.Int4 `db:"parent_id_2" json:"parent_id_2"`
-	ParentName     pgtype.Text `db:"parent_name" json:"parent_name"`
-	ParentWaPhone  pgtype.Text `db:"parent_wa_phone" json:"parent_wa_phone"`
-	OccupationID_2 pgtype.Int4 `db:"occupation_id_2" json:"occupation_id_2"`
-	OccupationName pgtype.Text `db:"occupation_name" json:"occupation_name"`
-}
-
-func (q *Queries) ListSantriAscNis(ctx context.Context, arg ListSantriAscNisParams) ([]ListSantriAscNisRow, error) {
-	rows, err := q.db.Query(ctx, listSantriAscNis,
-		arg.Q,
-		arg.ParentID,
-		arg.OccupationID,
-		arg.Generation,
-		arg.OffsetNumber,
-		arg.LimitNumber,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListSantriAscNisRow{}
-	for rows.Next() {
-		var i ListSantriAscNisRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Nis,
-			&i.Name,
-			&i.Gender,
-			&i.Generation,
-			&i.IsActive,
-			&i.Photo,
-			&i.OccupationID,
-			&i.ParentID,
-			&i.ParentID_2,
-			&i.ParentName,
-			&i.ParentWaPhone,
-			&i.OccupationID_2,
-			&i.OccupationName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listSantriAscOccupation = `-- name: ListSantriAscOccupation :many
-SELECT
-    santri.id, santri.nis, santri.name, santri.gender, santri.generation, santri.is_active, santri.photo, santri.occupation_id, santri.parent_id,
-    "parent"."id" AS "parent_id",
-    "parent"."name" AS "parent_name",
-    "parent"."wa_phone" AS "parent_wa_phone",
-    "santri_occupation"."id" AS "occupation_id",
-    "santri_occupation"."name" AS "occupation_name"
-FROM
-    "santri"
-    LEFT JOIN "parent" ON "santri"."parent_id" = "parent"."id"
-    LEFT JOIN "santri_occupation" ON "santri"."occupation_id" = "santri_occupation"."id"
-WHERE
-    (
-        $1 :: text IS NULL
-        OR "santri"."name" ILIKE '%' || $1 || '%'
-        OR "santri"."nis" ILIKE '%' || $1 || '%'
-    )
-    AND (
-        $2 :: integer IS NULL
-        OR "parent_id" = $2 :: integer
-    )
-    AND (
-        $3 :: integer IS NULL
-        OR "occupation_id" = $3 :: integer
-    )
-    AND (
-        $4 :: integer IS NULL
-        OR "generation" = $4 :: integer
-    )
-ORDER BY
-    "occupation_id" ASC
-LIMIT
-    $6 OFFSET $5
-`
-
-type ListSantriAscOccupationParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	Generation   pgtype.Int4 `db:"generation" json:"generation"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
-}
-
-type ListSantriAscOccupationRow struct {
-	ID             int32       `db:"id" json:"id"`
-	Nis            pgtype.Text `db:"nis" json:"nis"`
-	Name           string      `db:"name" json:"name"`
-	Gender         Gender      `db:"gender" json:"gender"`
-	Generation     int32       `db:"generation" json:"generation"`
-	IsActive       pgtype.Bool `db:"is_active" json:"is_active"`
-	Photo          pgtype.Text `db:"photo" json:"photo"`
-	OccupationID   pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID       pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	ParentID_2     pgtype.Int4 `db:"parent_id_2" json:"parent_id_2"`
-	ParentName     pgtype.Text `db:"parent_name" json:"parent_name"`
-	ParentWaPhone  pgtype.Text `db:"parent_wa_phone" json:"parent_wa_phone"`
-	OccupationID_2 pgtype.Int4 `db:"occupation_id_2" json:"occupation_id_2"`
-	OccupationName pgtype.Text `db:"occupation_name" json:"occupation_name"`
-}
-
-func (q *Queries) ListSantriAscOccupation(ctx context.Context, arg ListSantriAscOccupationParams) ([]ListSantriAscOccupationRow, error) {
-	rows, err := q.db.Query(ctx, listSantriAscOccupation,
-		arg.Q,
-		arg.ParentID,
-		arg.OccupationID,
-		arg.Generation,
-		arg.OffsetNumber,
-		arg.LimitNumber,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListSantriAscOccupationRow{}
-	for rows.Next() {
-		var i ListSantriAscOccupationRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Nis,
-			&i.Name,
-			&i.Gender,
-			&i.Generation,
-			&i.IsActive,
-			&i.Photo,
-			&i.OccupationID,
-			&i.ParentID,
-			&i.ParentID_2,
-			&i.ParentName,
-			&i.ParentWaPhone,
-			&i.OccupationID_2,
-			&i.OccupationName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const updateSantri = `-- name: UpdateSantri :one
@@ -576,11 +206,12 @@ SET
     "name" = $2,
     "generation" = $3,
     "is_active" = $4 :: boolean,
-    "photo" = $5 :: text,
-    "occupation_id" = $6,
-    "parent_id" = $7 :: integer
+    "gender" = $5::gender,
+    "photo" = $6 :: text,
+    "occupation_id" = $7,
+    "parent_id" = $8 :: integer
 WHERE
-    "id" = $8 RETURNING id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
+    "id" = $9 RETURNING id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
 `
 
 type UpdateSantriParams struct {
@@ -588,6 +219,7 @@ type UpdateSantriParams struct {
 	Name         string      `db:"name" json:"name"`
 	Generation   int32       `db:"generation" json:"generation"`
 	IsActive     bool        `db:"is_active" json:"is_active"`
+	Gender       Gender      `db:"gender" json:"gender"`
 	Photo        pgtype.Text `db:"photo" json:"photo"`
 	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
 	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
@@ -600,6 +232,7 @@ func (q *Queries) UpdateSantri(ctx context.Context, arg UpdateSantriParams) (San
 		arg.Name,
 		arg.Generation,
 		arg.IsActive,
+		arg.Gender,
 		arg.Photo,
 		arg.OccupationID,
 		arg.ParentID,

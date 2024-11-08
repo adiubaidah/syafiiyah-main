@@ -8,30 +8,36 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SantriOccupationRouting(handler handler.SantriOccupationHandler) []routers.Route {
+func SantriRouting(handler handler.SantriHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/santri-occupation",
-			Handle:      handler.CreateSantriOccupationHandler,
+			Path:        "/santri",
+			Handle:      handler.CreateSantriHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/santri-occupation",
-			Handle:      handler.ListSantriOccupationHandler,
+			Path:        "/santri",
+			Handle:      handler.ListSantriHandler,
+			MiddleWares: []gin.HandlerFunc{},
+		},
+		{
+			Method:      http.MethodGet,
+			Path:        "/santri/:id",
+			Handle:      handler.GetSantriHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodPut,
-			Path:        "/santri-occupation/:id",
-			Handle:      handler.UpdateSantriOccupationHandler,
+			Path:        "/santri/:id",
+			Handle:      handler.UpdateSantriHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodDelete,
-			Path:        "/santri-occupation/:id",
-			Handle:      handler.DeleteSantriOccupationHandler,
+			Path:        "/santri/:id",
+			Handle:      handler.DeleteSantriHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 	}
