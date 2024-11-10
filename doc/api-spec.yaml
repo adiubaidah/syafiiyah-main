@@ -945,6 +945,10 @@ paths:
             enum:
               - asc:name
               - desc:name
+              - asc:generation
+              - desc:generation
+              - asc:nis
+              - desc:nis
           examples:
             asc-name:
               value: asc:name
@@ -1949,10 +1953,6 @@ paths:
             enum:
               - asc:name
               - desc:name
-              - asc:generation
-              - desc:generation
-              - asc:nis
-              - desc:nis
           examples:
             asc-name:
               value: asc:name
