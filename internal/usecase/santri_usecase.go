@@ -12,10 +12,10 @@ import (
 type SantriUseCase interface {
 	CreateSantri(ctx context.Context, request *model.CreateSantriRequest) (model.SantriResponse, error)
 	ListSantri(ctx context.Context, request *model.ListSantriRequest) ([]model.SantriCompleteResponse, error)
-	CountSantri(ctx context.Context, request *model.ListSantriRequest) (int, error)
-	GetSantri(ctx context.Context, santriId *int32) (model.SantriCompleteResponse, error)
-	UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId *int32) (model.SantriResponse, error)
-	DeleteSantri(ctx context.Context, santriId *int32) (model.SantriResponse, error)
+	CountSantri(ctx context.Context, request *model.ListSantriRequest) (int32, error)
+	GetSantri(ctx context.Context, santriId int32) (model.SantriCompleteResponse, error)
+	UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId int32) (model.SantriResponse, error)
+	DeleteSantri(ctx context.Context, santriId int32) (model.SantriResponse, error)
 }
 
 type santriService struct {
@@ -61,13 +61,18 @@ func (c *santriService) CreateSantri(ctx context.Context, request *model.CreateS
 
 func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantriRequest) ([]model.SantriCompleteResponse, error) {
 	var result []model.SantriCompleteResponse
+	offset := (request.Page - 1) * request.Limit
+	if offset < 0 {
+		offset = 0
+	}
+
 	arg := db.ListSantriParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		Generation:   pgtype.Int4{Int32: request.Generation, Valid: request.Generation != 0},
-		OffsetNumber: (request.Page - 1) * request.Limit,
+		OffsetNumber: offset,
 		LimitNumber:  request.Limit,
-		IsActive:     pgtype.Bool{Bool: request.IsActive == 1, Valid: request.IsActive != -1},
+		IsActive:     pgtype.Bool{Bool: request.IsActive == 1, Valid: request.IsActive != 0},
 		OrderBy:      db.NullSantriOrderBy{SantriOrderBy: db.SantriOrderBy(request.Order), Valid: request.Order != ""},
 	}
 	santris, err := c.store.ListSantri(ctx, arg)
@@ -101,7 +106,7 @@ func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantr
 	return result, nil
 }
 
-func (c *santriService) CountSantri(ctx context.Context, request *model.ListSantriRequest) (int, error) {
+func (c *santriService) CountSantri(ctx context.Context, request *model.ListSantriRequest) (int32, error) {
 
 	arg := db.CountSantriParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
@@ -114,11 +119,11 @@ func (c *santriService) CountSantri(ctx context.Context, request *model.ListSant
 	if err != nil {
 		return 0, err
 	}
-	return int(count), err
+	return int32(count), err
 }
 
-func (c *santriService) GetSantri(ctx context.Context, santriId *int32) (model.SantriCompleteResponse, error) {
-	santri, err := c.store.GetSantri(ctx, *santriId)
+func (c *santriService) GetSantri(ctx context.Context, santriId int32) (model.SantriCompleteResponse, error) {
+	santri, err := c.store.GetSantri(ctx, santriId)
 	if err != nil {
 		return model.SantriCompleteResponse{}, err
 	}
@@ -143,13 +148,13 @@ func (c *santriService) GetSantri(ctx context.Context, santriId *int32) (model.S
 	}, nil
 }
 
-func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId *int32) (model.SantriResponse, error) {
+func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId int32) (model.SantriResponse, error) {
 	isActive, err := strconv.ParseBool(request.IsActive)
 	if err != nil {
 		return model.SantriResponse{}, err
 	}
 	createdSantri, err := c.store.UpdateSantri(ctx, db.UpdateSantriParams{
-		ID:           *santriId,
+		ID:           santriId,
 		Nis:          pgtype.Text{String: request.Nis, Valid: true},
 		Name:         request.Name,
 		IsActive:     isActive,
@@ -176,8 +181,8 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 	}, nil
 }
 
-func (c *santriService) DeleteSantri(ctx context.Context, santriId *int32) (model.SantriResponse, error) {
-	santri, err := c.store.DeleteSantri(ctx, *santriId)
+func (c *santriService) DeleteSantri(ctx context.Context, santriId int32) (model.SantriResponse, error) {
+	santri, err := c.store.DeleteSantri(ctx, santriId)
 	if err != nil {
 		return model.SantriResponse{}, err
 	}

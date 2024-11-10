@@ -78,47 +78,22 @@ func (h *santriHandler) CreateSantriHandler(c *gin.Context) {
 }
 
 func (h *santriHandler) ListSantriHandler(c *gin.Context) {
-	limitNumber, err := strconv.Atoi(c.Query("limit"))
-	if err != nil {
-		limitNumber = 10
-	}
-	page, err := strconv.Atoi(c.Query("page"))
-	if err != nil {
-		page = 1
-	}
-	generation, err := strconv.Atoi(c.Query("generation"))
-	if err != nil {
-		generation = 0
-	}
 
-	isActive, err := strconv.Atoi(c.Query("is_active"))
-	if err != nil {
-		isActive = -1
-	}
+	var listSantriRequest model.ListSantriRequest
 
-	occupationId, err := strconv.Atoi(c.Query("occupation_id"))
-	if err != nil {
-		occupationId = 0
-	}
-
-	search := c.Query("q")
-
-	listSantriRequest := model.ListSantriRequest{
-		Q:            search,
-		Order:        c.Query("order"),
-		Limit:        int32(limitNumber),
-		Page:         int32(page),
-		Generation:   int32(generation),
-		IsActive:     isActive,
-		OccupationID: int32(occupationId),
-	}
-
-	if err := c.ShouldBind(&listSantriRequest); err != nil {
+	if err := c.ShouldBindQuery(&listSantriRequest); err != nil {
 		h.logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
+	h.logger.Info(listSantriRequest)
 
+	if listSantriRequest.Limit == 0 {
+		listSantriRequest.Limit = 10
+	}
+	if listSantriRequest.Page == 0 {
+		listSantriRequest.Page = 1
+	}
 	result, err := h.usecase.ListSantri(c, &listSantriRequest)
 	if err != nil {
 		h.logger.Error(err)
@@ -140,11 +115,12 @@ func (h *santriHandler) ListSantriHandler(c *gin.Context) {
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
+
 	pagination := model.Pagination{
-		CurrentPage:  page,
-		TotalPages:   count/limitNumber + 1,
+		CurrentPage:  listSantriRequest.Page,
+		TotalPages:   (count + listSantriRequest.Limit - 1) / listSantriRequest.Limit,
 		TotalItems:   count,
-		ItemsPerPage: limitNumber,
+		ItemsPerPage: listSantriRequest.Limit,
 	}
 
 	c.JSON(200, model.ResponseData[model.ListSantriResponse]{
@@ -166,7 +142,7 @@ func (h *santriHandler) GetSantriHandler(c *gin.Context) {
 	}
 
 	santriId := int32(id)
-	result, err := h.usecase.GetSantri(c, &santriId)
+	result, err := h.usecase.GetSantri(c, santriId)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(404, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
@@ -184,7 +160,7 @@ func (h *santriHandler) UpdateSantriHandler(c *gin.Context) {
 		return
 	}
 	santriId := int32(id)
-	oldSantri, err := h.usecase.GetSantri(c, &santriId)
+	oldSantri, err := h.usecase.GetSantri(c, santriId)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(404, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
@@ -219,9 +195,11 @@ func (h *santriHandler) UpdateSantriHandler(c *gin.Context) {
 		}
 		santriRequest.Photo = fileName
 		//delete old photo
-		util.DeleteFile(filepath.Join(config.PathPhoto, oldSantri.Photo))
+		if oldSantri.Photo != "" {
+			util.DeleteFile(filepath.Join(config.PathPhoto, oldSantri.Photo))
+		}
 	}
-	result, err := h.usecase.UpdateSantri(c, &santriRequest, &santriId)
+	result, err := h.usecase.UpdateSantri(c, &santriRequest, santriId)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
@@ -240,15 +218,16 @@ func (h *santriHandler) DeleteSantriHandler(ctx *gin.Context) {
 	}
 	santriId := int32(id)
 
-	deletedSantri, err := h.usecase.DeleteSantri(ctx, &santriId)
+	deletedSantri, err := h.usecase.DeleteSantri(ctx, santriId)
 	if err != nil {
 		h.logger.Error(err)
 		ctx.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
 
-	//delete photo also
-	util.DeleteFile(filepath.Join(config.PathPhoto, deletedSantri.Photo))
+	if deletedSantri.Photo != "" {
+		util.DeleteFile(filepath.Join(config.PathPhoto, deletedSantri.Photo))
+	}
 
 	ctx.JSON(200, model.ResponseData[model.SantriResponse]{Code: 200, Status: "OK", Data: deletedSantri})
 }

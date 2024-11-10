@@ -185,22 +185,22 @@ paths:
           required: false
           description: Filter by role
         - in: query
-          name: has-relation
+          name: has-owner
           required: false
           schema:
             type: integer
-            description: Relation can be with parent or employee
+            description: Owner can be with parent or employee
             enum:
               - 1
               - 0
               - -1
           examples:
-            has-relation:
+            has-owner:
               value: 1
-            no-relation:
-              value: 0
-            all:
+            no-owner:
               value: -1
+            all:
+              value: 0
         - in: query
           name: q
           schema:
@@ -928,11 +928,16 @@ paths:
           description: Search Santri by name
           example: "Muhammad"
         - in: query
-          name: parent
+          name: is_active
           schema:
             type: integer
-          required: false
-          description: Search Santri by parent id 
+          examples:
+            active:
+              value: 1
+            not-active:
+              value: -1
+            all:
+              value: 0
         - in: query
           name: order
           schema:
@@ -1753,9 +1758,9 @@ paths:
             has-user:
               value: 1
             no-user:
-              value: 0
-            all:
               value: -1
+            all:
+              value: 0
         - in: query
           name: q
           schema:
@@ -1966,9 +1971,9 @@ paths:
             has-user:
               value: 1
             no-user:
-              value: 0
-            all:
               value: -1
+            all:
+              value: 0
       responses:
         "200":
           description: OK

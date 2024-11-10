@@ -50,7 +50,7 @@ func (h *santriOccupationHandler) CreateSantriOccupationHandler(c *gin.Context) 
 }
 
 func (h *santriOccupationHandler) ListSantriOccupationHandler(c *gin.Context) {
-	result, err := h.usecase.ListSantriOccupation(context.Background())
+	result, err := h.usecase.ListSantriOccupations(context.Background())
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
@@ -78,7 +78,7 @@ func (h *santriOccupationHandler) UpdateSantriOccupationHandler(c *gin.Context) 
 
 	id := int32(santriOccupationId)
 
-	result, err := h.usecase.UpdateSantriOccupation(context.Background(), &santriOccupationRequest, &id)
+	result, err := h.usecase.UpdateSantriOccupation(context.Background(), &santriOccupationRequest, id)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
@@ -97,7 +97,7 @@ func (h *santriOccupationHandler) DeleteSantriOccupationHandler(c *gin.Context) 
 	}
 
 	id := int32(santriOccupationId)
-	result, err := h.usecase.DeleteSantriOccupation(context.Background(), &id)
+	result, err := h.usecase.DeleteSantriOccupation(context.Background(), id)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})

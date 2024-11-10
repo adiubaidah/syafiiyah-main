@@ -39,10 +39,10 @@ WHERE
 `
 
 type CountSantriParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	Generation   pgtype.Int4 `db:"generation" json:"generation"`
-	IsActive     pgtype.Bool `db:"is_active" json:"is_active"`
+	Q            pgtype.Text `db:"q"`
+	OccupationID pgtype.Int4 `db:"occupation_id"`
+	Generation   pgtype.Int4 `db:"generation"`
+	IsActive     pgtype.Bool `db:"is_active"`
 }
 
 func (q *Queries) CountSantri(ctx context.Context, arg CountSantriParams) (int64, error) {
@@ -83,14 +83,14 @@ VALUES
 `
 
 type CreateSantriParams struct {
-	Nis          pgtype.Text `db:"nis" json:"nis"`
-	Name         string      `db:"name" json:"name"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	IsActive     pgtype.Bool `db:"is_active" json:"is_active"`
-	Generation   int32       `db:"generation" json:"generation"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
+	Nis          pgtype.Text `db:"nis"`
+	Name         string      `db:"name"`
+	Gender       Gender      `db:"gender"`
+	IsActive     pgtype.Bool `db:"is_active"`
+	Generation   int32       `db:"generation"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID pgtype.Int4 `db:"occupation_id"`
+	ParentID     pgtype.Int4 `db:"parent_id"`
 }
 
 func (q *Queries) CreateSantri(ctx context.Context, arg CreateSantriParams) (Santri, error) {
@@ -160,20 +160,20 @@ WHERE
 `
 
 type GetSantriRow struct {
-	ID                   int32       `db:"id" json:"id"`
-	Nis                  pgtype.Text `db:"nis" json:"nis"`
-	Name                 string      `db:"name" json:"name"`
-	Gender               Gender      `db:"gender" json:"gender"`
-	Generation           int32       `db:"generation" json:"generation"`
-	IsActive             pgtype.Bool `db:"is_active" json:"is_active"`
-	Photo                pgtype.Text `db:"photo" json:"photo"`
-	OccupationID         pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID             pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	ParentID_2           pgtype.Int4 `db:"parent_id_2" json:"parent_id_2"`
-	ParentName           pgtype.Text `db:"parent_name" json:"parent_name"`
-	ParentWhatsappNumber pgtype.Text `db:"parent_whatsapp_number" json:"parent_whatsapp_number"`
-	ParentAddress        pgtype.Text `db:"parent_address" json:"parent_address"`
-	OccupationName       pgtype.Text `db:"occupation_name" json:"occupation_name"`
+	ID                   int32       `db:"id"`
+	Nis                  pgtype.Text `db:"nis"`
+	Name                 string      `db:"name"`
+	Gender               Gender      `db:"gender"`
+	Generation           int32       `db:"generation"`
+	IsActive             pgtype.Bool `db:"is_active"`
+	Photo                pgtype.Text `db:"photo"`
+	OccupationID         pgtype.Int4 `db:"occupation_id"`
+	ParentID             pgtype.Int4 `db:"parent_id"`
+	ParentID_2           pgtype.Int4 `db:"parent_id_2"`
+	ParentName           pgtype.Text `db:"parent_name"`
+	ParentWhatsappNumber pgtype.Text `db:"parent_whatsapp_number"`
+	ParentAddress        pgtype.Text `db:"parent_address"`
+	OccupationName       pgtype.Text `db:"occupation_name"`
 }
 
 func (q *Queries) GetSantri(ctx context.Context, id int32) (GetSantriRow, error) {
@@ -204,10 +204,10 @@ UPDATE
 SET
     "nis" = $1,
     "name" = $2,
-    "generation" = $3,
+"generation" = $3,
     "is_active" = $4 :: boolean,
     "gender" = $5::gender,
-    "photo" = $6 :: text,
+    "photo" = COALESCE($6, photo),
     "occupation_id" = $7,
     "parent_id" = $8 :: integer
 WHERE
@@ -215,15 +215,15 @@ WHERE
 `
 
 type UpdateSantriParams struct {
-	Nis          pgtype.Text `db:"nis" json:"nis"`
-	Name         string      `db:"name" json:"name"`
-	Generation   int32       `db:"generation" json:"generation"`
-	IsActive     bool        `db:"is_active" json:"is_active"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
-	ID           int32       `db:"id" json:"id"`
+	Nis          pgtype.Text `db:"nis"`
+	Name         string      `db:"name"`
+	Generation   int32       `db:"generation"`
+	IsActive     bool        `db:"is_active"`
+	Gender       Gender      `db:"gender"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID pgtype.Int4 `db:"occupation_id"`
+	ParentID     pgtype.Int4 `db:"parent_id"`
+	ID           int32       `db:"id"`
 }
 
 func (q *Queries) UpdateSantri(ctx context.Context, arg UpdateSantriParams) (Santri, error) {

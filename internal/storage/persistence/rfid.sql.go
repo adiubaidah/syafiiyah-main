@@ -24,10 +24,10 @@ VALUES
 `
 
 type CreateRfidParams struct {
-	Uid        string      `db:"uid" json:"uid"`
-	IsActive   bool        `db:"is_active" json:"is_active"`
-	SantriID   pgtype.Int4 `db:"santri_id" json:"santri_id"`
-	EmployeeID pgtype.Int4 `db:"employee_id" json:"employee_id"`
+	Uid        string      `db:"uid"`
+	IsActive   bool        `db:"is_active"`
+	SantriID   pgtype.Int4 `db:"santri_id"`
+	EmployeeID pgtype.Int4 `db:"employee_id"`
 }
 
 func (q *Queries) CreateRfid(ctx context.Context, arg CreateRfidParams) (Rfid, error) {
@@ -84,14 +84,14 @@ WHERE
 `
 
 type GetRfidByIdRow struct {
-	ID           int32              `db:"id" json:"id"`
-	Uid          string             `db:"uid" json:"uid"`
-	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	IsActive     bool               `db:"is_active" json:"is_active"`
-	SantriID     pgtype.Int4        `db:"santri_id" json:"santri_id"`
-	EmployeeID   pgtype.Int4        `db:"employee_id" json:"employee_id"`
-	SantriName   pgtype.Text        `db:"santri_name" json:"santri_name"`
-	EmployeeName pgtype.Text        `db:"employee_name" json:"employee_name"`
+	ID           int32              `db:"id"`
+	Uid          string             `db:"uid"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at"`
+	IsActive     bool               `db:"is_active"`
+	SantriID     pgtype.Int4        `db:"santri_id"`
+	EmployeeID   pgtype.Int4        `db:"employee_id"`
+	SantriName   pgtype.Text        `db:"santri_name"`
+	EmployeeName pgtype.Text        `db:"employee_name"`
 }
 
 func (q *Queries) GetRfidById(ctx context.Context, id int32) (GetRfidByIdRow, error) {
@@ -153,23 +153,23 @@ LIMIT
 `
 
 type ListRfidParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	IsActive     pgtype.Bool `db:"is_active" json:"is_active"`
-	IsSantri     pgtype.Bool `db:"is_santri" json:"is_santri"`
-	IsEmployee   pgtype.Bool `db:"is_employee" json:"is_employee"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
+	Q            pgtype.Text `db:"q"`
+	IsActive     pgtype.Bool `db:"is_active"`
+	IsSantri     pgtype.Bool `db:"is_santri"`
+	IsEmployee   pgtype.Bool `db:"is_employee"`
+	OffsetNumber int32       `db:"offset_number"`
+	LimitNumber  int32       `db:"limit_number"`
 }
 
 type ListRfidRow struct {
-	ID           int32              `db:"id" json:"id"`
-	Uid          string             `db:"uid" json:"uid"`
-	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	IsActive     bool               `db:"is_active" json:"is_active"`
-	SantriID     pgtype.Int4        `db:"santri_id" json:"santri_id"`
-	EmployeeID   pgtype.Int4        `db:"employee_id" json:"employee_id"`
-	SantriName   pgtype.Text        `db:"santri_name" json:"santri_name"`
-	EmployeeName pgtype.Text        `db:"employee_name" json:"employee_name"`
+	ID           int32              `db:"id"`
+	Uid          string             `db:"uid"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at"`
+	IsActive     bool               `db:"is_active"`
+	SantriID     pgtype.Int4        `db:"santri_id"`
+	EmployeeID   pgtype.Int4        `db:"employee_id"`
+	SantriName   pgtype.Text        `db:"santri_name"`
+	EmployeeName pgtype.Text        `db:"employee_name"`
 }
 
 func (q *Queries) ListRfid(ctx context.Context, arg ListRfidParams) ([]ListRfidRow, error) {
@@ -221,11 +221,11 @@ WHERE
 `
 
 type UpdateRfidParams struct {
-	Uid        string      `db:"uid" json:"uid"`
-	IsActive   bool        `db:"is_active" json:"is_active"`
-	SantriID   pgtype.Int4 `db:"santri_id" json:"santri_id"`
-	EmployeeID pgtype.Int4 `db:"employee_id" json:"employee_id"`
-	ID         int32       `db:"id" json:"id"`
+	Uid        string      `db:"uid"`
+	IsActive   bool        `db:"is_active"`
+	SantriID   pgtype.Int4 `db:"santri_id"`
+	EmployeeID pgtype.Int4 `db:"employee_id"`
+	ID         int32       `db:"id"`
 }
 
 func (q *Queries) UpdateRfid(ctx context.Context, arg UpdateRfidParams) (Rfid, error) {

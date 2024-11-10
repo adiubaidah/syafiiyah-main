@@ -31,11 +31,11 @@ VALUES
 `
 
 type CreateSantriPermissionParams struct {
-	SantriID        int32                `db:"santri_id" json:"santri_id"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission" json:"start_permission"`
-	EndPermission   pgtype.Timestamptz   `db:"end_permission" json:"end_permission"`
-	Type            SantriPermissionType `db:"type" json:"type"`
-	Excuse          string               `db:"excuse" json:"excuse"`
+	SantriID        int32                `db:"santri_id"`
+	StartPermission pgtype.Timestamptz   `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
+	Type            SantriPermissionType `db:"type"`
+	Excuse          string               `db:"excuse"`
 }
 
 func (q *Queries) CreateSantriPermission(ctx context.Context, arg CreateSantriPermissionParams) (SantriPermission, error) {
@@ -91,13 +91,13 @@ WHERE
 `
 
 type GetSantriPermissionRow struct {
-	ID              int32                `db:"id" json:"id"`
-	SantriID        int32                `db:"santri_id" json:"santri_id"`
-	Type            SantriPermissionType `db:"type" json:"type"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission" json:"start_permission"`
-	EndPermission   pgtype.Timestamptz   `db:"end_permission" json:"end_permission"`
-	Excuse          string               `db:"excuse" json:"excuse"`
-	SantriName      string               `db:"santri_name" json:"santri_name"`
+	ID              int32                `db:"id"`
+	SantriID        int32                `db:"santri_id"`
+	Type            SantriPermissionType `db:"type"`
+	StartPermission pgtype.Timestamptz   `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
+	Excuse          string               `db:"excuse"`
+	SantriName      string               `db:"santri_name"`
 }
 
 func (q *Queries) GetSantriPermission(ctx context.Context, id int32) (GetSantriPermissionRow, error) {
@@ -146,23 +146,23 @@ LIMIT
 `
 
 type ListSantriPermissionsParams struct {
-	Q            pgtype.Text              `db:"q" json:"q"`
-	SantriID     pgtype.Int4              `db:"santri_id" json:"santri_id"`
-	Type         NullSantriPermissionType `db:"type" json:"type"`
-	FromDate     pgtype.Timestamptz       `db:"from_date" json:"from_date"`
-	EndDate      pgtype.Timestamptz       `db:"end_date" json:"end_date"`
-	OffsetNumber int32                    `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32                    `db:"limit_number" json:"limit_number"`
+	Q            pgtype.Text              `db:"q"`
+	SantriID     pgtype.Int4              `db:"santri_id"`
+	Type         NullSantriPermissionType `db:"type"`
+	FromDate     pgtype.Timestamptz       `db:"from_date"`
+	EndDate      pgtype.Timestamptz       `db:"end_date"`
+	OffsetNumber int32                    `db:"offset_number"`
+	LimitNumber  int32                    `db:"limit_number"`
 }
 
 type ListSantriPermissionsRow struct {
-	ID              int32                `db:"id" json:"id"`
-	SantriID        int32                `db:"santri_id" json:"santri_id"`
-	Type            SantriPermissionType `db:"type" json:"type"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission" json:"start_permission"`
-	EndPermission   pgtype.Timestamptz   `db:"end_permission" json:"end_permission"`
-	Excuse          string               `db:"excuse" json:"excuse"`
-	SantriName      string               `db:"santri_name" json:"santri_name"`
+	ID              int32                `db:"id"`
+	SantriID        int32                `db:"santri_id"`
+	Type            SantriPermissionType `db:"type"`
+	StartPermission pgtype.Timestamptz   `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
+	Excuse          string               `db:"excuse"`
+	SantriName      string               `db:"santri_name"`
 }
 
 func (q *Queries) ListSantriPermissions(ctx context.Context, arg ListSantriPermissionsParams) ([]ListSantriPermissionsRow, error) {
@@ -214,11 +214,11 @@ WHERE
 `
 
 type UpdateSantriPermissionParams struct {
-	SantriID        int32              `db:"santri_id" json:"santri_id"`
-	StartPermission pgtype.Timestamptz `db:"start_permission" json:"start_permission"`
-	EndPermission   pgtype.Timestamptz `db:"end_permission" json:"end_permission"`
-	Excuse          string             `db:"excuse" json:"excuse"`
-	ID              int32              `db:"id" json:"id"`
+	SantriID        int32              `db:"santri_id"`
+	StartPermission pgtype.Timestamptz `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz `db:"end_permission"`
+	Excuse          string             `db:"excuse"`
+	ID              int32              `db:"id"`
 }
 
 func (q *Queries) UpdateSantriPermission(ctx context.Context, arg UpdateSantriPermissionParams) (SantriPermission, error) {

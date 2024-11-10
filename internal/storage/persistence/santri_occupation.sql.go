@@ -16,8 +16,8 @@ INSERT INTO "santri_occupation" ("name", "description") VALUES ($1, $2) RETURNIN
 `
 
 type CreateSantriOccupationParams struct {
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
 }
 
 func (q *Queries) CreateSantriOccupation(ctx context.Context, arg CreateSantriOccupationParams) (SantriOccupation, error) {
@@ -53,10 +53,10 @@ ORDER BY
 `
 
 type ListSantriOccupationsRow struct {
-	ID          int32       `db:"id" json:"id"`
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
-	Count       int64       `db:"count" json:"count"`
+	ID          int32       `db:"id"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
+	Count       int64       `db:"count"`
 }
 
 func (q *Queries) ListSantriOccupations(ctx context.Context) ([]ListSantriOccupationsRow, error) {
@@ -89,9 +89,9 @@ UPDATE "santri_occupation" SET "name" = $1, "description" = $2 WHERE "id" = $3 R
 `
 
 type UpdateSantriOccupationParams struct {
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
-	ID          int32       `db:"id" json:"id"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
+	ID          int32       `db:"id"`
 }
 
 func (q *Queries) UpdateSantriOccupation(ctx context.Context, arg UpdateSantriOccupationParams) (SantriOccupation, error) {

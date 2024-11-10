@@ -90,10 +90,10 @@ UPDATE
 SET
     "nis" = @nis,
     "name" = @name,
-    "generation" = @generation,
+"generation" = @generation,
     "is_active" = @is_active :: boolean,
     "gender" = @gender::gender,
-    "photo" = sqlc.narg(photo) :: text,
+    "photo" = COALESCE(sqlc.narg(photo), photo),
     "occupation_id" = @occupation_id,
     "parent_id" = sqlc.narg(parent_id) :: integer
 WHERE

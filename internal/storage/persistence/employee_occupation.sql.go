@@ -19,8 +19,8 @@ VALUES
 `
 
 type CreateEmployeeOccupationParams struct {
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
 }
 
 func (q *Queries) CreateEmployeeOccupation(ctx context.Context, arg CreateEmployeeOccupationParams) (EmployeeOccupation, error) {
@@ -58,10 +58,10 @@ ORDER BY
 `
 
 type ListEmployeeOccupationsRow struct {
-	ID          int32       `db:"id" json:"id"`
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
-	Count       int64       `db:"count" json:"count"`
+	ID          int32       `db:"id"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
+	Count       int64       `db:"count"`
 }
 
 func (q *Queries) ListEmployeeOccupations(ctx context.Context) ([]ListEmployeeOccupationsRow, error) {
@@ -100,9 +100,9 @@ WHERE
 `
 
 type UpdateEmployeeOccupationParams struct {
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
-	ID          int32       `db:"id" json:"id"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
+	ID          int32       `db:"id"`
 }
 
 func (q *Queries) UpdateEmployeeOccupation(ctx context.Context, arg UpdateEmployeeOccupationParams) (EmployeeOccupation, error) {

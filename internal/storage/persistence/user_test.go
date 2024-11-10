@@ -45,62 +45,65 @@ func TestCreateUser(t *testing.T) {
 func TestListUsersRelation(t *testing.T) {
 	clearEmployeeTable(t)
 	clearParentTable(t)
+	clearUserTable(t)
+
+	parent1, parentUser1 := createRandomParentWithUser(t)
+	employee1, employeeUser1 := createRandomEmployeeWithUser(t)
+
 	t.Run("Should return users matching List", func(t *testing.T) {
-		clearUserTable(t)
-		user1 := createRandomUser(t, UserRoleSuperadmin)
-		createRandomUser(t, UserRoleAdmin)
-		createRandomUser(t, UserRoleEmployee)
-		createRandomUser(t, UserRoleParent)
-
-		arg := ListUsersAscUsernameParams{
-			Q:            pgtype.Text{String: user1.Username.String[:3], Valid: true},
+		arg := ListUserParams{
+			Q:            pgtype.Text{String: parentUser1.Username.String, Valid: true},
 			Role:         NullUserRole{Valid: false},
 			LimitNumber:  10,
 			OffsetNumber: 0,
-			HasRelation:  -1,
+			HasOwner:     pgtype.Bool{Valid: false},
 		}
 
-		users, err := testStore.ListUsersAscUsername(context.Background(), arg)
+		users, err := testStore.ListUsers(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, users)
+		require.Len(t, users, 1)
 	})
 
-	t.Run("Should return empty array when HasRelation is true but no relations exist", func(t *testing.T) {
-		clearUserTable(t)
-		createRandomUser(t, UserRoleSuperadmin)
-		createRandomUser(t, UserRoleAdmin)
-		createRandomUser(t, UserRoleEmployee)
-		createRandomUser(t, UserRoleParent)
+	t.Run("list user should match role", func(t *testing.T) {
+		arg := ListUserParams{
+			Q:            pgtype.Text{String: "", Valid: false},
+			Role:         NullUserRole{Valid: true, UserRole: UserRoleParent},
+			LimitNumber:  10,
+			OffsetNumber: 0,
+			HasOwner:     pgtype.Bool{Valid: false},
+		}
+		users, err := testStore.ListUsers(context.Background(), arg)
+		require.NoError(t, err)
+		require.NotEmpty(t, users)
 
-		arg := ListUsersAscUsernameParams{
+		for _, user := range users {
+			require.Equal(t, UserRoleParent, user.Role)
+		}
+	})
+
+	t.Run("should return users with owner", func(t *testing.T) {
+
+		arg := ListUserParams{
 			Q:            pgtype.Text{String: "", Valid: false},
 			Role:         NullUserRole{Valid: false},
 			LimitNumber:  10,
 			OffsetNumber: 0,
-			HasRelation:  1,
+			HasOwner:     pgtype.Bool{Valid: true, Bool: true},
 		}
-
-		users, err := testStore.ListUsersAscUsername(context.Background(), arg)
-		require.NoError(t, err)
-		require.Empty(t, users)
-	})
-
-	t.Run("Should return users with relations", func(t *testing.T) {
-		clearUserTable(t)
-		_, user := createRandomParentWithUser(t)
-		createRandomUser(t, UserRoleSuperadmin)
-
-		arg := ListUsersAscUsernameParams{
-			Q:            pgtype.Text{String: "", Valid: false},
-			Role:         NullUserRole{Valid: false},
-			LimitNumber:  10,
-			OffsetNumber: 0,
-			HasRelation:  1,
-		}
-		users, err := testStore.ListUsersAscUsername(context.Background(), arg)
+		users, err := testStore.ListUsers(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, users)
-		require.Equal(t, user.Username.String, users[0].Username.String)
+
+		for _, user := range users {
+			require.NotZero(t, user.IDOwner.Int32)
+			if user.ID == parentUser1.ID {
+				require.Equal(t, parent1.ID, user.IDOwner.Int32)
+			}
+			if user.ID == employeeUser1.ID {
+				require.Equal(t, employee1.ID, user.IDOwner.Int32)
+			}
+		}
 	})
 }
 
@@ -112,12 +115,12 @@ func TestListUserPagination(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		arg      ListUsersAscUsernameParams
+		arg      ListUserParams
 		expected int
 	}{
 		{
 			name: "Limit 5",
-			arg: ListUsersAscUsernameParams{
+			arg: ListUserParams{
 				LimitNumber:  5,
 				OffsetNumber: 0,
 			},
@@ -125,7 +128,7 @@ func TestListUserPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 5",
-			arg: ListUsersAscUsernameParams{
+			arg: ListUserParams{
 				LimitNumber:  5,
 				OffsetNumber: 5,
 			},
@@ -133,7 +136,7 @@ func TestListUserPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: ListUsersAscUsernameParams{
+			arg: ListUserParams{
 				LimitNumber:  5,
 				OffsetNumber: 10,
 			},
@@ -143,11 +146,22 @@ func TestListUserPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testStore.ListUsersAscUsername(context.Background(), tt.arg)
+			users, err := testStore.ListUsers(context.Background(), tt.arg)
 			require.NoError(t, err)
-			require.Len(t, employees, tt.expected)
+			require.Len(t, users, tt.expected)
 		})
 	}
+}
+
+func TestCountUsers(t *testing.T) {
+	clearUserTable(t)
+	for i := 0; i < 5; i++ {
+		createRandomUser(t, UserRoleSuperadmin)
+	}
+
+	count, err := testStore.CountUsers(context.Background(), CountUsersParams{})
+	require.NoError(t, err)
+	require.Equal(t, int32(5), int32(count))
 }
 
 func TestUpdateUser(t *testing.T) {

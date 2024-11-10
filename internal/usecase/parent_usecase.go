@@ -1,0 +1,156 @@
+package usecase
+
+import (
+	"context"
+
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type ParentUseCase interface {
+	CreateParent(ctx context.Context, request *model.CreateParentRequest) (model.ParentResponse, error)
+	ListParents(ctx context.Context, request *model.ListParentRequest) ([]model.ParentCompleteResponse, error)
+	GetParent(ctx context.Context, parentId int32) (model.ParentResponse, error)
+	CountParents(ctx context.Context, request *model.ListParentRequest) (int32, error)
+	UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (model.ParentResponse, error)
+	DeleteParent(ctx context.Context, parentId int32) (model.ParentResponse, error)
+}
+
+type parentService struct {
+	store db.Store
+}
+
+func NewParentUseCase(store db.Store) ParentUseCase {
+	return &parentService{store: store}
+}
+
+func (c *parentService) CreateParent(ctx context.Context, request *model.CreateParentRequest) (model.ParentResponse, error) {
+	arg := db.CreateParentParams{
+		Name:           request.Name,
+		Address:        request.Address,
+		WhatsappNumber: pgtype.Text{String: request.WhatsappNumber, Valid: request.WhatsappNumber != ""},
+		Gender:         db.Gender(request.Gender),
+		Photo:          pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
+		UserID:         pgtype.Int4{Int32: request.UserID, Valid: request.UserID != 0},
+	}
+
+	createdParent, err := c.store.CreateParent(ctx, arg)
+	if err != nil {
+		return model.ParentResponse{}, err
+	}
+	return model.ParentResponse{
+		ID:             createdParent.ID,
+		Name:           createdParent.Name,
+		Address:        createdParent.Address,
+		WhatsappNumber: createdParent.WhatsappNumber.String,
+		Gender:         string(createdParent.Gender),
+		Photo:          createdParent.Photo.String,
+		UserID:         createdParent.UserID.Int32,
+	}, nil
+}
+
+func (c *parentService) ListParents(ctx context.Context, request *model.ListParentRequest) ([]model.ParentCompleteResponse, error) {
+	arg := db.ListParentParams{
+		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
+		HasUser:      pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != 0},
+		LimitNumber:  request.Limit,
+		OffsetNumber: (request.Page - 1) * request.Limit,
+		OrderBy:      db.NullParentOrderBy{ParentOrderBy: db.ParentOrderBy(request.Order), Valid: request.Order != ""},
+	}
+
+	parents, err := c.store.ListParents(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []model.ParentCompleteResponse
+	for _, parent := range parents {
+		responses = append(responses, model.ParentCompleteResponse{
+			ParentResponse: model.ParentResponse{
+				ID:             parent.ID,
+				Name:           parent.Name,
+				Address:        parent.Address,
+				WhatsappNumber: parent.WhatsappNumber.String,
+				Gender:         string(parent.Gender),
+				Photo:          parent.Photo.String,
+			},
+			User: model.ParentUser{
+				ID:       parent.UserID.Int32,
+				Username: parent.Username.String,
+			},
+		})
+	}
+	return responses, nil
+}
+
+func (c *parentService) CountParents(ctx context.Context, request *model.ListParentRequest) (int32, error) {
+	arg := db.CountParentsParams{
+		Q:       pgtype.Text{String: request.Q, Valid: request.Q != ""},
+		HasUser: pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != -1},
+	}
+
+	count, err := c.store.CountParents(ctx, arg)
+	if err != nil {
+		return 0, err
+	}
+	return int32(count), nil
+}
+
+func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (model.ParentResponse, error) {
+	arg := db.UpdateParentParams{
+		ID:             parentId,
+		Name:           request.Name,
+		Address:        request.Address,
+		WhatsappNumber: pgtype.Text{String: request.WhatsappNumber, Valid: request.WhatsappNumber != ""},
+		Gender:         db.Gender(request.Gender),
+		Photo:          pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
+		UserID:         pgtype.Int4{Int32: request.UserID, Valid: request.UserID != 0},
+	}
+
+	createdParent, err := c.store.UpdateParent(ctx, arg)
+	if err != nil {
+		return model.ParentResponse{}, err
+	}
+	return model.ParentResponse{
+		ID:             createdParent.ID,
+		Name:           createdParent.Name,
+		Address:        createdParent.Address,
+		WhatsappNumber: createdParent.WhatsappNumber.String,
+		Gender:         string(createdParent.Gender),
+		Photo:          createdParent.Photo.String,
+		UserID:         createdParent.UserID.Int32,
+	}, nil
+}
+
+func (c *parentService) GetParent(ctx context.Context, parentId int32) (model.ParentResponse, error) {
+	parent, err := c.store.GetParent(ctx, parentId)
+	if err != nil {
+		return model.ParentResponse{}, err
+	}
+	return model.ParentResponse{
+		ID:             parent.ID,
+		Name:           parent.Name,
+		Address:        parent.Address,
+		WhatsappNumber: parent.WhatsappNumber.String,
+		Gender:         string(parent.Gender),
+		Photo:          parent.Photo.String,
+		UserID:         parent.UserID.Int32,
+	}, nil
+}
+
+func (c *parentService) DeleteParent(ctx context.Context, parentId int32) (model.ParentResponse, error) {
+	parent, err := c.store.DeleteParent(ctx, parentId)
+	if err != nil {
+		return model.ParentResponse{}, err
+	}
+	return model.ParentResponse{
+		ID:             parent.ID,
+		Name:           parent.Name,
+		Address:        parent.Address,
+		WhatsappNumber: parent.WhatsappNumber.String,
+		Gender:         string(parent.Gender),
+		Photo:          parent.Photo.String,
+		UserID:         parent.UserID.Int32,
+	}, nil
+}

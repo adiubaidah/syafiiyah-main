@@ -19,8 +19,8 @@ VALUES
 `
 
 type CreateHolidayDayParams struct {
-	Date      pgtype.Date `db:"date" json:"date"`
-	HolidayID int32       `db:"holiday_id" json:"holiday_id"`
+	Date      pgtype.Date `db:"date"`
+	HolidayID int32       `db:"holiday_id"`
 }
 
 func (q *Queries) CreateHolidayDay(ctx context.Context, arg CreateHolidayDayParams) (HolidayDay, error) {
@@ -64,22 +64,22 @@ WHERE
 `
 
 type ListHolidayDaysParams struct {
-	FromDate     pgtype.Date `db:"from_date" json:"from_date"`
-	ToDate       pgtype.Date `db:"to_date" json:"to_date"`
-	HolidayID    pgtype.Int4 `db:"holiday_id" json:"holiday_id"`
-	HolidayName  pgtype.Text `db:"holiday_name" json:"holiday_name"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
+	FromDate     pgtype.Date `db:"from_date"`
+	ToDate       pgtype.Date `db:"to_date"`
+	HolidayID    pgtype.Int4 `db:"holiday_id"`
+	HolidayName  pgtype.Text `db:"holiday_name"`
+	OffsetNumber int32       `db:"offset_number"`
+	LimitNumber  int32       `db:"limit_number"`
 }
 
 type ListHolidayDaysRow struct {
-	ID          int32       `db:"id" json:"id"`
-	Date        pgtype.Date `db:"date" json:"date"`
-	HolidayID   int32       `db:"holiday_id" json:"holiday_id"`
-	ID_2        int32       `db:"id_2" json:"id_2"`
-	Name        string      `db:"name" json:"name"`
-	Color       pgtype.Text `db:"color" json:"color"`
-	Description pgtype.Text `db:"description" json:"description"`
+	ID          int32       `db:"id"`
+	Date        pgtype.Date `db:"date"`
+	HolidayID   int32       `db:"holiday_id"`
+	ID_2        int32       `db:"id_2"`
+	Name        string      `db:"name"`
+	Color       pgtype.Text `db:"color"`
+	Description pgtype.Text `db:"description"`
 }
 
 func (q *Queries) ListHolidayDays(ctx context.Context, arg ListHolidayDaysParams) ([]ListHolidayDaysRow, error) {

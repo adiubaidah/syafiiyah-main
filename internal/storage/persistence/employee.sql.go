@@ -33,12 +33,12 @@ VALUES
 `
 
 type CreateEmployeeParams struct {
-	Nip          pgtype.Text `db:"nip" json:"nip"`
-	Name         string      `db:"name" json:"name"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID int32       `db:"occupation_id" json:"occupation_id"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
+	Nip          pgtype.Text `db:"nip"`
+	Name         string      `db:"name"`
+	Gender       Gender      `db:"gender"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID int32       `db:"occupation_id"`
+	UserID       pgtype.Int4 `db:"user_id"`
 }
 
 func (q *Queries) CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (Employee, error) {
@@ -99,15 +99,15 @@ WHERE
 `
 
 type GetEmployeeRow struct {
-	ID           int32       `db:"id" json:"id"`
-	Nip          pgtype.Text `db:"nip" json:"nip"`
-	Name         string      `db:"name" json:"name"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID int32       `db:"occupation_id" json:"occupation_id"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
-	UserId       pgtype.Int4 `db:"userId" json:"userId"`
-	UserUsername pgtype.Text `db:"userUsername" json:"userUsername"`
+	ID           int32       `db:"id"`
+	Nip          pgtype.Text `db:"nip"`
+	Name         string      `db:"name"`
+	Gender       Gender      `db:"gender"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID int32       `db:"occupation_id"`
+	UserID       pgtype.Int4 `db:"user_id"`
+	UserId       pgtype.Int4 `db:"userId"`
+	UserUsername pgtype.Text `db:"userUsername"`
 }
 
 func (q *Queries) GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, error) {
@@ -159,22 +159,22 @@ LIMIT
 `
 
 type ListEmployeesAscParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	HasUser      int16       `db:"has_user" json:"has_user"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
+	Q            pgtype.Text `db:"q"`
+	HasUser      int16       `db:"has_user"`
+	OffsetNumber int32       `db:"offset_number"`
+	LimitNumber  int32       `db:"limit_number"`
 }
 
 type ListEmployeesAscRow struct {
-	ID           int32       `db:"id" json:"id"`
-	Nip          pgtype.Text `db:"nip" json:"nip"`
-	Name         string      `db:"name" json:"name"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID int32       `db:"occupation_id" json:"occupation_id"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
-	UserId       pgtype.Int4 `db:"userId" json:"userId"`
-	UserUsername pgtype.Text `db:"userUsername" json:"userUsername"`
+	ID           int32       `db:"id"`
+	Nip          pgtype.Text `db:"nip"`
+	Name         string      `db:"name"`
+	Gender       Gender      `db:"gender"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID int32       `db:"occupation_id"`
+	UserID       pgtype.Int4 `db:"user_id"`
+	UserId       pgtype.Int4 `db:"userId"`
+	UserUsername pgtype.Text `db:"userUsername"`
 }
 
 func (q *Queries) ListEmployeesAsc(ctx context.Context, arg ListEmployeesAscParams) ([]ListEmployeesAscRow, error) {
@@ -227,13 +227,13 @@ WHERE
 `
 
 type UpdateEmployeeParams struct {
-	Nip          pgtype.Text `db:"nip" json:"nip"`
-	Name         string      `db:"name" json:"name"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID int32       `db:"occupation_id" json:"occupation_id"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
-	ID           int32       `db:"id" json:"id"`
+	Nip          pgtype.Text `db:"nip"`
+	Name         string      `db:"name"`
+	Gender       Gender      `db:"gender"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID int32       `db:"occupation_id"`
+	UserID       pgtype.Int4 `db:"user_id"`
+	ID           int32       `db:"id"`
 }
 
 func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) (Employee, error) {

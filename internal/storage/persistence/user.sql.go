@@ -16,37 +16,39 @@ SELECT
     COUNT(*) AS "count"
 FROM
     "user"
+    LEFT JOIN "parent" ON "user"."id" = "parent"."user_id"
+    LEFT JOIN "employee" ON "user"."id" = "employee"."user_id"
 WHERE
     (
-        $1::text IS NULL
+        $1 :: text IS NULL
         OR "username" ILIKE '%' || $1 || '%'
     )
     AND (
-        $2::text IS NULL
+        $2 :: user_role IS NULL
         OR "role" = $2
     )
     AND (
-        $3::smallint IS NULL
+        $3::boolean IS NULL
         OR (
-            $3 = 1
-            AND "parent_id" IS NOT NULL OR "employee_id" IS NOT NULL
+            $3 = TRUE
+            AND (parent.id IS NOT NULL OR employee.id IS NOT NULL)
         )
         OR (
-            $3 = 0
-            AND "parent_id" IS NULL AND "employee_id" IS NULL
+            $3 = FALSE
+            AND parent.id IS NULL
+            AND employee.id IS NULL
         )
-        OR ($3 = -1)
     )
 `
 
 type CountUsersParams struct {
-	Q           pgtype.Text `db:"q" json:"q"`
-	Role        pgtype.Text `db:"role" json:"role"`
-	HasRelation int16       `db:"has_relation" json:"has_relation"`
+	Q        pgtype.Text  `db:"q"`
+	Role     NullUserRole `db:"role"`
+	HasOwner pgtype.Bool  `db:"has_owner"`
 }
 
 func (q *Queries) CountUsers(ctx context.Context, arg CountUsersParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countUsers, arg.Q, arg.Role, arg.HasRelation)
+	row := q.db.QueryRow(ctx, countUsers, arg.Q, arg.Role, arg.HasOwner)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -56,13 +58,17 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO
     "user" ("role", "username", "password")
 VALUES
-    ($1::user_role, $2::text, $3::text) RETURNING id, role, username, password
+    (
+        $1 :: user_role,
+        $2 :: text,
+        $3 :: text
+    ) RETURNING id, role, username, password
 `
 
 type CreateUserParams struct {
-	Role     UserRole `db:"role" json:"role"`
-	Username string   `db:"username" json:"username"`
-	Password string   `db:"password" json:"password"`
+	Role     UserRole `db:"role"`
+	Username string   `db:"username"`
+	Password string   `db:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -81,8 +87,7 @@ const deleteUser = `-- name: DeleteUser :one
 DELETE FROM
     "user"
 WHERE
-    "id" = $1
-RETURNING id, role, username, password
+    "id" = $1 RETURNING id, role, username, password
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id int32) (User, error) {
@@ -109,9 +114,9 @@ WHERE
 `
 
 type GetUserByIDRow struct {
-	ID       int32        `db:"id" json:"id"`
-	Role     NullUserRole `db:"role" json:"role"`
-	Username pgtype.Text  `db:"username" json:"username"`
+	ID       int32        `db:"id"`
+	Role     NullUserRole `db:"role"`
+	Username pgtype.Text  `db:"username"`
 }
 
 func (q *Queries) GetUserByID(ctx context.Context, id int32) (GetUserByIDRow, error) {
@@ -121,207 +126,22 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (GetUserByIDRow, er
 	return i, err
 }
 
-const listUsersAscUsername = `-- name: ListUsersAscUsername :many
-SELECT
-    "user"."id",
-    "user"."username",
-    "user"."role",
-    COALESCE("parent"."id", 0) AS "parentID",
-    "parent"."name" AS "parentName",
-    COALESCE("employee"."id", 0) AS "employeeID",
-    "employee"."name" AS "employeeName"
-FROM
-    "user"
-    LEFT JOIN "parent" ON "user"."id" = "parent"."user_id"
-    LEFT JOIN "employee" ON "user"."id" = "employee"."user_id"
-WHERE
-    (
-        $1::text IS NULL
-        OR "user"."username" ILIKE '%' || $1 || '%'
-    )
-    AND (
-        $2::user_role IS NULL
-        OR "user"."role" = $2
-    )
-    AND (
-        $3::smallint IS NULL
-        OR (
-            $3 = 1
-            AND "parent"."id" IS NOT NULL OR "employee"."id" IS NOT NULL
-        )
-        OR (
-            $3 = 0
-            AND "parent"."id" IS NULL AND "employee"."id" IS NULL
-        )
-        OR ($3 = -1)
-    )
-ORDER BY
-    "user"."username" ASC
-LIMIT
-    $5 OFFSET $4
-`
-
-type ListUsersAscUsernameParams struct {
-	Q            pgtype.Text  `db:"q" json:"q"`
-	Role         NullUserRole `db:"role" json:"role"`
-	HasRelation  int16        `db:"has_relation" json:"has_relation"`
-	OffsetNumber int32        `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32        `db:"limit_number" json:"limit_number"`
-}
-
-type ListUsersAscUsernameRow struct {
-	ID           int32        `db:"id" json:"id"`
-	Username     pgtype.Text  `db:"username" json:"username"`
-	Role         NullUserRole `db:"role" json:"role"`
-	ParentID     int32        `db:"parentID" json:"parentID"`
-	ParentName   pgtype.Text  `db:"parentName" json:"parentName"`
-	EmployeeID   int32        `db:"employeeID" json:"employeeID"`
-	EmployeeName pgtype.Text  `db:"employeeName" json:"employeeName"`
-}
-
-func (q *Queries) ListUsersAscUsername(ctx context.Context, arg ListUsersAscUsernameParams) ([]ListUsersAscUsernameRow, error) {
-	rows, err := q.db.Query(ctx, listUsersAscUsername,
-		arg.Q,
-		arg.Role,
-		arg.HasRelation,
-		arg.OffsetNumber,
-		arg.LimitNumber,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListUsersAscUsernameRow{}
-	for rows.Next() {
-		var i ListUsersAscUsernameRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Username,
-			&i.Role,
-			&i.ParentID,
-			&i.ParentName,
-			&i.EmployeeID,
-			&i.EmployeeName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listUsersDescUsername = `-- name: ListUsersDescUsername :many
-SELECT
-    "user"."id",
-    "user"."username",
-    "user"."role",
-    "parent"."id" AS "parentID",
-    "parent"."name" AS "parentName",
-    "employee"."id" AS "employeeID",
-    "employee"."name" AS "employeeName"
-FROM
-    "user"
-    LEFT JOIN "parent" ON "user"."id" = "parent"."user_id"
-    LEFT JOIN "employee" ON "user"."id" = "employee"."user_id"
-WHERE
-    (
-        $1::text IS NULL
-        OR "user"."username" ILIKE '%' || $1 || '%'
-    )
-    AND (
-        $2::text IS NULL
-        OR "user"."role" = $2
-    )
-    AND (
-        $3::smallint IS NULL
-        OR (
-            $3 = 1
-            AND "parent"."id" IS NOT NULL OR "employee"."id" IS NOT NULL
-        )
-        OR (
-            $3 = 0
-            AND "parent"."id" IS NULL AND "employee"."id" IS NULL
-        )
-        OR ($3 = -1)
-    )
-ORDER BY
-    "user"."username" DESC
-LIMIT
-    $5 OFFSET $4
-`
-
-type ListUsersDescUsernameParams struct {
-	Q            pgtype.Text `db:"q" json:"q"`
-	Role         pgtype.Text `db:"role" json:"role"`
-	HasRelation  int16       `db:"has_relation" json:"has_relation"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
-}
-
-type ListUsersDescUsernameRow struct {
-	ID           int32        `db:"id" json:"id"`
-	Username     pgtype.Text  `db:"username" json:"username"`
-	Role         NullUserRole `db:"role" json:"role"`
-	ParentID     pgtype.Int4  `db:"parentID" json:"parentID"`
-	ParentName   pgtype.Text  `db:"parentName" json:"parentName"`
-	EmployeeID   pgtype.Int4  `db:"employeeID" json:"employeeID"`
-	EmployeeName pgtype.Text  `db:"employeeName" json:"employeeName"`
-}
-
-func (q *Queries) ListUsersDescUsername(ctx context.Context, arg ListUsersDescUsernameParams) ([]ListUsersDescUsernameRow, error) {
-	rows, err := q.db.Query(ctx, listUsersDescUsername,
-		arg.Q,
-		arg.Role,
-		arg.HasRelation,
-		arg.OffsetNumber,
-		arg.LimitNumber,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListUsersDescUsernameRow{}
-	for rows.Next() {
-		var i ListUsersDescUsernameRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Username,
-			&i.Role,
-			&i.ParentID,
-			&i.ParentName,
-			&i.EmployeeID,
-			&i.EmployeeName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateUser = `-- name: UpdateUser :one
 UPDATE
     "user"
 SET
     "role" = $1,
     "username" = $2,
-    "password" = $3
+    "password" =  COALESCE($3, "password")
 WHERE
-    "id" = $4
-RETURNING id, role, username, password
+    "id" = $4 RETURNING id, role, username, password
 `
 
 type UpdateUserParams struct {
-	Role     NullUserRole `db:"role" json:"role"`
-	Username pgtype.Text  `db:"username" json:"username"`
-	Password pgtype.Text  `db:"password" json:"password"`
-	ID       int32        `db:"id" json:"id"`
+	Role     NullUserRole `db:"role"`
+	Username pgtype.Text  `db:"username"`
+	Password pgtype.Text  `db:"password"`
+	ID       int32        `db:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {

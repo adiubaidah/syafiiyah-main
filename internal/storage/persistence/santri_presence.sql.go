@@ -35,13 +35,13 @@ VALUES
 `
 
 type CreateSantriPresenceParams struct {
-	ScheduleID         int32             `db:"schedule_id" json:"schedule_id"`
-	ScheduleName       string            `db:"schedule_name" json:"schedule_name"`
-	Type               PresenceType      `db:"type" json:"type"`
-	SantriID           int32             `db:"santri_id" json:"santri_id"`
-	Notes              pgtype.Text       `db:"notes" json:"notes"`
-	CreatedBy          PresenceCreatedBy `db:"created_by" json:"created_by"`
-	SantriPermissionID pgtype.Int4       `db:"santri_permission_id" json:"santri_permission_id"`
+	ScheduleID         int32             `db:"schedule_id"`
+	ScheduleName       string            `db:"schedule_name"`
+	Type               PresenceType      `db:"type"`
+	SantriID           int32             `db:"santri_id"`
+	Notes              pgtype.Text       `db:"notes"`
+	CreatedBy          PresenceCreatedBy `db:"created_by"`
+	SantriPermissionID pgtype.Int4       `db:"santri_permission_id"`
 }
 
 func (q *Queries) CreateSantriPresence(ctx context.Context, arg CreateSantriPresenceParams) (SantriPresence, error) {
@@ -132,35 +132,35 @@ LIMIT
 `
 
 type ListSantriPresencesParams struct {
-	SantriID     pgtype.Int4      `db:"santri_id" json:"santri_id"`
-	Q            pgtype.Text      `db:"q" json:"q"`
-	Type         NullPresenceType `db:"type" json:"type"`
-	ScheduleID   pgtype.Int4      `db:"schedule_id" json:"schedule_id"`
-	FromDate     pgtype.Timestamp `db:"from_date" json:"from_date"`
-	ToDate       pgtype.Timestamp `db:"to_date" json:"to_date"`
-	OffsetNumber int32            `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32            `db:"limit_number" json:"limit_number"`
+	SantriID     pgtype.Int4      `db:"santri_id"`
+	Q            pgtype.Text      `db:"q"`
+	Type         NullPresenceType `db:"type"`
+	ScheduleID   pgtype.Int4      `db:"schedule_id"`
+	FromDate     pgtype.Timestamp `db:"from_date"`
+	ToDate       pgtype.Timestamp `db:"to_date"`
+	OffsetNumber int32            `db:"offset_number"`
+	LimitNumber  int32            `db:"limit_number"`
 }
 
 type ListSantriPresencesRow struct {
-	ID                 pgtype.Int4        `db:"id" json:"id"`
-	ScheduleID         int32              `db:"schedule_id" json:"schedule_id"`
-	ScheduleName       string             `db:"schedule_name" json:"schedule_name"`
-	Type               PresenceType       `db:"type" json:"type"`
-	SantriID           int32              `db:"santri_id" json:"santri_id"`
-	CreatedAt          pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	CreatedBy          PresenceCreatedBy  `db:"created_by" json:"created_by"`
-	Notes              pgtype.Text        `db:"notes" json:"notes"`
-	SantriPermissionID pgtype.Int4        `db:"santri_permission_id" json:"santri_permission_id"`
-	ID_2               int32              `db:"id_2" json:"id_2"`
-	Nis                pgtype.Text        `db:"nis" json:"nis"`
-	Name               string             `db:"name" json:"name"`
-	Gender             Gender             `db:"gender" json:"gender"`
-	Generation         int32              `db:"generation" json:"generation"`
-	IsActive           pgtype.Bool        `db:"is_active" json:"is_active"`
-	Photo              pgtype.Text        `db:"photo" json:"photo"`
-	OccupationID       pgtype.Int4        `db:"occupation_id" json:"occupation_id"`
-	ParentID           pgtype.Int4        `db:"parent_id" json:"parent_id"`
+	ID                 pgtype.Int4        `db:"id"`
+	ScheduleID         int32              `db:"schedule_id"`
+	ScheduleName       string             `db:"schedule_name"`
+	Type               PresenceType       `db:"type"`
+	SantriID           int32              `db:"santri_id"`
+	CreatedAt          pgtype.Timestamptz `db:"created_at"`
+	CreatedBy          PresenceCreatedBy  `db:"created_by"`
+	Notes              pgtype.Text        `db:"notes"`
+	SantriPermissionID pgtype.Int4        `db:"santri_permission_id"`
+	ID_2               int32              `db:"id_2"`
+	Nis                pgtype.Text        `db:"nis"`
+	Name               string             `db:"name"`
+	Gender             Gender             `db:"gender"`
+	Generation         int32              `db:"generation"`
+	IsActive           pgtype.Bool        `db:"is_active"`
+	Photo              pgtype.Text        `db:"photo"`
+	OccupationID       pgtype.Int4        `db:"occupation_id"`
+	ParentID           pgtype.Int4        `db:"parent_id"`
 }
 
 func (q *Queries) ListSantriPresences(ctx context.Context, arg ListSantriPresencesParams) ([]ListSantriPresencesRow, error) {
@@ -227,13 +227,13 @@ WHERE
 `
 
 type UpdateSantriPresenceParams struct {
-	ScheduleID         int32        `db:"schedule_id" json:"schedule_id"`
-	ScheduleName       string       `db:"schedule_name" json:"schedule_name"`
-	Type               PresenceType `db:"type" json:"type"`
-	SantriID           int32        `db:"santri_id" json:"santri_id"`
-	Notes              pgtype.Text  `db:"notes" json:"notes"`
-	SantriPermissionID pgtype.Int4  `db:"santri_permission_id" json:"santri_permission_id"`
-	ID                 pgtype.Int4  `db:"id" json:"id"`
+	ScheduleID         int32        `db:"schedule_id"`
+	ScheduleName       string       `db:"schedule_name"`
+	Type               PresenceType `db:"type"`
+	SantriID           int32        `db:"santri_id"`
+	Notes              pgtype.Text  `db:"notes"`
+	SantriPermissionID pgtype.Int4  `db:"santri_permission_id"`
+	ID                 pgtype.Int4  `db:"id"`
 }
 
 func (q *Queries) UpdateSantriPresence(ctx context.Context, arg UpdateSantriPresenceParams) (SantriPresence, error) {

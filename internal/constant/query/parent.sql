@@ -1,63 +1,3 @@
--- name: ListParentsAsc :many
-SELECT
-    "parent".*,
-    "user"."id" AS "user_id",
-    "user"."username" AS "user_username"
-FROM
-    "parent"
-    LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
-WHERE
-    (
-        sqlc.narg(q) :: text IS NULL
-        OR "name" ILIKE '%' || sqlc.narg(q) || '%'
-    )
-    AND (
-        @has_user :: smallint IS NULL
-        OR (
-            @has_user = 1
-            AND "user_id" IS NOT NULL
-        )
-        OR (
-            @has_user = 0
-            AND "user_id" IS NULL
-        )
-        OR (@has_user = -1)
-    )
-ORDER BY
-    "name" ASC
-LIMIT
-    @limit_number OFFSET @offset_number;
-
--- name: ListParentsDesc :many
-SELECT
-    "parent".*,
-    "user"."id" AS "user_id",
-    "user"."username" AS "user_username"
-FROM
-    "parent"
-    LEFT JOIN "user" ON "parent"."user_id" = "user"."id"
-WHERE
-    (
-        sqlc.narg(q) :: text IS NULL
-        OR "name" ILIKE '%' || sqlc.narg(q) || '%'
-    )
-    AND (
-        @has_user :: smallint IS NULL
-        OR (
-            @has_user = 1
-            AND "user_id" IS NOT NULL
-        )
-        OR (
-            @has_user = 0
-            AND "user_id" IS NULL
-        )
-        OR (@has_user = -1)
-    )
-ORDER BY
-    "name" ASC
-LIMIT
-    @limit_number OFFSET @offset_number;
-
 -- name: CountParents :one
 SELECT
     COUNT(*) AS "count"
@@ -69,17 +9,11 @@ WHERE
         OR "name" ILIKE '%' || sqlc.narg(q) || '%'
     )
     AND (
-        @has_user :: smallint IS NULL
-        OR (
-            @has_user = 1
-            AND "user_id" IS NOT NULL
+        sqlc.narg(has_user)::boolean IS NULL
+        OR (sqlc.narg(has_user) = TRUE AND "parent"."user_id" IS NOT NULL)
+        OR (sqlc.narg(has_user) = FALSE AND "parent"."user_id" IS NULL)
         )
-        OR (
-            @has_user = 0
-            AND "user_id" IS NULL
-        )
-        OR (@has_user = -1)
-    );
+    ;
 
 -- name: CreateParent :one
 INSERT INTO
@@ -109,7 +43,7 @@ SET
     "address" = @address,
     "gender" = @gender,
     "whatsapp_number" = @whatsapp_number,
-    "photo" = sqlc.narg(photo),
+    "photo" = COALESCE(sqlc.narg(photo), photo),
     "user_id" = sqlc.narg(user_id)
 WHERE
     "id" = @id RETURNING *;

@@ -16,9 +16,9 @@ INSERT INTO "holiday" ("name", "color", "description") VALUES ($1, $2, $3) RETUR
 `
 
 type CreateHolidayParams struct {
-	Name        string      `db:"name" json:"name"`
-	Color       pgtype.Text `db:"color" json:"color"`
-	Description pgtype.Text `db:"description" json:"description"`
+	Name        string      `db:"name"`
+	Color       pgtype.Text `db:"color"`
+	Description pgtype.Text `db:"description"`
 }
 
 func (q *Queries) CreateHoliday(ctx context.Context, arg CreateHolidayParams) (Holiday, error) {
@@ -54,10 +54,10 @@ UPDATE "holiday" SET "name" = $1, "color" = $2, "description" = $3 WHERE "id" = 
 `
 
 type UpdateHolidayParams struct {
-	Name        string      `db:"name" json:"name"`
-	Color       pgtype.Text `db:"color" json:"color"`
-	Description pgtype.Text `db:"description" json:"description"`
-	ID          int32       `db:"id" json:"id"`
+	Name        string      `db:"name"`
+	Color       pgtype.Text `db:"color"`
+	Description pgtype.Text `db:"description"`
+	ID          int32       `db:"id"`
 }
 
 func (q *Queries) UpdateHoliday(ctx context.Context, arg UpdateHolidayParams) (Holiday, error) {

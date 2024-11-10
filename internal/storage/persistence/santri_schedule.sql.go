@@ -32,11 +32,11 @@ RETURNING id, name, description, start_presence, start_time, finish_time
 `
 
 type CreateSantriScheduleParams struct {
-	Name          string      `db:"name" json:"name"`
-	Description   pgtype.Text `db:"description" json:"description"`
-	StartPresence pgtype.Time `db:"start_presence" json:"start_presence"`
-	StartTime     pgtype.Time `db:"start_time" json:"start_time"`
-	FinishTime    pgtype.Time `db:"finish_time" json:"finish_time"`
+	Name          string      `db:"name"`
+	Description   pgtype.Text `db:"description"`
+	StartPresence pgtype.Time `db:"start_presence"`
+	StartTime     pgtype.Time `db:"start_time"`
+	FinishTime    pgtype.Time `db:"finish_time"`
 }
 
 func (q *Queries) CreateSantriSchedule(ctx context.Context, arg CreateSantriScheduleParams) (SantriSchedule, error) {
@@ -151,12 +151,12 @@ RETURNING id, name, description, start_presence, start_time, finish_time
 `
 
 type UpdateSantriScheduleParams struct {
-	Name          string      `db:"name" json:"name"`
-	Description   pgtype.Text `db:"description" json:"description"`
-	StartPresence pgtype.Time `db:"start_presence" json:"start_presence"`
-	StartTime     pgtype.Time `db:"start_time" json:"start_time"`
-	FinishTime    pgtype.Time `db:"finish_time" json:"finish_time"`
-	ID            int32       `db:"id" json:"id"`
+	Name          string      `db:"name"`
+	Description   pgtype.Text `db:"description"`
+	StartPresence pgtype.Time `db:"start_presence"`
+	StartTime     pgtype.Time `db:"start_time"`
+	FinishTime    pgtype.Time `db:"finish_time"`
+	ID            int32       `db:"id"`
 }
 
 func (q *Queries) UpdateSantriSchedule(ctx context.Context, arg UpdateSantriScheduleParams) (SantriSchedule, error) {

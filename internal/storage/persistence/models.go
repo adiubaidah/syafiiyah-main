@@ -32,8 +32,8 @@ func (e *ArduinoModeType) Scan(src interface{}) error {
 }
 
 type NullArduinoModeType struct {
-	ArduinoModeType ArduinoModeType `json:"arduino_mode_type"`
-	Valid           bool            `json:"valid"` // Valid is true if ArduinoModeType is not NULL
+	ArduinoModeType ArduinoModeType
+	Valid           bool // Valid is true if ArduinoModeType is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -74,8 +74,8 @@ func (e *Gender) Scan(src interface{}) error {
 }
 
 type NullGender struct {
-	Gender Gender `json:"gender"`
-	Valid  bool   `json:"valid"` // Valid is true if Gender is not NULL
+	Gender Gender
+	Valid  bool // Valid is true if Gender is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -94,6 +94,48 @@ func (ns NullGender) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.Gender), nil
+}
+
+type ParentOrderBy string
+
+const (
+	ParentOrderByAscName  ParentOrderBy = "asc:name"
+	ParentOrderByDescName ParentOrderBy = "desc:name"
+)
+
+func (e *ParentOrderBy) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ParentOrderBy(s)
+	case string:
+		*e = ParentOrderBy(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ParentOrderBy: %T", src)
+	}
+	return nil
+}
+
+type NullParentOrderBy struct {
+	ParentOrderBy ParentOrderBy
+	Valid         bool // Valid is true if ParentOrderBy is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullParentOrderBy) Scan(value interface{}) error {
+	if value == nil {
+		ns.ParentOrderBy, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ParentOrderBy.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullParentOrderBy) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ParentOrderBy), nil
 }
 
 type PresenceCreatedBy string
@@ -117,8 +159,8 @@ func (e *PresenceCreatedBy) Scan(src interface{}) error {
 }
 
 type NullPresenceCreatedBy struct {
-	PresenceCreatedBy PresenceCreatedBy `json:"presence_created_by"`
-	Valid             bool              `json:"valid"` // Valid is true if PresenceCreatedBy is not NULL
+	PresenceCreatedBy PresenceCreatedBy
+	Valid             bool // Valid is true if PresenceCreatedBy is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -162,8 +204,8 @@ func (e *PresenceType) Scan(src interface{}) error {
 }
 
 type NullPresenceType struct {
-	PresenceType PresenceType `json:"presence_type"`
-	Valid        bool         `json:"valid"` // Valid is true if PresenceType is not NULL
+	PresenceType PresenceType
+	Valid        bool // Valid is true if PresenceType is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -208,8 +250,8 @@ func (e *SantriOrderBy) Scan(src interface{}) error {
 }
 
 type NullSantriOrderBy struct {
-	SantriOrderBy SantriOrderBy `json:"santri_order_by"`
-	Valid         bool          `json:"valid"` // Valid is true if SantriOrderBy is not NULL
+	SantriOrderBy SantriOrderBy
+	Valid         bool // Valid is true if SantriOrderBy is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -250,8 +292,8 @@ func (e *SantriPermissionType) Scan(src interface{}) error {
 }
 
 type NullSantriPermissionType struct {
-	SantriPermissionType SantriPermissionType `json:"santri_permission_type"`
-	Valid                bool                 `json:"valid"` // Valid is true if SantriPermissionType is not NULL
+	SantriPermissionType SantriPermissionType
+	Valid                bool // Valid is true if SantriPermissionType is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -270,6 +312,50 @@ func (ns NullSantriPermissionType) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.SantriPermissionType), nil
+}
+
+type UserOrderBy string
+
+const (
+	UserOrderByAscUsername  UserOrderBy = "asc:username"
+	UserOrderByDescUsername UserOrderBy = "desc:username"
+	UserOrderByAscName      UserOrderBy = "asc:name"
+	UserOrderByDescName     UserOrderBy = "desc:name"
+)
+
+func (e *UserOrderBy) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserOrderBy(s)
+	case string:
+		*e = UserOrderBy(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserOrderBy: %T", src)
+	}
+	return nil
+}
+
+type NullUserOrderBy struct {
+	UserOrderBy UserOrderBy
+	Valid       bool // Valid is true if UserOrderBy is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserOrderBy) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserOrderBy, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserOrderBy.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserOrderBy) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserOrderBy), nil
 }
 
 type UserRole string
@@ -294,8 +380,8 @@ func (e *UserRole) Scan(src interface{}) error {
 }
 
 type NullUserRole struct {
-	UserRole UserRole `json:"user_role"`
-	Valid    bool     `json:"valid"` // Valid is true if UserRole is not NULL
+	UserRole UserRole
+	Valid    bool // Valid is true if UserRole is not NULL
 }
 
 // Scan implements the Scanner interface.
@@ -317,159 +403,159 @@ func (ns NullUserRole) Value() (driver.Value, error) {
 }
 
 type Arduino struct {
-	ID int32 `db:"id" json:"id"`
+	ID int32 `db:"id"`
 	// ex: arduino1
-	Name string `db:"name" json:"name"`
+	Name string `db:"name"`
 }
 
 type ArduinoMode struct {
-	ID             int32           `db:"id" json:"id"`
-	Mode           ArduinoModeType `db:"mode" json:"mode"`
-	TopicPublish   string          `db:"topic_publish" json:"topic_publish"`
-	TopicSubscribe string          `db:"topic_subscribe" json:"topic_subscribe"`
-	ArduinoID      int32           `db:"arduino_id" json:"arduino_id"`
+	ID             int32           `db:"id"`
+	Mode           ArduinoModeType `db:"mode"`
+	TopicPublish   string          `db:"topic_publish"`
+	TopicSubscribe string          `db:"topic_subscribe"`
+	ArduinoID      int32           `db:"arduino_id"`
 }
 
 type Employee struct {
-	ID           int32       `db:"id" json:"id"`
-	Nip          pgtype.Text `db:"nip" json:"nip"`
-	Name         string      `db:"name" json:"name"`
-	Gender       Gender      `db:"gender" json:"gender"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID int32       `db:"occupation_id" json:"occupation_id"`
-	UserID       pgtype.Int4 `db:"user_id" json:"user_id"`
+	ID           int32       `db:"id"`
+	Nip          pgtype.Text `db:"nip"`
+	Name         string      `db:"name"`
+	Gender       Gender      `db:"gender"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID int32       `db:"occupation_id"`
+	UserID       pgtype.Int4 `db:"user_id"`
 }
 
 type EmployeeOccupation struct {
-	ID          int32       `db:"id" json:"id"`
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
+	ID          int32       `db:"id"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
 }
 
 type EmployeePermission struct {
-	ID              int32       `db:"id" json:"id"`
-	EmployeeID      int32       `db:"employee_id" json:"employee_id"`
-	ScheduleID      int32       `db:"schedule_id" json:"schedule_id"`
-	ScheduleName    string      `db:"schedule_name" json:"schedule_name"`
-	StartPermission pgtype.Time `db:"start_permission" json:"start_permission"`
+	ID              int32       `db:"id"`
+	EmployeeID      int32       `db:"employee_id"`
+	ScheduleID      int32       `db:"schedule_id"`
+	ScheduleName    string      `db:"schedule_name"`
+	StartPermission pgtype.Time `db:"start_permission"`
 	// waktu kembali, null berarti pulang
-	EndPermission pgtype.Time `db:"end_permission" json:"end_permission"`
-	Reason        string      `db:"reason" json:"reason"`
+	EndPermission pgtype.Time `db:"end_permission"`
+	Reason        string      `db:"reason"`
 	// Pulang, keluar sementara
-	IsGoHome pgtype.Bool `db:"is_go_home" json:"is_go_home"`
+	IsGoHome pgtype.Bool `db:"is_go_home"`
 }
 
 type EmployeePresence struct {
-	ID         pgtype.Int4  `db:"id" json:"id"`
-	ScheduleID pgtype.Int4  `db:"schedule_id" json:"schedule_id"`
-	Type       PresenceType `db:"type" json:"type"`
-	EmployeeID int32        `db:"employee_id" json:"employee_id"`
-	Notes      pgtype.Text  `db:"notes" json:"notes"`
+	ID         pgtype.Int4  `db:"id"`
+	ScheduleID pgtype.Int4  `db:"schedule_id"`
+	Type       PresenceType `db:"type"`
+	EmployeeID int32        `db:"employee_id"`
+	Notes      pgtype.Text  `db:"notes"`
 }
 
 type EmployeeSchedule struct {
-	ID int32 `db:"id" json:"id"`
+	ID int32 `db:"id"`
 	// ex: Pagi, siang, sore, malam
-	Name          string      `db:"name" json:"name"`
-	StartPresence pgtype.Time `db:"start_presence" json:"start_presence"`
+	Name          string      `db:"name"`
+	StartPresence pgtype.Time `db:"start_presence"`
 	// Waktu jenis
-	StartTime  pgtype.Time `db:"start_time" json:"start_time"`
-	FinishTime pgtype.Time `db:"finish_time" json:"finish_time"`
+	StartTime  pgtype.Time `db:"start_time"`
+	FinishTime pgtype.Time `db:"finish_time"`
 }
 
 type Holiday struct {
-	ID int32 `db:"id" json:"id"`
+	ID int32 `db:"id"`
 	// Optional description of the holiday
-	Name        string      `db:"name" json:"name"`
-	Color       pgtype.Text `db:"color" json:"color"`
-	Description pgtype.Text `db:"description" json:"description"`
+	Name        string      `db:"name"`
+	Color       pgtype.Text `db:"color"`
+	Description pgtype.Text `db:"description"`
 }
 
 type HolidayDay struct {
-	ID        int32       `db:"id" json:"id"`
-	Date      pgtype.Date `db:"date" json:"date"`
-	HolidayID int32       `db:"holiday_id" json:"holiday_id"`
+	ID        int32       `db:"id"`
+	Date      pgtype.Date `db:"date"`
+	HolidayID int32       `db:"holiday_id"`
 }
 
 type Parent struct {
-	ID             int32       `db:"id" json:"id"`
-	Name           string      `db:"name" json:"name"`
-	Address        string      `db:"address" json:"address"`
-	Gender         Gender      `db:"gender" json:"gender"`
-	WhatsappNumber pgtype.Text `db:"whatsapp_number" json:"whatsapp_number"`
-	Photo          pgtype.Text `db:"photo" json:"photo"`
-	UserID         pgtype.Int4 `db:"user_id" json:"user_id"`
+	ID             int32       `db:"id"`
+	Name           string      `db:"name"`
+	Address        string      `db:"address"`
+	Gender         Gender      `db:"gender"`
+	WhatsappNumber pgtype.Text `db:"whatsapp_number"`
+	Photo          pgtype.Text `db:"photo"`
+	UserID         pgtype.Int4 `db:"user_id"`
 }
 
 type Rfid struct {
-	ID        int32              `db:"id" json:"id"`
-	Uid       string             `db:"uid" json:"uid"`
-	CreatedAt pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	IsActive  bool               `db:"is_active" json:"is_active"`
+	ID        int32              `db:"id"`
+	Uid       string             `db:"uid"`
+	CreatedAt pgtype.Timestamptz `db:"created_at"`
+	IsActive  bool               `db:"is_active"`
 	// Rfid bisa milik santri
-	SantriID pgtype.Int4 `db:"santri_id" json:"santri_id"`
+	SantriID pgtype.Int4 `db:"santri_id"`
 	// Rfid bisa milik employee
-	EmployeeID pgtype.Int4 `db:"employee_id" json:"employee_id"`
+	EmployeeID pgtype.Int4 `db:"employee_id"`
 }
 
 type Santri struct {
-	ID     int32       `db:"id" json:"id"`
-	Nis    pgtype.Text `db:"nis" json:"nis"`
-	Name   string      `db:"name" json:"name"`
-	Gender Gender      `db:"gender" json:"gender"`
+	ID     int32       `db:"id"`
+	Nis    pgtype.Text `db:"nis"`
+	Name   string      `db:"name"`
+	Gender Gender      `db:"gender"`
 	// ex: 2024, 2022
-	Generation   int32       `db:"generation" json:"generation"`
-	IsActive     pgtype.Bool `db:"is_active" json:"is_active"`
-	Photo        pgtype.Text `db:"photo" json:"photo"`
-	OccupationID pgtype.Int4 `db:"occupation_id" json:"occupation_id"`
-	ParentID     pgtype.Int4 `db:"parent_id" json:"parent_id"`
+	Generation   int32       `db:"generation"`
+	IsActive     pgtype.Bool `db:"is_active"`
+	Photo        pgtype.Text `db:"photo"`
+	OccupationID pgtype.Int4 `db:"occupation_id"`
+	ParentID     pgtype.Int4 `db:"parent_id"`
 }
 
 type SantriOccupation struct {
-	ID          int32       `db:"id" json:"id"`
-	Name        string      `db:"name" json:"name"`
-	Description pgtype.Text `db:"description" json:"description"`
+	ID          int32       `db:"id"`
+	Name        string      `db:"name"`
+	Description pgtype.Text `db:"description"`
 }
 
 type SantriPermission struct {
-	ID              int32                `db:"id" json:"id"`
-	SantriID        int32                `db:"santri_id" json:"santri_id"`
-	Type            SantriPermissionType `db:"type" json:"type"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission" json:"start_permission"`
+	ID              int32                `db:"id"`
+	SantriID        int32                `db:"santri_id"`
+	Type            SantriPermissionType `db:"type"`
+	StartPermission pgtype.Timestamptz   `db:"start_permission"`
 	// Waktu berakhir, jika pulang, maka setting end permissionnya di akhir waktu berakhirnya schedule yang terakhir
-	EndPermission pgtype.Timestamptz `db:"end_permission" json:"end_permission"`
-	Excuse        string             `db:"excuse" json:"excuse"`
+	EndPermission pgtype.Timestamptz `db:"end_permission"`
+	Excuse        string             `db:"excuse"`
 }
 
 type SantriPresence struct {
-	ID pgtype.Int4 `db:"id" json:"id"`
+	ID pgtype.Int4 `db:"id"`
 	// Karena bisa saja activitynya dihapus
-	ScheduleID int32 `db:"schedule_id" json:"schedule_id"`
+	ScheduleID int32 `db:"schedule_id"`
 	// menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history
-	ScheduleName string             `db:"schedule_name" json:"schedule_name"`
-	Type         PresenceType       `db:"type" json:"type"`
-	SantriID     int32              `db:"santri_id" json:"santri_id"`
-	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	CreatedBy    PresenceCreatedBy  `db:"created_by" json:"created_by"`
-	Notes        pgtype.Text        `db:"notes" json:"notes"`
+	ScheduleName string             `db:"schedule_name"`
+	Type         PresenceType       `db:"type"`
+	SantriID     int32              `db:"santri_id"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at"`
+	CreatedBy    PresenceCreatedBy  `db:"created_by"`
+	Notes        pgtype.Text        `db:"notes"`
 	// Jika izin ditengah kegiatan maka akan diisi
-	SantriPermissionID pgtype.Int4 `db:"santri_permission_id" json:"santri_permission_id"`
+	SantriPermissionID pgtype.Int4 `db:"santri_permission_id"`
 }
 
 type SantriSchedule struct {
-	ID            int32       `db:"id" json:"id"`
-	Name          string      `db:"name" json:"name"`
-	Description   pgtype.Text `db:"description" json:"description"`
-	StartPresence pgtype.Time `db:"start_presence" json:"start_presence"`
+	ID            int32       `db:"id"`
+	Name          string      `db:"name"`
+	Description   pgtype.Text `db:"description"`
+	StartPresence pgtype.Time `db:"start_presence"`
 	// Waktu mulai kegiatan
-	StartTime pgtype.Time `db:"start_time" json:"start_time"`
+	StartTime pgtype.Time `db:"start_time"`
 	// Waktu berakhirnya kegiatan
-	FinishTime pgtype.Time `db:"finish_time" json:"finish_time"`
+	FinishTime pgtype.Time `db:"finish_time"`
 }
 
 type User struct {
-	ID       int32        `db:"id" json:"id"`
-	Role     NullUserRole `db:"role" json:"role"`
-	Username pgtype.Text  `db:"username" json:"username"`
-	Password pgtype.Text  `db:"password" json:"password"`
+	ID       int32        `db:"id"`
+	Role     NullUserRole `db:"role"`
+	Username pgtype.Text  `db:"username"`
+	Password pgtype.Text  `db:"password"`
 }

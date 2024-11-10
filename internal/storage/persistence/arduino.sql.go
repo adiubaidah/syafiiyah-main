@@ -38,9 +38,9 @@ SELECT id, name FROM "arduino" WHERE "name" ILIKE '%' || $1 || '%' LIMIT $3 OFFS
 `
 
 type ListArduinosParams struct {
-	Name         pgtype.Text `db:"name" json:"name"`
-	OffsetNumber int32       `db:"offset_number" json:"offset_number"`
-	LimitNumber  int32       `db:"limit_number" json:"limit_number"`
+	Name         pgtype.Text `db:"name"`
+	OffsetNumber int32       `db:"offset_number"`
+	LimitNumber  int32       `db:"limit_number"`
 }
 
 func (q *Queries) ListArduinos(ctx context.Context, arg ListArduinosParams) ([]Arduino, error) {
@@ -68,8 +68,8 @@ UPDATE "arduino" SET "name" = $1 WHERE "id" = $2 RETURNING id, name
 `
 
 type UpdateArduinoParams struct {
-	Name string `db:"name" json:"name"`
-	ID   int32  `db:"id" json:"id"`
+	Name string `db:"name"`
+	ID   int32  `db:"id"`
 }
 
 func (q *Queries) UpdateArduino(ctx context.Context, arg UpdateArduinoParams) (Arduino, error) {

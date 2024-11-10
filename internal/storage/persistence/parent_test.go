@@ -71,14 +71,14 @@ func TestListParentsWithQ(t *testing.T) {
 
 	t.Run("List by partial parent name", func(t *testing.T) {
 		// Search for a specific parent name using `q`
-		arg := ListParentsAscParams{
+		arg := ListParentParams{
 			Q:            pgtype.Text{String: parent1.Name[:3], Valid: true}, // Partially match the first 3 characters of name
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
 		// Perform List
-		parents, err := testStore.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParents(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -102,50 +102,50 @@ func TestListParentWithHasUser(t *testing.T) {
 
 	t.Run("List parents with user ID", func(t *testing.T) {
 		// List with `has_user = 1` (only parents with user_id)
-		arg := ListParentsAscParams{
-			HasUser:      1,
+		arg := ListParentParams{
+			HasUser:      pgtype.Bool{Bool: true, Valid: true},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		parents, err := testStore.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParents(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
 		for _, parent := range parents {
 			require.NotNil(t, parent.UserID, "Expected parent to have a user_id")
 			if parent.UserID.Int32 == user.ID {
-				require.Equal(t, user.Username.String, parent.UserUsername.String)
+				require.Equal(t, user.Username.String, parent.Username.String)
 			}
 		}
 	})
 
 	t.Run("List parents without user ID", func(t *testing.T) {
 		// List with `has_user = 0` (only parents without user_id)
-		arg := ListParentsAscParams{
-			HasUser:      0,
+		arg := ListParentParams{
+			HasUser:      pgtype.Bool{Bool: false, Valid: true},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		parents, err := testStore.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParents(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
 		for _, parent := range parents {
-			require.Zero(t, parent.UserID, "Expected parent to not have a user_id (0)")
+			require.Zero(t, parent.UserID.Int32, "Expected parent to not have a user_id (0)")
 		}
 	})
 
 	t.Run("List all parents regardless of user ID", func(t *testing.T) {
 		// List with `has_user = -1` (all parents)
-		arg := ListParentsAscParams{
-			HasUser:      -1,
+		arg := ListParentParams{
+			HasUser:      pgtype.Bool{Valid: false},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
 
-		parents, err := testStore.ListParentsAsc(context.Background(), arg)
+		parents, err := testStore.ListParents(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, parents)
 
@@ -173,12 +173,12 @@ func TestListParentPagination(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		arg      ListParentsAscParams
+		arg      ListParentParams
 		expected int
 	}{
 		{
 			name: "Limit 5",
-			arg: ListParentsAscParams{
+			arg: ListParentParams{
 				LimitNumber:  5,
 				OffsetNumber: 0,
 			},
@@ -186,7 +186,7 @@ func TestListParentPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 5",
-			arg: ListParentsAscParams{
+			arg: ListParentParams{
 				LimitNumber:  5,
 				OffsetNumber: 5,
 			},
@@ -194,7 +194,7 @@ func TestListParentPagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: ListParentsAscParams{
+			arg: ListParentParams{
 				LimitNumber:  5,
 				OffsetNumber: 10,
 			},
@@ -204,7 +204,7 @@ func TestListParentPagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testStore.ListParentsAsc(context.Background(), tt.arg)
+			employees, err := testStore.ListParents(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})
@@ -214,20 +214,20 @@ func TestListParentPagination(t *testing.T) {
 func TestCountParents(t *testing.T) {
 	clearParentTable(t)
 	// Create test data
-	createRandomParent(t)
+	createRandomParentWithUser(t)
 	createRandomParent(t)
 	createRandomParent(t)
 
 	// Count parents
 	arg := CountParentsParams{
 		Q:       pgtype.Text{Valid: false},
-		HasUser: -1,
+		HasUser: pgtype.Bool{Bool: true, Valid: true},
 	}
 	count, err := testStore.CountParents(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotZero(t, count)
 
-	require.Greater(t, count, int64(2))
+	require.Equal(t, int(count), 1)
 }
 
 func TestUpdateParent(t *testing.T) {

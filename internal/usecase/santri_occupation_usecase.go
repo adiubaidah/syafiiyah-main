@@ -11,9 +11,9 @@ import (
 
 type SantriOccuapationUsecase interface {
 	CreateSantriOccupation(ctx context.Context, request *model.CreateSantriOccupationRequest) (model.SantriOccupationResponse, error)
-	ListSantriOccupation(ctx context.Context) ([]model.SantriOccupationWithCountResponse, error)
-	UpdateSantriOccupation(ctx context.Context, request *model.UpdateSantriOccupationRequest, santriOccupationid *int32) (model.SantriOccupationResponse, error)
-	DeleteSantriOccupation(ctx context.Context, santriOccupationId *int32) (model.SantriOccupationResponse, error)
+	ListSantriOccupations(ctx context.Context) ([]model.SantriOccupationWithCountResponse, error)
+	UpdateSantriOccupation(ctx context.Context, request *model.UpdateSantriOccupationRequest, santriOccupationid int32) (model.SantriOccupationResponse, error)
+	DeleteSantriOccupation(ctx context.Context, santriOccupationId int32) (model.SantriOccupationResponse, error)
 }
 
 type santriOccupationService struct {
@@ -44,7 +44,7 @@ func (s *santriOccupationService) CreateSantriOccupation(ctx context.Context, re
 	}, nil
 }
 
-func (s *santriOccupationService) ListSantriOccupation(ctx context.Context) ([]model.SantriOccupationWithCountResponse, error) {
+func (s *santriOccupationService) ListSantriOccupations(ctx context.Context) ([]model.SantriOccupationWithCountResponse, error) {
 	santriOccupations, err := s.store.ListSantriOccupations(ctx)
 	if err != nil {
 		return nil, err
@@ -65,9 +65,9 @@ func (s *santriOccupationService) ListSantriOccupation(ctx context.Context) ([]m
 	return response, nil
 }
 
-func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, request *model.UpdateSantriOccupationRequest, santriOccupationId *int32) (model.SantriOccupationResponse, error) {
+func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, request *model.UpdateSantriOccupationRequest, santriOccupationId int32) (model.SantriOccupationResponse, error) {
 	updatedSantriOccupation, err := s.store.UpdateSantriOccupation(ctx, db.UpdateSantriOccupationParams{
-		ID:          *santriOccupationId,
+		ID:          santriOccupationId,
 		Name:        request.Name,
 		Description: pgtype.Text{String: request.Description, Valid: true},
 	})
@@ -84,8 +84,8 @@ func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, re
 	}, nil
 }
 
-func (s *santriOccupationService) DeleteSantriOccupation(ctx context.Context, santriOccupationId *int32) (model.SantriOccupationResponse, error) {
-	deletedSantriOccupation, err := s.store.DeleteSantriOccupation(ctx, *santriOccupationId)
+func (s *santriOccupationService) DeleteSantriOccupation(ctx context.Context, santriOccupationId int32) (model.SantriOccupationResponse, error) {
+	deletedSantriOccupation, err := s.store.DeleteSantriOccupation(ctx, santriOccupationId)
 	if err != nil {
 		return model.SantriOccupationResponse{}, err
 	}
