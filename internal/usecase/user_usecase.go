@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
@@ -12,7 +14,7 @@ import (
 type UserUseCase interface {
 	CreateUser(ctx context.Context, request *model.CreateUserRequest) (model.UserResponse, error)
 	ListUsers(ctx context.Context, request *model.ListUserRequest) ([]model.UserComplete, error)
-	GetUser(ctx context.Context, userId int32) (model.UserResponse, error)
+	GetUser(ctx context.Context, userId int32, username string) (model.UserWithPassword, error)
 	CountUsers(ctx context.Context, request *model.ListUserRequest) (int32, error)
 	UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (model.UserResponse, error)
 	DeleteUser(ctx context.Context, userId int32) (model.UserResponse, error)
@@ -60,14 +62,6 @@ func (c *userService) ListUsers(ctx context.Context, request *model.ListUserRequ
 		OffsetNumber: (request.Page - 1) * request.Limit,
 		OrderBy:      db.NullUserOrderBy{UserOrderBy: db.UserOrderBy(request.Order), Valid: request.Order != ""},
 	}
-	// fmt.Println("argument", arg)
-	// fmt.Println("q", request.Q)
-	// fmt.Println("hasOwner", request.HasOwner)
-	// fmt.Println("role", request.Role)
-	// fmt.Println("limit", request.Limit)
-	// fmt.Println("page", request.Page)
-	// fmt.Println("order", request.Order)
-	// userRoleValidation := db.UserRole
 	users, err := c.store.ListUsers(ctx, arg)
 	if err != nil {
 		return []model.UserComplete{}, err
@@ -89,16 +83,20 @@ func (c *userService) ListUsers(ctx context.Context, request *model.ListUserRequ
 	return userComplete, nil
 }
 
-func (c *userService) GetUser(ctx context.Context, userId int32) (model.UserResponse, error) {
-	user, err := c.store.GetUserByID(ctx, userId)
+func (c *userService) GetUser(ctx context.Context, userId int32, username string) (model.UserWithPassword, error) {
+	user, err := c.store.GetUser(ctx, db.GetUserParams{
+		Username: pgtype.Text{String: username, Valid: username != ""},
+		ID:       pgtype.Int4{Int32: userId, Valid: userId != 0},
+	})
 	if err != nil {
-		return model.UserResponse{}, err
+		return model.UserWithPassword{}, err
 	}
 
-	return model.UserResponse{
+	return model.UserWithPassword{
 		ID:       user.ID,
 		Username: user.Username.String,
 		Role:     string(user.Role.UserRole),
+		Password: user.Password.String,
 	}, nil
 }
 
@@ -133,6 +131,9 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 		Password: pgtype.Text{String: newPassword, Valid: newPassword != ""},
 	})
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.UserResponse{}, exception.NewNotFoundError("User not found")
+		}
 		return model.UserResponse{}, err
 	}
 
@@ -146,6 +147,11 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 func (c *userService) DeleteUser(ctx context.Context, userId int32) (model.UserResponse, error) {
 	userDeleted, err := c.store.DeleteUser(ctx, userId)
 	if err != nil {
+
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.UserResponse{}, exception.NewNotFoundError("User not found")
+		}
+
 		return model.UserResponse{}, err
 	}
 

@@ -6,7 +6,8 @@ info:
 servers:
   - url: https://api.assyafiiyah.com
     description: Production Server
-  - url: http://localhost:8080
+  - url: https://syafiiyah-api.adiiskandar.my.id
+    description: Development Server
 paths:
   /auth/sign-in:
     post:
@@ -2364,7 +2365,7 @@ components:
           type: string
           example:
             "08:00:00"
-        end_time:
+        finish_time:
           type: string
           example:
             "15:00:00"
@@ -2450,6 +2451,8 @@ components:
           $ref: "#/components/schemas/GenderEnum"
         is_active:
           type: boolean
+        generation:
+          type: number
         photo:
           type: string
           format: binary
@@ -2553,7 +2556,7 @@ components:
           type: string
           example:
             "08:00:00"
-        end_time:
+        finish_time:
           type: string
           example:
             "15:00:00"

@@ -9,6 +9,7 @@ import (
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
+	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -36,15 +37,27 @@ func Init() {
 		v.RegisterValidation("userrole", model.IsValidUserRole)
 		v.RegisterValidation("userorder", model.IsValidUserOrder)
 		v.RegisterValidation("parentorder", model.IsValidParentOrder)
+		v.RegisterValidation("validTime", model.IsValidTime)
+	}
+	tokenMaker, err := token.NewJWTMaker(env.TokenSymmetricKey)
+	if err != nil {
+		logger.Fatalf("%s cannot create token maker", err.Error())
 	}
 
 	userUseCase := usecase.NewUserUseCase(store)
 	userHandler := handler.NewUserHandler(logger, userUseCase)
 	userRouting := routing.UserRouting(userHandler)
 
+	authHandler := handler.NewAuthHandler(userUseCase, &env, logger, tokenMaker)
+	authRouting := routing.AuthRouting(authHandler)
+
 	parentUseCase := usecase.NewParentUseCase(store)
 	parentHandler := handler.NewParentHandler(&env, logger, parentUseCase, userUseCase)
 	parentRouting := routing.ParentRouting(parentHandler)
+
+	santriScheduleUseCase := usecase.NewSantriScheduleUseCase(store)
+	santriScheduleHandler := handler.NewSantriScheduleHandler(logger, santriScheduleUseCase)
+	santriScheduleRouting := routing.SantriScheduleRouting(santriScheduleHandler)
 
 	santriOccupationUseCase := usecase.NewSantriOccupationUseCase(store)
 	santriOccupationHandler := handler.NewSantriOccupationHandler(logger, santriOccupationUseCase)
@@ -55,8 +68,10 @@ func Init() {
 	santriRouting := routing.SantriRouting(santriHandler)
 
 	var routerList []routers.Route
+	routerList = append(routerList, authRouting...)
 	routerList = append(routerList, userRouting...)
 	routerList = append(routerList, parentRouting...)
+	routerList = append(routerList, santriScheduleRouting...)
 	routerList = append(routerList, santriOccupationRouting...)
 	routerList = append(routerList, santriRouting...)
 

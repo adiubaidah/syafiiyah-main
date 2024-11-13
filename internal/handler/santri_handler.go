@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
@@ -202,6 +203,10 @@ func (h *santriHandler) UpdateSantriHandler(c *gin.Context) {
 	result, err := h.usecase.UpdateSantri(c, &santriRequest, santriId)
 	if err != nil {
 		h.logger.Error(err)
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -209,19 +214,24 @@ func (h *santriHandler) UpdateSantriHandler(c *gin.Context) {
 	c.JSON(201, model.ResponseData[model.SantriResponse]{Code: 201, Status: "Created", Data: result})
 }
 
-func (h *santriHandler) DeleteSantriHandler(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+func (h *santriHandler) DeleteSantriHandler(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.logger.Error(err)
-		ctx.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
+		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 	santriId := int32(id)
 
-	deletedSantri, err := h.usecase.DeleteSantri(ctx, santriId)
+	deletedSantri, err := h.usecase.DeleteSantri(c, santriId)
 	if err != nil {
 		h.logger.Error(err)
-		ctx.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
 
@@ -229,5 +239,5 @@ func (h *santriHandler) DeleteSantriHandler(ctx *gin.Context) {
 		util.DeleteFile(filepath.Join(config.PathPhoto, deletedSantri.Photo))
 	}
 
-	ctx.JSON(200, model.ResponseData[model.SantriResponse]{Code: 200, Status: "OK", Data: deletedSantri})
+	c.JSON(200, model.ResponseData[model.SantriResponse]{Code: 200, Status: "OK", Data: deletedSantri})
 }

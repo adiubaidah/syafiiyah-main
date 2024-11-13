@@ -16,8 +16,9 @@ services:
       - type: volume
         source: photo
         target: /app/internal/storage/photo
-        read_only: true
-    env_file: app.env
+        read_only: false
+    env_file: 
+      - app.env
     environment:
       - GIN_MODE=${GIN_MODE}
 

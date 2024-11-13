@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -110,6 +112,9 @@ func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateP
 
 	createdParent, err := c.store.UpdateParent(ctx, arg)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.ParentResponse{}, exception.NewNotFoundError("Parent not found")
+		}
 		return model.ParentResponse{}, err
 	}
 	return model.ParentResponse{
@@ -126,6 +131,9 @@ func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateP
 func (c *parentService) GetParent(ctx context.Context, parentId int32) (model.ParentResponse, error) {
 	parent, err := c.store.GetParent(ctx, parentId)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.ParentResponse{}, exception.NewNotFoundError("Parent not found")
+		}
 		return model.ParentResponse{}, err
 	}
 	return model.ParentResponse{
@@ -142,6 +150,9 @@ func (c *parentService) GetParent(ctx context.Context, parentId int32) (model.Pa
 func (c *parentService) DeleteParent(ctx context.Context, parentId int32) (model.ParentResponse, error) {
 	parent, err := c.store.DeleteParent(ctx, parentId)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.ParentResponse{}, exception.NewNotFoundError("Parent not found")
+		}
 		return model.ParentResponse{}, err
 	}
 	return model.ParentResponse{

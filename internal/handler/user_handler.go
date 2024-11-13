@@ -3,6 +3,7 @@ package handler
 import (
 	"strconv"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/gin-gonic/gin"
@@ -102,14 +103,24 @@ func (h *userHandler) GetUserHandler(c *gin.Context) {
 		return
 	}
 
-	result, err := h.usecase.GetUser(c, int32(userId))
+	result, err := h.usecase.GetUser(c, int32(userId), "")
 	if err != nil {
 		h.logger.Error(err)
+
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.UserResponse]{Code: 200, Status: "success", Data: result})
+	c.JSON(200, model.ResponseData[model.UserResponse]{Code: 200, Status: "success", Data: model.UserResponse{
+		ID:       result.ID,
+		Username: result.Username,
+		Role:     result.Role,
+	}})
 }
 
 func (h *userHandler) UpdateUserHandler(c *gin.Context) {
@@ -150,6 +161,11 @@ func (h *userHandler) DeleteUserHandler(c *gin.Context) {
 	deletedUser, err := h.usecase.DeleteUser(c, int32(userId))
 	if err != nil {
 		h.logger.Error(err)
+
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}

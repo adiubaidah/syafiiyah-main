@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -72,6 +74,9 @@ func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, re
 		Description: pgtype.Text{String: request.Description, Valid: true},
 	})
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.SantriOccupationResponse{}, exception.NewNotFoundError("Santri Occupation not found")
+		}
 		return model.SantriOccupationResponse{}, err
 	}
 
@@ -87,6 +92,9 @@ func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, re
 func (s *santriOccupationService) DeleteSantriOccupation(ctx context.Context, santriOccupationId int32) (model.SantriOccupationResponse, error) {
 	deletedSantriOccupation, err := s.store.DeleteSantriOccupation(ctx, santriOccupationId)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.SantriOccupationResponse{}, exception.NewNotFoundError("Santri Occupation not found")
+		}
 		return model.SantriOccupationResponse{}, err
 	}
 

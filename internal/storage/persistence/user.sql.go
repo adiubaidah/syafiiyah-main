@@ -28,10 +28,13 @@ WHERE
         OR "role" = $2
     )
     AND (
-        $3::boolean IS NULL
+        $3 :: boolean IS NULL
         OR (
             $3 = TRUE
-            AND (parent.id IS NOT NULL OR employee.id IS NOT NULL)
+            AND (
+                parent.id IS NOT NULL
+                OR employee.id IS NOT NULL
+            )
         )
         OR (
             $3 = FALSE
@@ -102,27 +105,41 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) (User, error) {
 	return i, err
 }
 
-const getUserByID = `-- name: GetUserByID :one
+const getUser = `-- name: GetUser :one
 SELECT
     "user"."id",
     "user"."role",
-    "user"."username"
+    "user"."username",
+    "user"."password"
 FROM
     "user"
 WHERE
-    "id" = $1
+    (
+        $1::integer IS NOT NULL
+        AND "id" = $1::integer
+    )
+    OR (
+        $2::text IS NOT NULL
+        AND "username" = $2::text
+    )
+LIMIT
+    1
 `
 
-type GetUserByIDRow struct {
-	ID       int32        `db:"id"`
-	Role     NullUserRole `db:"role"`
-	Username pgtype.Text  `db:"username"`
+type GetUserParams struct {
+	ID       pgtype.Int4 `db:"id"`
+	Username pgtype.Text `db:"username"`
 }
 
-func (q *Queries) GetUserByID(ctx context.Context, id int32) (GetUserByIDRow, error) {
-	row := q.db.QueryRow(ctx, getUserByID, id)
-	var i GetUserByIDRow
-	err := row.Scan(&i.ID, &i.Role, &i.Username)
+func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, getUser, arg.ID, arg.Username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Role,
+		&i.Username,
+		&i.Password,
+	)
 	return i, err
 }
 
@@ -132,7 +149,7 @@ UPDATE
 SET
     "role" = $1,
     "username" = $2,
-    "password" =  COALESCE($3, "password")
+    "password" = COALESCE($3, "password")
 WHERE
     "id" = $4 RETURNING id, role, username, password
 `
