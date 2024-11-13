@@ -25,10 +25,13 @@ WHERE
         OR "role" = sqlc.narg(role)
     )
     AND (
-        sqlc.narg(has_owner)::boolean IS NULL
+        sqlc.narg(has_owner) :: boolean IS NULL
         OR (
             sqlc.narg(has_owner) = TRUE
-            AND (parent.id IS NOT NULL OR employee.id IS NOT NULL)
+            AND (
+                parent.id IS NOT NULL
+                OR employee.id IS NOT NULL
+            )
         )
         OR (
             sqlc.narg(has_owner) = FALSE
@@ -37,15 +40,25 @@ WHERE
         )
     );
 
--- name: GetUserByID :one
+-- name: GetUser :one
 SELECT
     "user"."id",
     "user"."role",
-    "user"."username"
+    "user"."username",
+    "user"."password"
 FROM
     "user"
 WHERE
-    "id" = @id;
+    (
+        sqlc.narg(id)::integer IS NOT NULL
+        AND "id" = sqlc.narg(id)::integer
+    )
+    OR (
+        sqlc.narg(username)::text IS NOT NULL
+        AND "username" = sqlc.narg(username)::text
+    )
+LIMIT
+    1;
 
 -- name: UpdateUser :one
 UPDATE
@@ -53,7 +66,7 @@ UPDATE
 SET
     "role" = @role,
     "username" = @username,
-    "password" =  COALESCE(sqlc.narg(password), "password")
+    "password" = COALESCE(sqlc.narg(password), "password")
 WHERE
     "id" = @id RETURNING *;
 

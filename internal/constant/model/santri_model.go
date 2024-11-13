@@ -8,7 +8,7 @@ import (
 type CreateSantriRequest struct {
 	Nis          string    `form:"nis" binding:"required"`
 	Name         string    `form:"name" binding:"required"`
-	Gender       db.Gender `form:"gender" binding:"required"`
+	Gender       db.Gender `form:"gender" binding:"required,oneof=male female"`
 	IsActive     string    `form:"is_active" binding:"required,oneof=true false"`
 	Generation   int32     `form:"generation" binding:"required"`
 	Photo        string    `form:"-"`
@@ -50,9 +50,7 @@ type ListSantriRequest struct {
 	OccupationID int32  `form:"occupation_id"`
 }
 
-type UpdateSantriRequest struct {
-	CreateSantriRequest
-}
+type UpdateSantriRequest = CreateSantriRequest
 
 type SantriResponse struct {
 	ID           int32     `json:"id"`

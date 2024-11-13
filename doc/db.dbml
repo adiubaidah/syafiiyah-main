@@ -45,7 +45,11 @@ Table santri_schedule {
   start_presence time [not null]
   start_time time [not null, note: "Waktu mulai kegiatan"]
   finish_time time [not null, note: "Waktu berakhirnya kegiatan"]
+  Indexes {
+    (start_presence, start_time, finish_time) [unique]
+  }
 }
+
 
 enum gender {
   male

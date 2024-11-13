@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-11-06T07:26:30.539Z
+-- Generated at: 2024-11-12T10:10:38.584Z
 
 CREATE TYPE "user_role" AS ENUM (
   'superadmin',
@@ -91,7 +91,7 @@ CREATE TABLE "parent" (
   "name" varchar(255) NOT NULL,
   "address" varchar(255) NOT NULL,
   "gender" gender NOT NULL,
-  "whatsapp_number" varchar(13) UNIQUE,
+  "whatsapp_number" varchar(14) UNIQUE,
   "photo" varchar(100),
   "user_id" int UNIQUE
 );
@@ -183,6 +183,8 @@ CREATE TABLE "arduino_mode" (
 );
 
 CREATE INDEX ON "user" ("username");
+
+CREATE UNIQUE INDEX ON "santri_schedule" ("start_presence", "start_time", "finish_time");
 
 CREATE INDEX ON "employee" ("name");
 

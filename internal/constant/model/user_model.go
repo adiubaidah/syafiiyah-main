@@ -17,6 +17,13 @@ type UserResponse struct {
 	Role     string `json:"role"`
 }
 
+type UserWithPassword struct {
+	ID       int32
+	Username string
+	Role     string
+	Password string
+}
+
 type ListUserRequest struct {
 	Q        string `form:"q"`
 	Order    string `form:"order" binding:"omitempty,userorder"`

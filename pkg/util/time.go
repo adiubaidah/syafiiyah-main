@@ -6,7 +6,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-var loc *time.Location
+func ParseTime(timeString string) (time.Time, error) {
+	return time.Parse("15:04:05", timeString)
+}
 
 func ConvertToPgxTime(parsedTime time.Time) pgtype.Time {
 
@@ -15,4 +17,11 @@ func ConvertToPgxTime(parsedTime time.Time) pgtype.Time {
 		Microseconds: microseconds,
 		Valid:        true,
 	}
+}
+
+func ConvertToTime(pgxTime pgtype.Time) string {
+	seconds := pgxTime.Microseconds / 1e6
+	nanoseconds := (pgxTime.Microseconds % 1e6) * 1e3
+	t := time.Unix(seconds, nanoseconds)
+	return t.Format("15:04:05")
 }

@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -112,7 +114,7 @@ func (c *santriService) CountSantri(ctx context.Context, request *model.ListSant
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		Generation:   pgtype.Int4{Int32: request.Generation, Valid: request.Generation != 0},
-		IsActive:     pgtype.Bool{Bool: request.IsActive == 1, Valid: request.IsActive != -1},
+		IsActive:     pgtype.Bool{Bool: request.IsActive == 1, Valid: request.IsActive != 0},
 	}
 
 	count, err := c.store.CountSantri(ctx, arg)
@@ -165,6 +167,9 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 		Gender:       request.Gender,
 	})
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.SantriResponse{}, exception.NewNotFoundError("Santri not found")
+		}
 		return model.SantriResponse{}, err
 	}
 
@@ -184,6 +189,9 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 func (c *santriService) DeleteSantri(ctx context.Context, santriId int32) (model.SantriResponse, error) {
 	santri, err := c.store.DeleteSantri(ctx, santriId)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.SantriResponse{}, exception.NewNotFoundError("Santri not found")
+		}
 		return model.SantriResponse{}, err
 	}
 	return model.SantriResponse{

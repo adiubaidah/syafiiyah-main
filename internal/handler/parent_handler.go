@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
@@ -69,7 +70,7 @@ func (h *parentHandler) CreateParentHandler(c *gin.Context) {
 	}
 
 	if parentRequest.UserID != 0 {
-		_, err := h.userUseCase.GetUser(c, parentRequest.UserID)
+		_, err := h.userUseCase.GetUser(c, parentRequest.UserID, "")
 		if err != nil {
 			h.logger.Error(err)
 			c.JSON(404, model.ResponseMessage{Code: 404, Status: "error", Message: err.Error()})
@@ -167,7 +168,7 @@ func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
 	}
 
 	if parentRequest.UserID != 0 {
-		user, err := h.userUseCase.GetUser(c, parentRequest.UserID)
+		user, err := h.userUseCase.GetUser(c, parentRequest.UserID, "")
 		if err != nil {
 			h.logger.Error(err)
 			c.JSON(404, model.ResponseMessage{Code: 404, Status: "error", Message: err.Error()})
@@ -209,6 +210,11 @@ func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
 	result, err := h.usecase.UpdateParent(c, &parentRequest, int32(parentId))
 	if err != nil {
 		h.logger.Error(err)
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -229,7 +235,12 @@ func (h *parentHandler) GetParentHandler(c *gin.Context) {
 	result, err := h.usecase.GetParent(c, int32(parentId))
 	if err != nil {
 		h.logger.Error(err)
-		c.JSON(404, model.ResponseMessage{Code: 404, Status: "error", Message: err.Error()})
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+
+		c.JSON(500, model.ResponseMessage{Code: 404, Status: "error", Message: err.Error()})
 		return
 	}
 
@@ -252,6 +263,11 @@ func (h *parentHandler) DeleteParentHandler(c *gin.Context) {
 	deletedParent, err := h.usecase.DeleteParent(c, int32(parentId))
 	if err != nil {
 		h.logger.Error(err)
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}

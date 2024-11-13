@@ -38,9 +38,9 @@ func createRandomSantriSchedule(t *testing.T) SantriSchedule {
 
 	require.Equal(t, arg.Name, santriSchedule.Name)
 	require.Equal(t, arg.Description.String, santriSchedule.Description.String)
-	require.Equal(t, arg.StartPresence, santriSchedule.StartPresence)
-	require.Equal(t, arg.StartTime, santriSchedule.StartTime)
-	require.Equal(t, arg.FinishTime, santriSchedule.FinishTime)
+	require.Equal(t, arg.StartPresence.Microseconds, santriSchedule.StartPresence.Microseconds)
+	require.Equal(t, arg.StartTime.Microseconds, santriSchedule.StartTime.Microseconds)
+	require.Equal(t, arg.FinishTime.Microseconds, santriSchedule.FinishTime.Microseconds)
 	return santriSchedule
 }
 

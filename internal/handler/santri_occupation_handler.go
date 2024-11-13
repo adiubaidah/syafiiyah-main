@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 )
@@ -81,6 +82,11 @@ func (h *santriOccupationHandler) UpdateSantriOccupationHandler(c *gin.Context) 
 	result, err := h.usecase.UpdateSantriOccupation(context.Background(), &santriOccupationRequest, id)
 	if err != nil {
 		h.logger.Error(err)
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -92,7 +98,11 @@ func (h *santriOccupationHandler) DeleteSantriOccupationHandler(c *gin.Context) 
 	santriOccupationId, err := strconv.Atoi(idParam)
 	if err != nil {
 		h.logger.Error(err)
-		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+		c.JSON(500, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 
@@ -100,6 +110,11 @@ func (h *santriOccupationHandler) DeleteSantriOccupationHandler(c *gin.Context) 
 	result, err := h.usecase.DeleteSantriOccupation(context.Background(), id)
 	if err != nil {
 		h.logger.Error(err)
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
+
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
