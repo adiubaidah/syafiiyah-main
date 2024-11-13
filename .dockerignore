@@ -2,7 +2,6 @@ main.exe
 ignore__*
 dbml-error.log
 app-example.env
-api-spec.yaml
 Makefile
 sqlc.yaml
 README.md

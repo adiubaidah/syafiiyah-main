@@ -64,8 +64,8 @@ LIMIT
 UPDATE
     "user"
 SET
-    "role" = @role,
-    "username" = @username,
+    "role" = COALESCE(sqlc.narg(role)::user_role, "role"),
+    "username" = COALESCE(sqlc.narg(username), "username"),
     "password" = COALESCE(sqlc.narg(password), "password")
 WHERE
     "id" = @id RETURNING *;

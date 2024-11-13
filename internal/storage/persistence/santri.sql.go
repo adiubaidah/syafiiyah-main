@@ -20,21 +20,21 @@ FROM
     LEFT JOIN santri_occupation ON "santri".occupation_id = santri_occupation.id
 WHERE
     (
-        $1::text IS NULL
-        OR "santri".name ILIKE '%' || $1::text || '%'
-        OR "santri".nis ILIKE '%' || $1::text || '%'
+        $1 :: text IS NULL
+        OR "santri".name ILIKE '%' || $1 :: text || '%'
+        OR "santri".nis ILIKE '%' || $1 :: text || '%'
     )
     AND (
-        $2::integer IS NULL
+        $2 :: integer IS NULL
         OR "santri".occupation_id = $2
     )
     AND (
-        $3::integer IS NULL
+        $3 :: integer IS NULL
         OR "santri".generation = $3
     )
     AND (
-        $4::boolean IS NULL
-        OR "santri".is_active = $4::boolean
+        $4 :: boolean IS NULL
+        OR "santri".is_active = $4 :: boolean
     )
 `
 
@@ -203,23 +203,23 @@ UPDATE
     "santri"
 SET
     "nis" = $1,
-    "name" = $2,
-"generation" = $3,
-    "is_active" = $4 :: boolean,
-    "gender" = $5::gender,
+    "name" = COALESCE($2, name),
+    "generation" = COALESCE($3, generation),
+    "is_active" = COALESCE($4 :: boolean, is_active),
+    "gender" = COALESCE($5 :: gender, gender),
     "photo" = COALESCE($6, photo),
-    "occupation_id" = $7,
-    "parent_id" = $8 :: integer
+    "occupation_id"= $7,
+    "parent_id" = $8
 WHERE
     "id" = $9 RETURNING id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
 `
 
 type UpdateSantriParams struct {
 	Nis          pgtype.Text `db:"nis"`
-	Name         string      `db:"name"`
-	Generation   int32       `db:"generation"`
-	IsActive     bool        `db:"is_active"`
-	Gender       Gender      `db:"gender"`
+	Name         pgtype.Text `db:"name"`
+	Generation   pgtype.Int4 `db:"generation"`
+	IsActive     pgtype.Bool `db:"is_active"`
+	Gender       NullGender  `db:"gender"`
 	Photo        pgtype.Text `db:"photo"`
 	OccupationID pgtype.Int4 `db:"occupation_id"`
 	ParentID     pgtype.Int4 `db:"parent_id"`

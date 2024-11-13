@@ -70,7 +70,7 @@ func (s *santriOccupationService) ListSantriOccupations(ctx context.Context) ([]
 func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, request *model.UpdateSantriOccupationRequest, santriOccupationId int32) (model.SantriOccupationResponse, error) {
 	updatedSantriOccupation, err := s.store.UpdateSantriOccupation(ctx, db.UpdateSantriOccupationParams{
 		ID:          santriOccupationId,
-		Name:        request.Name,
+		Name:        pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Description: pgtype.Text{String: request.Description, Valid: true},
 	})
 	if err != nil {

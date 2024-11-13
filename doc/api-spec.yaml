@@ -98,7 +98,7 @@ paths:
                             type: string
                           role:
                             $ref: "#/components/schemas/RoleEnum"
-  /reset-password:
+  /profile/reset-password:
     put:
       tags:
         - Profile
@@ -575,18 +575,6 @@ paths:
           schema:
             type: string
         - in: query
-          name: page
-          schema:
-            type: integer
-          required: false
-          description: Page number
-        - in: query
-          name: limit
-          schema:
-            type: integer
-          required: false
-          description: Limit per page
-        - in: query
           name: from
           schema:
             type: string
@@ -617,8 +605,6 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/Holiday"
-                          pagination:
-                            $ref: "#/components/schemas/Pagination"
 
     post:
       tags:
@@ -2618,6 +2604,31 @@ components:
             id:
               $ref: "#/components/schemas/Id"
         - $ref: "#/components/schemas/NewRFID"
+    NewArduino:
+      type: object
+      properties:
+        name:
+          type: string
+          uniqueItems: true
+        is_active:
+          type: boolean
+        properties:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - entry
+                  - presence
+                  - excuse
+                  - ping
+          example:
+            - type: "entry"
+            - type: "presence"
+            - type: "excuse"
+            - type: "ping"
     Pagination:
       type: object
       properties:

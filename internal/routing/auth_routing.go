@@ -16,5 +16,11 @@ func AuthRouting(handler handler.AuthHandler) []routers.Route {
 			Handle:      handler.LoginHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodPost,
+			Path:        "/auth/is-auth",
+			Handle:      handler.IsAuthHandler,
+			MiddleWares: []gin.HandlerFunc{},
+		},
 	}
 }

@@ -5,7 +5,7 @@ INSERT INTO "arduino" ("name") VALUES (@name) RETURNING *;
 SELECT * FROM "arduino" WHERE "name" ILIKE '%' || @name || '%' LIMIT @limit_number OFFSET @offset_number;
 
 -- name: UpdateArduino :one
-UPDATE "arduino" SET "name" = @name WHERE "id" = @id RETURNING *;
+UPDATE "arduino" SET "name" = COALESCE(sqlc.narg(name)) WHERE "id" = @id RETURNING *;
 
 -- name: DeleteArduino :one
 DELETE FROM "arduino" WHERE "id" = @id RETURNING *;

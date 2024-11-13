@@ -13,7 +13,7 @@ import (
 
 type AuthHandler interface {
 	LoginHandler(c *gin.Context)
-	// IsAuthHandler(c *gin.Context)
+	IsAuthHandler(c *gin.Context)
 }
 
 type authHandler struct {
@@ -69,5 +69,22 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 	c.Status(200)
 	c.Header("Content-Type", "application/json")
 	c.SetCookie("access_token", accessToken, int(h.config.AccessTokenDuration.Seconds()), "/", h.config.ServerPublicUrl, false, true)
+	c.JSON(200, model.ResponseData[token.Payload]{Code: 200, Status: "success", Data: *payload})
+}
+
+func (h *authHandler) IsAuthHandler(c *gin.Context) {
+	accessToken, err := c.Cookie("access_token")
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(401, model.ResponseMessage{Code: 401, Status: "error", Message: "Unauthorized"})
+		return
+	}
+
+	payload, err := h.tokenMaker.VerifyToken(accessToken)
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(401, model.ResponseMessage{Code: 401, Status: "error", Message: "Unauthorized"})
+		return
+	}
 	c.JSON(200, model.ResponseData[token.Payload]{Code: 200, Status: "success", Data: *payload})
 }

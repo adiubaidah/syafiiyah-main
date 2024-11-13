@@ -54,8 +54,8 @@ LIMIT
 UPDATE
     rfid
 SET
-    "uid" = @uid,
-    "is_active" = @is_active,
+    "uid" = COALESCE(sqlc.narg(uid), uid),
+    "is_active" = COALESCE(sqlc.narg(is_active), is_active),
     "santri_id" = sqlc.narg(santri_id),
     "employee_id" = sqlc.narg(employee_id)
 WHERE

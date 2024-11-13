@@ -89,7 +89,9 @@ func (c *userService) GetUser(ctx context.Context, userId int32, username string
 		ID:       pgtype.Int4{Int32: userId, Valid: userId != 0},
 	})
 	if err != nil {
-		return model.UserWithPassword{}, err
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.UserWithPassword{}, exception.NewNotFoundError("User not found")
+		}
 	}
 
 	return model.UserWithPassword{

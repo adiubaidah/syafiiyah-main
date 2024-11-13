@@ -12,7 +12,10 @@ import (
 )
 
 const createSantriOccupation = `-- name: CreateSantriOccupation :one
-INSERT INTO "santri_occupation" ("name", "description") VALUES ($1, $2) RETURNING id, name, description
+INSERT INTO
+    "santri_occupation" ("name", "description")
+VALUES
+    ($1, $2) RETURNING id, name, description
 `
 
 type CreateSantriOccupationParams struct {
@@ -28,7 +31,10 @@ func (q *Queries) CreateSantriOccupation(ctx context.Context, arg CreateSantriOc
 }
 
 const deleteSantriOccupation = `-- name: DeleteSantriOccupation :one
-DELETE FROM "santri_occupation" WHERE "id" = $1 RETURNING id, name, description
+DELETE FROM
+    "santri_occupation"
+WHERE
+    "id" = $1 RETURNING id, name, description
 `
 
 func (q *Queries) DeleteSantriOccupation(ctx context.Context, id int32) (SantriOccupation, error) {
@@ -39,13 +45,12 @@ func (q *Queries) DeleteSantriOccupation(ctx context.Context, id int32) (SantriO
 }
 
 const listSantriOccupations = `-- name: ListSantriOccupations :many
-SELECT 
+SELECT
     santri_occupation.id, santri_occupation.name, santri_occupation.description,
     COUNT("santri"."id") AS "count"
 FROM
     "santri_occupation"
-LEFT JOIN
-    "santri" ON "santri"."occupation_id" = "santri_occupation"."id"
+    LEFT JOIN "santri" ON "santri"."occupation_id" = "santri_occupation"."id"
 GROUP BY
     "santri_occupation"."id"
 ORDER BY
@@ -85,11 +90,17 @@ func (q *Queries) ListSantriOccupations(ctx context.Context) ([]ListSantriOccupa
 }
 
 const updateSantriOccupation = `-- name: UpdateSantriOccupation :one
-UPDATE "santri_occupation" SET "name" = $1, "description" = $2 WHERE "id" = $3 RETURNING id, name, description
+UPDATE
+    "santri_occupation"
+SET
+    "name" = COALESCE($1, name),
+    "description" = $2
+WHERE
+    "id" = $3 RETURNING id, name, description
 `
 
 type UpdateSantriOccupationParams struct {
-	Name        string      `db:"name"`
+	Name        pgtype.Text `db:"name"`
 	Description pgtype.Text `db:"description"`
 	ID          int32       `db:"id"`
 }

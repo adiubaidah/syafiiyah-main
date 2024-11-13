@@ -52,7 +52,7 @@ func TestUpdateSantriOccupation(t *testing.T) {
 
 	arg := UpdateSantriOccupationParams{
 		ID:          santriOccupation.ID,
-		Name:        random.RandomString(8),
+		Name:        pgtype.Text{String: random.RandomString(8), Valid: true},
 		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
 	}
 
@@ -60,7 +60,7 @@ func TestUpdateSantriOccupation(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, santriOccupation)
 
-	require.Equal(t, arg.Name, santriOccupation.Name)
+	require.Equal(t, arg.Name.String, santriOccupation.Name)
 	require.Equal(t, arg.Description.String, santriOccupation.Description.String)
 }
 

@@ -64,12 +64,12 @@ func (q *Queries) ListArduinos(ctx context.Context, arg ListArduinosParams) ([]A
 }
 
 const updateArduino = `-- name: UpdateArduino :one
-UPDATE "arduino" SET "name" = $1 WHERE "id" = $2 RETURNING id, name
+UPDATE "arduino" SET "name" = COALESCE($1) WHERE "id" = $2 RETURNING id, name
 `
 
 type UpdateArduinoParams struct {
-	Name string `db:"name"`
-	ID   int32  `db:"id"`
+	Name pgtype.Text `db:"name"`
+	ID   int32       `db:"id"`
 }
 
 func (q *Queries) UpdateArduino(ctx context.Context, arg UpdateArduinoParams) (Arduino, error) {

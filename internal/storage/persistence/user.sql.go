@@ -147,8 +147,8 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE
     "user"
 SET
-    "role" = $1,
-    "username" = $2,
+    "role" = COALESCE($1::user_role, "role"),
+    "username" = COALESCE($2, "username"),
     "password" = COALESCE($3, "password")
 WHERE
     "id" = $4 RETURNING id, role, username, password

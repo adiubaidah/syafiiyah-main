@@ -102,15 +102,15 @@ func (c *parentService) CountParents(ctx context.Context, request *model.ListPar
 func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (model.ParentResponse, error) {
 	arg := db.UpdateParentParams{
 		ID:             parentId,
-		Name:           request.Name,
-		Address:        request.Address,
+		Name:           pgtype.Text{String: request.Name, Valid: request.Name != ""},
+		Address:        pgtype.Text{String: request.Address, Valid: request.Address != ""},
 		WhatsappNumber: pgtype.Text{String: request.WhatsappNumber, Valid: request.WhatsappNumber != ""},
-		Gender:         db.Gender(request.Gender),
+		Gender:         db.NullGender{Gender: request.Gender, Valid: true},
 		Photo:          pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		UserID:         pgtype.Int4{Int32: request.UserID, Valid: request.UserID != 0},
 	}
 
-	createdParent, err := c.store.UpdateParent(ctx, arg)
+	updatedParent, err := c.store.UpdateParent(ctx, arg)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
 			return model.ParentResponse{}, exception.NewNotFoundError("Parent not found")
@@ -118,13 +118,13 @@ func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateP
 		return model.ParentResponse{}, err
 	}
 	return model.ParentResponse{
-		ID:             createdParent.ID,
-		Name:           createdParent.Name,
-		Address:        createdParent.Address,
-		WhatsappNumber: createdParent.WhatsappNumber.String,
-		Gender:         string(createdParent.Gender),
-		Photo:          createdParent.Photo.String,
-		UserID:         createdParent.UserID.Int32,
+		ID:             updatedParent.ID,
+		Name:           updatedParent.Name,
+		Address:        updatedParent.Address,
+		WhatsappNumber: updatedParent.WhatsappNumber.String,
+		Gender:         string(updatedParent.Gender),
+		Photo:          updatedParent.Photo.String,
+		UserID:         updatedParent.UserID.Int32,
 	}, nil
 }
 

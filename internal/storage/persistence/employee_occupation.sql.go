@@ -93,14 +93,14 @@ const updateEmployeeOccupation = `-- name: UpdateEmployeeOccupation :one
 UPDATE
     "employee_occupation"
 SET
-    "name" = $1,
+    "name" = COALESCE($1, name),
     "description" = $2
 WHERE
     "id" = $3 RETURNING id, name, description
 `
 
 type UpdateEmployeeOccupationParams struct {
-	Name        string      `db:"name"`
+	Name        pgtype.Text `db:"name"`
 	Description pgtype.Text `db:"description"`
 	ID          int32       `db:"id"`
 }

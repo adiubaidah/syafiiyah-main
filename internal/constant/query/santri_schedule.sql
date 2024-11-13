@@ -53,7 +53,7 @@ WHERE
 UPDATE
     "santri_schedule"
 SET
-    "name" = @name,
+    "name" = COALESCE(sqlc.narg(name), name),
     "description" = sqlc.narg(description),
     "start_presence" = COALESCE(sqlc.narg(start_presence) :: time, start_presence),
     "start_time" = COALESCE(sqlc.narg(start_time) :: time, start_time),

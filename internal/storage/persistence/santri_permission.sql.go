@@ -205,19 +205,19 @@ const updateSantriPermission = `-- name: UpdateSantriPermission :one
 UPDATE
     "santri_permission"
 SET
-    "santri_id" = $1,
-    "start_permission" = $2,
+    "santri_id" = COALESCE($1, santri_id),
+    "start_permission" = COALESCE($2, start_permission),
     "end_permission" = $3,
-    "excuse" = $4
+    "excuse" = COALESCE($4, excuse)
 WHERE
     "id" = $5 RETURNING id, santri_id, type, start_permission, end_permission, excuse
 `
 
 type UpdateSantriPermissionParams struct {
-	SantriID        int32              `db:"santri_id"`
+	SantriID        pgtype.Int4        `db:"santri_id"`
 	StartPermission pgtype.Timestamptz `db:"start_permission"`
 	EndPermission   pgtype.Timestamptz `db:"end_permission"`
-	Excuse          string             `db:"excuse"`
+	Excuse          pgtype.Text        `db:"excuse"`
 	ID              int32              `db:"id"`
 }
 

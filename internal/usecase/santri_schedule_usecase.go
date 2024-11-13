@@ -109,7 +109,7 @@ func (c *santriScheduleService) UpdateSantriSchedule(ctx context.Context, reques
 
 	updatedSantriSchedule, err := c.store.UpdateSantriSchedule(ctx, db.UpdateSantriScheduleParams{
 		ID:            santriScheduleId,
-		Name:          request.Name,
+		Name:          pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Description:   pgtype.Text{String: request.Description, Valid: request.Description != ""},
 		StartPresence: util.ConvertToPgxTime(startPresence),
 		StartTime:     util.ConvertToPgxTime(startTime),

@@ -172,7 +172,7 @@ const updateSantriSchedule = `-- name: UpdateSantriSchedule :one
 UPDATE
     "santri_schedule"
 SET
-    "name" = $1,
+    "name" = COALESCE($1, name),
     "description" = $2,
     "start_presence" = COALESCE($3 :: time, start_presence),
     "start_time" = COALESCE($4 :: time, start_time),
@@ -182,7 +182,7 @@ WHERE
 `
 
 type UpdateSantriScheduleParams struct {
-	Name          string      `db:"name"`
+	Name          pgtype.Text `db:"name"`
 	Description   pgtype.Text `db:"description"`
 	StartPresence pgtype.Time `db:"start_presence"`
 	StartTime     pgtype.Time `db:"start_time"`

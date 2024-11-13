@@ -136,8 +136,8 @@ func TestUpdateRfid(t *testing.T) {
 
 	arg := UpdateRfidParams{
 		ID:         rfid.ID,
-		Uid:        random.RandomString(12),
-		IsActive:   random.RandomBool(),
+		Uid:        pgtype.Text{String: random.RandomString(12), Valid: true},
+		IsActive:   pgtype.Bool{Bool: random.RandomBool(), Valid: true},
 		SantriID:   pgtype.Int4{Int32: 0, Valid: false},
 		EmployeeID: pgtype.Int4{Int32: 0, Valid: false},
 	}
@@ -146,10 +146,10 @@ func TestUpdateRfid(t *testing.T) {
 	require.NotEmpty(t, updatedRfid)
 
 	require.Equal(t, arg.ID, updatedRfid.ID)
-	require.Equal(t, arg.Uid, updatedRfid.Uid)
-	require.Equal(t, arg.IsActive, updatedRfid.IsActive)
-	require.Equal(t, arg.SantriID, updatedRfid.SantriID)
-	require.Equal(t, arg.EmployeeID, updatedRfid.EmployeeID)
+	require.Equal(t, arg.Uid.String, updatedRfid.Uid)
+	require.Equal(t, arg.IsActive.Bool, updatedRfid.IsActive)
+	require.Equal(t, arg.SantriID.Int32, updatedRfid.SantriID.Int32)
+	require.Equal(t, arg.EmployeeID.Int32, updatedRfid.EmployeeID.Int32)
 }
 
 func TestDeleteRfid(t *testing.T) {
