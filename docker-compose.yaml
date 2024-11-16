@@ -21,7 +21,6 @@ services:
     env_file: "app.env"
     environment:
         - GIN_MODE=${GIN_MODE}
-        - PORT=${PORT}
 
 networks:
   bridge:

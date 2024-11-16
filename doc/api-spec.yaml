@@ -2244,6 +2244,86 @@ paths:
                   code: 404
                   status: error
                   message: "RFID not found"
+  /arduino:
+    description: Endpoint for Arduino
+    get:
+      tags:
+        - Arduino
+      security:
+        - cookieAuth : []
+      summary: Get All Arduino
+      description: Only superadmin can access this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Arduino"
+
+    post:
+      tags:
+        - Arduino
+      security:
+        - cookieAuth: []
+      summary: Create Arduino
+      description: Only superadmin can manage this endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/NewArduino"
+                - properties:
+                    modes:
+                      type: array
+                      items: 
+                        $ref: "#/components/schemas/ArduinoModeEnum"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Arduino"
+  /arduino/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Arduino
+      summary: Delete Arduino By ID
+      security:
+        - cookieAuth: []
+      description: Only superadmin can manage this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Arduino"
+
 components:
   securitySchemes:
     cookieAuth:
@@ -2604,6 +2684,13 @@ components:
             id:
               $ref: "#/components/schemas/Id"
         - $ref: "#/components/schemas/NewRFID"
+    ArduinoModeEnum:
+      type: string
+      enum:
+        - excuse
+        - presence
+        - ping
+        - create
     NewArduino:
       type: object
       properties:
@@ -2612,23 +2699,29 @@ components:
           uniqueItems: true
         is_active:
           type: boolean
-        properties:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-                enum:
-                  - entry
-                  - presence
-                  - excuse
-                  - ping
-          example:
-            - type: "entry"
-            - type: "presence"
-            - type: "excuse"
-            - type: "ping"
+    Arduino:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewArduino"
+        - properties:
+            modes:
+              type: array
+              items:
+                type: object
+                properties:
+                  mode:
+                    $ref: "#/components/schemas/ArduinoModeEnum"
+                  input_topic:
+                    type: string
+                  acknowledgment_topic:
+                    type: string
+                example:
+                  mode: "excuse"
+                  input_topic: "arduino1/input/excuse"
+                  acknowledgment_topic: "arduino1/acknowledgment/excuse"
+
     Pagination:
       type: object
       properties:

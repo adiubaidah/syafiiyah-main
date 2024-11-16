@@ -3,5 +3,5 @@ ignore__*
 dbml-error.log
 app-example.env
 Makefile
-sqlc.yaml
 README.md
+app.env

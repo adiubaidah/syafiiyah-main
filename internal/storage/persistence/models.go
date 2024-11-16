@@ -14,7 +14,7 @@ import (
 type ArduinoModeType string
 
 const (
-	ArduinoModeTypeEntry    ArduinoModeType = "entry"
+	ArduinoModeTypeRecord   ArduinoModeType = "record"
 	ArduinoModeTypePresence ArduinoModeType = "presence"
 	ArduinoModeTypeExcuse   ArduinoModeType = "excuse"
 )
@@ -409,11 +409,13 @@ type Arduino struct {
 }
 
 type ArduinoMode struct {
-	ID             int32           `db:"id"`
-	Mode           ArduinoModeType `db:"mode"`
-	TopicPublish   string          `db:"topic_publish"`
-	TopicSubscribe string          `db:"topic_subscribe"`
-	ArduinoID      int32           `db:"arduino_id"`
+	ID   int32           `db:"id"`
+	Mode ArduinoModeType `db:"mode"`
+	// topic for input
+	InputTopic string `db:"input_topic"`
+	// topic for acknowledgment
+	AcknowledgmentTopic string `db:"acknowledgment_topic"`
+	ArduinoID           int32  `db:"arduino_id"`
 }
 
 type Employee struct {

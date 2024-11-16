@@ -16,25 +16,19 @@ VALUES
         @finish_time :: time
     ) RETURNING *;
 
--- name: ExistBetweenSantriSchedule :one
-SELECT
-    EXISTS (
-        SELECT
-            1
-        FROM
-            "santri_schedule"
-        WHERE
-            "start_time" <= @start_time :: time
-            AND "finish_time" >= @finish_time :: time
-    ) AS "exist";
 
 -- name: ListSantriSchedules :many
 SELECT
     *
 FROM
     "santri_schedule"
+WHERE
+(   
+    sqlc.narg(time)::time IS NULL OR 
+    sqlc.narg(time)::time BETWEEN start_presence AND finish_time
+)   
 ORDER BY
-    "start_time" ASC;
+    "start_time";
 
 -- name: GetLastSantriSchedule :one
 SELECT
@@ -55,7 +49,10 @@ UPDATE
 SET
     "name" = COALESCE(sqlc.narg(name), name),
     "description" = sqlc.narg(description),
-    "start_presence" = COALESCE(sqlc.narg(start_presence) :: time, start_presence),
+    "start_presence" = COALESCE(
+        sqlc.narg(start_presence) :: time,
+        start_presence
+    ),
     "start_time" = COALESCE(sqlc.narg(start_time) :: time, start_time),
     "finish_time" = COALESCE(sqlc.narg(finish_time) :: time, finish_time)
 WHERE

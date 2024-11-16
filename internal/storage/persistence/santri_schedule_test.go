@@ -54,7 +54,9 @@ func TestListSantriSchedule(t *testing.T) {
 		createRandomSantriSchedule(t)
 	}
 
-	santriSchedules, err := testStore.ListSantriSchedules(context.Background())
+	santriSchedules, err := testStore.ListSantriSchedules(context.Background(), pgtype.Time{
+		Valid: false,
+	})
 
 	t.Run("list santri schedule should not error", func(t *testing.T) {
 		require.NoError(t, err)

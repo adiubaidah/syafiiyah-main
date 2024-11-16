@@ -195,7 +195,7 @@ Table arduino {
 }
 
 enum arduino_mode_type {
-  "entry"
+  "record"
   "presence"
   "excuse"
 }
@@ -203,8 +203,8 @@ enum arduino_mode_type {
 Table arduino_mode {
   id int [primary key, increment]
   mode arduino_mode_type [not null]
-  topic_publish varchar(100) [not null]
-  topic_subscribe varchar(100) [not null]
+  input_topic varchar(100) [not null, note: "topic for input"]
+  acknowledgment_topic varchar(100) [not null, note: "topic for acknowledgment"]
   arduino_id int [not null]
 }
 

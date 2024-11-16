@@ -10,6 +10,7 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
+	"github.com/adiubaidah/rfid-syafiiyah/platform/mqtt"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -67,6 +68,13 @@ func Init() {
 	santriHandler := handler.NewSantriHandler(&env, logger, santriUseCase)
 	santriRouting := routing.SantriRouting(santriHandler)
 
+	arduinoUseCase := usecase.NewArduinoUseCase(store)
+	arduinoHandler := handler.NewArduinoHandler(arduinoUseCase)
+	arduinoRouting := routing.ArduinoRouting(arduinoHandler)
+
+	go mqtt.Init(arduinoUseCase, env.MQTTBroker)
+	go mqtt.RunMQTTListener(arduinoUseCase)
+
 	var routerList []routers.Route
 	routerList = append(routerList, authRouting...)
 	routerList = append(routerList, userRouting...)
@@ -74,6 +82,7 @@ func Init() {
 	routerList = append(routerList, santriScheduleRouting...)
 	routerList = append(routerList, santriOccupationRouting...)
 	routerList = append(routerList, santriRouting...)
+	routerList = append(routerList, arduinoRouting...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)
 	server.Serve()

@@ -17,6 +17,7 @@ type Config struct {
 	MigrationURL        string        `mapstructure:"MIGRATION_URL"`
 	TokenSymmetricKey   string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	MQTTBroker          string        `mapstructure:"MQTT_BROKER"`
 }
 
 const PathPhoto = "internal/storage/photo"

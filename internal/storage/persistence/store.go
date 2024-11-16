@@ -1,10 +1,17 @@
 package persistence
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"context"
+	"fmt"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type Store interface {
-	//Querier // Uncomment this line to include Querier interface
-	QuerierV2 // Advance version of Querier interface
+	Querier
+	ListSantri(ctx context.Context, arg ListSantriParams) ([]ListSantriRow, error)
+	ListUsers(ctx context.Context, arg ListUserParams) ([]ListUserRow, error)
+	ListParents(ctx context.Context, arg ListParentParams) ([]ListParentRow, error)
 }
 
 type SQLStore struct {
@@ -17,4 +24,19 @@ func NewStore(connPool *pgxpool.Pool) Store {
 		connPool: connPool,
 		Queries:  New(connPool),
 	}
+}
+
+func (q *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
+	tx, err := q.connPool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	qs := q.WithTx(tx)
+	if err := fn(qs); err != nil {
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("tx error: %v, rb error: %v", err, rbErr)
+		}
+		return err
+	}
+	return tx.Commit(ctx)
 }
