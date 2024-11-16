@@ -2,95 +2,110 @@ package mqtt
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-var UpdateChannel = make(chan struct{})
-var Topics map[string]struct{}
-var Client mqtt.Client
-var Mu sync.Mutex
-
-var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+type MQTTHandler struct {
+	Client         mqtt.Client
+	Topics         map[string]struct{}
+	UpdateChan     chan struct{}
+	Usecase        usecase.ArduinoUseCase
+	mu             sync.Mutex
+	MessageHandler mqtt.MessageHandler
 }
 
-func Init(usecase usecase.ArduinoUseCase, brokerURL string) {
-	Topics = make(map[string]struct{})
+func NewMQTTHandler(usecase usecase.ArduinoUseCase, brokerURL string) *MQTTHandler {
+	handler := &MQTTHandler{
+		Topics:     make(map[string]struct{}),
+		UpdateChan: make(chan struct{}),
+		Usecase:    usecase,
+	}
+
+	//
+	go handler.RunListener()
+
+	handler.Init(brokerURL)
+
+	return handler
+}
+
+func (h *MQTTHandler) Init(brokerURL string) {
+	log.Println("Initializing MQTT client...")
 	opts := mqtt.NewClientOptions().AddBroker(brokerURL)
 	opts.SetClientID("arduino-server")
-	opts.SetDefaultPublishHandler(messagePubHandler)
+	opts.SetDefaultPublishHandler(h.defaultMessageHandler())
+
 	client := mqtt.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+	token := client.Connect()
+	if !token.WaitTimeout(3 * time.Second) {
+		log.Fatalf("MQTT broker connection timeout: %v", token.Error())
+	}
+	if err := token.Error(); err != nil {
+		log.Fatalf("Error connecting to MQTT broker: %v", err)
 	}
 
-	// Assign ke variabel global
-	Client = client
+	h.Client = client
+	log.Println("Connected to MQTT broker")
 
-	log.Default().Println("Connected to MQTT broker")
-
-	UpdateChannel <- struct{}{}
-
+	// Trigger pembaruan awal
+	log.Println("Sending initial update signal...")
+	h.UpdateChan <- struct{}{}
+	log.Println("Initial update signal sent.")
 }
 
-func UpdateSubscriptions(newTopics []string) {
-	Mu.Lock()
-	defer Mu.Unlock()
-
-	if Client == nil {
-		log.Default().Println("MQTT client is not initialized")
-		return
+func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
+	return func(client mqtt.Client, msg mqtt.Message) {
+		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 	}
+}
 
-	// Hapus topik yang tidak lagi relevan
-	for topic := range Topics {
+func (h *MQTTHandler) UpdateSubscriptions(newTopics []string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	// Gusek topic seng ora di-subscribe
+	for topic := range h.Topics {
 		if !util.Contains(newTopics, topic) {
-			log.Default().Println("Unsubscribing from topic", topic)
-			Client.Unsubscribe(topic)
-			delete(Topics, topic)
+			h.Client.Unsubscribe(topic)
+			delete(h.Topics, topic)
 		}
 	}
 
-	// Tambahkan topik baru yang belum di-subscribe
+	// Tambah topic anyar
 	for _, topic := range newTopics {
-		if _, exists := Topics[topic]; !exists {
-			log.Default().Println("Subscribing to topic", topic)
-			Client.Subscribe(topic, 0, messagePubHandler)
-			Topics[topic] = struct{}{}
+		if _, exists := h.Topics[topic]; !exists {
+			log.Println("Subscribing to topic", topic)
+			h.Client.Subscribe(topic, 0, h.defaultMessageHandler())
+			h.Topics[topic] = struct{}{}
 		}
 	}
 }
 
-func RunMQTTListener(usecase usecase.ArduinoUseCase) {
+func (h *MQTTHandler) RunListener() {
+	log.Println("Starting MQTT Listener...")
 	for {
-		// Tunggu sinyal pembaruan
-		<-UpdateChannel
-
-		// Ambil semua topik terbaru dari database
-		arduinos, err := usecase.ListArduinos(context.Background())
-
-		var newTopics []string
-
-		for _, arduino := range arduinos {
-			for _, mode := range arduino.Modes {
-				newTopics = append(newTopics, mode.InputTopic)
+		select {
+		case <-h.UpdateChan:
+			log.Println("Update signal received. Fetching new topics...")
+			arduinos, err := h.Usecase.ListArduinos(context.Background())
+			if err != nil {
+				log.Printf("Error fetching arduino topics: %v\n", err)
+				continue
 			}
-		}
-		log.Default().Println("New topics", newTopics)
 
-		if err != nil {
-			// Log jika terjadi error
-			log.Default().Println(err)
-			continue
+			var newTopics []string
+			for _, arduino := range arduinos {
+				for _, mode := range arduino.Modes {
+					newTopics = append(newTopics, mode.InputTopic)
+				}
+			}
+			h.UpdateSubscriptions(newTopics)
 		}
-
-		// Update topik yang didengarkan
-		UpdateSubscriptions(newTopics)
 	}
 }

@@ -3,6 +3,7 @@ package routers
 import (
 	"fmt"
 	"net/http"
+	"runtime"
 
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/gin-gonic/gin"
@@ -84,6 +85,6 @@ func CORSHandler(c *gin.Context) {
 // HealthCheck handles the HTTP request for health checking the service.
 func HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"description": "The service is up and running",
+		"description": runtime.NumGoroutine(),
 	})
 }

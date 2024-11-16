@@ -16,11 +16,12 @@ type ArduinoHandler interface {
 }
 
 type arduinoHandler struct {
-	usecase usecase.ArduinoUseCase
+	usecase     usecase.ArduinoUseCase
+	mqttHandler *mqtt.MQTTHandler
 }
 
-func NewArduinoHandler(usecase usecase.ArduinoUseCase) ArduinoHandler {
-	return &arduinoHandler{usecase: usecase}
+func NewArduinoHandler(usecase usecase.ArduinoUseCase, mqttHandler *mqtt.MQTTHandler) ArduinoHandler {
+	return &arduinoHandler{usecase: usecase, mqttHandler: mqttHandler}
 }
 
 func (h *arduinoHandler) CreateArduinoHandler(c *gin.Context) {
@@ -36,8 +37,9 @@ func (h *arduinoHandler) CreateArduinoHandler(c *gin.Context) {
 		return
 	}
 
+	h.mqttHandler.UpdateChan <- struct{}{}
+
 	c.JSON(200, model.ResponseData[model.ArduinoResponse]{Code: 200, Status: "success", Data: arduino})
-	mqtt.UpdateChannel <- struct{}{}
 }
 
 func (h *arduinoHandler) ListArduinosHandler(c *gin.Context) {
@@ -62,6 +64,8 @@ func (h *arduinoHandler) DeleteArduinoHandler(c *gin.Context) {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
+
+	h.mqttHandler.UpdateChan <- struct{}{}
 
 	c.JSON(200, model.ResponseData[model.ArduinoResponse]{Code: 200, Status: "success", Data: arduino})
 }

@@ -69,11 +69,9 @@ func Init() {
 	santriRouting := routing.SantriRouting(santriHandler)
 
 	arduinoUseCase := usecase.NewArduinoUseCase(store)
-	arduinoHandler := handler.NewArduinoHandler(arduinoUseCase)
+	mqttHandler := mqtt.NewMQTTHandler(arduinoUseCase, env.MQTTBroker)
+	arduinoHandler := handler.NewArduinoHandler(arduinoUseCase, mqttHandler)
 	arduinoRouting := routing.ArduinoRouting(arduinoHandler)
-
-	go mqtt.Init(arduinoUseCase, env.MQTTBroker)
-	go mqtt.RunMQTTListener(arduinoUseCase)
 
 	var routerList []routers.Route
 	routerList = append(routerList, authRouting...)
