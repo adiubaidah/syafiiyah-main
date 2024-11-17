@@ -575,19 +575,19 @@ paths:
           schema:
             type: string
         - in: query
-          name: from
+          name: month
           schema:
-            type: string
+            type: integer
           required: false
-          example: "2024-12-25"
-          description: Filter by from date
+          example: 3
+          description: Month by number 1 - 12
         - in: query
-          name: to
+          name: year
           schema:
-            type: string
+            type: integer
           required: false
-          example: "2024-12-27"
-          description: Filter by to date
+          example: 2024
+          description: Year
       responses:
         "200":
           description: OK
@@ -2448,7 +2448,7 @@ components:
         name:
           type: string
           example: Kemerdekaan
-        days:
+        dates:
           type: array
           items:
             type: string

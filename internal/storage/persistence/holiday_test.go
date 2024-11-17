@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/random"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -10,7 +11,7 @@ import (
 )
 
 func clearHoliday(t *testing.T) {
-	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "employee_occupation"`)
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "holiday"`)
 	require.NoError(t, err)
 }
 
@@ -30,29 +31,82 @@ func createRandomHoliday(t *testing.T) Holiday {
 	return holiday
 }
 
-func TestCreateHoliday(t *testing.T) {
-	clearHoliday(t)
-	createRandomHoliday(t)
+func createHolidayDateWithDate(t *testing.T, holidayID int32, date string) {
+	layout := "2006-01-02"
+	parsedDate, err := time.Parse(layout, date)
+	require.NoError(t, err)
+
+	var args []CreateHolidayDatesParams
+
+	args = append(args, CreateHolidayDatesParams{
+		HolidayID: holidayID,
+		Date:      pgtype.Date{Time: parsedDate, Valid: true},
+	})
+
+	_, err = testStore.CreateHolidayDates(context.Background(), args)
+	require.NoError(t, err)
 }
 
-func TestUpdateHoliday(t *testing.T) {
-	clearHoliday(t)
-	holiday := createRandomHoliday(t)
+func createHolidayDate(t *testing.T, holidayID int32) {
+	var args []CreateHolidayDatesParams
 
-	arg := UpdateHolidayParams{
-		ID:          holiday.ID,
-		Name:        random.RandomString(8),
-		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
-		Color:       pgtype.Text{String: random.RandomString(7), Valid: true},
+	for i := 0; i < 5; i++ {
+		args = append(args, CreateHolidayDatesParams{
+			HolidayID: holidayID,
+			Date:      pgtype.Date{Time: random.RandomTimeStamp(), Valid: true},
+		})
 	}
 
-	updatedHoliday, err := testStore.UpdateHoliday(context.Background(), arg)
+	affectedRows, err := testStore.CreateHolidayDates(context.Background(), args)
 	require.NoError(t, err)
-	require.NotEmpty(t, holiday)
+	require.Equal(t, int64(len(args)), affectedRows)
 
-	require.Equal(t, arg.Name, updatedHoliday.Name)
-	require.Equal(t, arg.Description.String, updatedHoliday.Description.String)
-	require.Equal(t, arg.Color.String, updatedHoliday.Color.String)
+}
+
+func TestCreateHoliday(t *testing.T) {
+	clearHoliday(t)
+	randomHoliday := createRandomHoliday(t)
+	createHolidayDate(t, randomHoliday.ID)
+}
+
+func TestListHoliday(t *testing.T) {
+	clearHoliday(t)
+	// Create holiday for December 2023
+	holidayDec := createRandomHoliday(t)
+	createHolidayDateWithDate(t, holidayDec.ID, "2023-12-25")
+
+	// Create holiday for January 2024
+	holidayJan := createRandomHoliday(t)
+	createHolidayDateWithDate(t, holidayJan.ID, "2024-01-01")
+
+	t.Run("test for december 2023", func(t *testing.T) {
+		holidays, err := testStore.ListHolidays(context.Background(), ListHolidaysParams{
+			Month: pgtype.Int4{Int32: 12, Valid: true},
+			Year:  pgtype.Int4{Int32: 2023, Valid: true},
+		})
+		require.NoError(t, err)
+		require.Len(t, holidays, 1)
+		require.Equal(t, holidayDec.ID, holidays[0].ID)
+	})
+
+	t.Run("test for january 2024", func(t *testing.T) {
+		holidays, err := testStore.ListHolidays(context.Background(), ListHolidaysParams{
+			Month: pgtype.Int4{Int32: 1, Valid: true},
+			Year:  pgtype.Int4{Int32: 2024, Valid: true},
+		})
+		require.NoError(t, err)
+		require.Len(t, holidays, 1)
+		require.Equal(t, holidayJan.ID, holidays[0].ID)
+	})
+
+	t.Run("test for no holidays", func(t *testing.T) {
+		holidays, err := testStore.ListHolidays(context.Background(), ListHolidaysParams{
+			Month: pgtype.Int4{Int32: 5, Valid: true},
+			Year:  pgtype.Int4{Int32: 2024, Valid: true},
+		})
+		require.NoError(t, err)
+		require.Len(t, holidays, 0)
+	})
 }
 
 func TestDeleteHoliday(t *testing.T) {

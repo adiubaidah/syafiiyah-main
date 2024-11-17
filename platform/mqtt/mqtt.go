@@ -13,8 +13,7 @@ import (
 
 type MQTTHandler struct {
 	Client         mqtt.Client
-	Topics         map[string]struct{}
-	UpdateChan     chan struct{}
+	Topics         map[string]chan struct{}
 	Usecase        usecase.ArduinoUseCase
 	mu             sync.Mutex
 	MessageHandler mqtt.MessageHandler
@@ -22,15 +21,13 @@ type MQTTHandler struct {
 
 func NewMQTTHandler(usecase usecase.ArduinoUseCase, brokerURL string) *MQTTHandler {
 	handler := &MQTTHandler{
-		Topics:     make(map[string]struct{}),
-		UpdateChan: make(chan struct{}),
-		Usecase:    usecase,
+		Topics:  make(map[string]chan struct{}),
+		Usecase: usecase,
 	}
 
-	//
-	go handler.RunListener()
-
 	handler.Init(brokerURL)
+
+	handler.RefreshTopics()
 
 	return handler
 }
@@ -52,11 +49,6 @@ func (h *MQTTHandler) Init(brokerURL string) {
 
 	h.Client = client
 	log.Println("Connected to MQTT broker")
-
-	// Trigger pembaruan awal
-	log.Println("Sending initial update signal...")
-	h.UpdateChan <- struct{}{}
-	log.Println("Initial update signal sent.")
 }
 
 func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
@@ -65,14 +57,34 @@ func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
 	}
 }
 
+func (h *MQTTHandler) RefreshTopics() {
+	log.Println("Fetching initial topics...")
+	arduinos, err := h.Usecase.ListArduinos(context.Background())
+	if err != nil {
+		log.Fatalf("Error fetching arduino topics: %v", err)
+	}
+
+	var newTopics []string
+	for _, arduino := range arduinos {
+		for _, mode := range arduino.Modes {
+			newTopics = append(newTopics, mode.InputTopic)
+		}
+	}
+
+	// Langganan topic
+	h.UpdateSubscriptions(newTopics)
+}
+
 func (h *MQTTHandler) UpdateSubscriptions(newTopics []string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	// Gusek topic seng ora di-subscribe
-	for topic := range h.Topics {
+	// mandekno goroutine untuk topik seng ora diperlukno
+	for topic, stopChan := range h.Topics {
 		if !util.Contains(newTopics, topic) {
+			log.Printf("Unsubscribing and stopping topic: %s\n", topic)
 			h.Client.Unsubscribe(topic)
+			close(stopChan)
 			delete(h.Topics, topic)
 		}
 	}
@@ -80,32 +92,22 @@ func (h *MQTTHandler) UpdateSubscriptions(newTopics []string) {
 	// Tambah topic anyar
 	for _, topic := range newTopics {
 		if _, exists := h.Topics[topic]; !exists {
-			log.Println("Subscribing to topic", topic)
+			log.Printf("Subscribing and starting topic: %s\n", topic)
 			h.Client.Subscribe(topic, 0, h.defaultMessageHandler())
-			h.Topics[topic] = struct{}{}
+			stopChan := make(chan struct{})
+			h.Topics[topic] = stopChan
+			go h.listenTopic(topic, stopChan)
 		}
 	}
 }
 
-func (h *MQTTHandler) RunListener() {
-	log.Println("Starting MQTT Listener...")
+func (h *MQTTHandler) listenTopic(topic string, stopChan chan struct{}) {
+	log.Printf("Listening on topic: %s\n", topic)
 	for {
 		select {
-		case <-h.UpdateChan:
-			log.Println("Update signal received. Fetching new topics...")
-			arduinos, err := h.Usecase.ListArduinos(context.Background())
-			if err != nil {
-				log.Printf("Error fetching arduino topics: %v\n", err)
-				continue
-			}
-
-			var newTopics []string
-			for _, arduino := range arduinos {
-				for _, mode := range arduino.Modes {
-					newTopics = append(newTopics, mode.InputTopic)
-				}
-			}
-			h.UpdateSubscriptions(newTopics)
+		case <-stopChan:
+			log.Printf("Stopping listener for topic: %s\n", topic)
+			return
 		}
 	}
 }

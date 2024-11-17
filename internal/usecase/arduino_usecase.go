@@ -8,11 +8,13 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 )
 
 type ArduinoUseCase interface {
 	CreateArduino(ctx context.Context, request *model.CreateArduinoRequest) (model.ArduinoResponse, error)
 	ListArduinos(ctx context.Context) ([]model.ArduinoWithModesResponse, error)
+	UpdateArduino(ctx context.Context, request *model.CreateArduinoRequest, arduinoId int32) (model.ArduinoResponse, error)
 	DeleteArduino(ctx context.Context, arduinoId int32) (model.ArduinoResponse, error)
 }
 
@@ -31,8 +33,8 @@ func (c *arduinoService) CreateArduino(ctx context.Context, request *model.Creat
 	for _, mode := range request.Modes {
 		modeParams = append(modeParams, db.CreateArduinoModesParams{
 			Mode:                 mode,
-			InputTopic:           fmt.Sprintf("%s/input/%s", request.Name, mode),
-			AcknowledgementTopic: fmt.Sprintf("%s/acknowledgment/%s", request.Name, mode),
+			InputTopic:           fmt.Sprintf("%s/input/%s", util.ToSnakeCase(request.Name), mode),
+			AcknowledgementTopic: fmt.Sprintf("%s/acknowledgment/%s", util.ToSnakeCase(request.Name), mode),
 		})
 	}
 
@@ -67,7 +69,7 @@ func (c *arduinoService) ListArduinos(ctx context.Context) ([]model.ArduinoWithM
 		if arduino.ArduinoModeID.Valid {
 			mode := model.ModeArduino{
 				Mode:                arduino.ArduinoModeMode.ArduinoModeType,
-				InputTopic:          arduino.ArduinoModeInputTopic.String, // Populate these fields if available
+				InputTopic:          arduino.ArduinoModeInputTopic.String,
 				AcknowledgmentTopic: arduino.ArduinoModeAcknowledgementTopic.String,
 			}
 			arduinoMap[arduino.ID].Modes = append(arduinoMap[arduino.ID].Modes, mode)
@@ -79,6 +81,29 @@ func (c *arduinoService) ListArduinos(ctx context.Context) ([]model.ArduinoWithM
 	}
 
 	return arduinoResponses, nil
+}
+
+func (c *arduinoService) UpdateArduino(ctx context.Context, request *model.CreateArduinoRequest, arduinoId int32) (model.ArduinoResponse, error) {
+	sqlStore := c.store.(*db.SQLStore)
+	modeParams := make([]db.CreateArduinoModesParams, 0)
+
+	for _, mode := range request.Modes {
+		modeParams = append(modeParams, db.CreateArduinoModesParams{
+			Mode:                 mode,
+			InputTopic:           fmt.Sprintf("%s/input/%s", util.ToSnakeCase(request.Name), mode),
+			AcknowledgementTopic: fmt.Sprintf("%s/acknowledgment/%s", util.ToSnakeCase(request.Name), mode),
+		})
+	}
+
+	arduino, err := sqlStore.UpdateArduinoWithModes(ctx, arduinoId, request.Name, modeParams)
+	if err != nil {
+		return model.ArduinoResponse{}, err
+	}
+
+	return model.ArduinoResponse{
+		ID:   arduino.ID,
+		Name: arduino.Name,
+	}, nil
 }
 
 func (c *arduinoService) DeleteArduino(ctx context.Context, arduinoId int32) (model.ArduinoResponse, error) {

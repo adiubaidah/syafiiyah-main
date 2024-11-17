@@ -10,6 +10,10 @@ func ParseTime(timeString string) (time.Time, error) {
 	return time.Parse("15:04:05", timeString)
 }
 
+func ParseDate(dateString string) (time.Time, error) {
+	return time.Parse("2006-01-02", dateString)
+}
+
 func ConvertToPgxTime(parsedTime time.Time) pgtype.Time {
 
 	microseconds := int64(parsedTime.Hour()*3600+parsedTime.Minute()*60+parsedTime.Second()) * 1e6

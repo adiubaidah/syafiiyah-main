@@ -33,8 +33,8 @@ SET
 WHERE
     "id" = @id RETURNING *;
 
--- name: DeleteArduinoMode :one
+-- name: DeleteArduinoModeByArduinoId :exec
 DELETE FROM
     "arduino_mode"
 WHERE
-    "id" = @id RETURNING *;
+    "arduino_id" = @arduino_id;

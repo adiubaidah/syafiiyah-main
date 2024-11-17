@@ -52,6 +52,10 @@ func Init() {
 	authHandler := handler.NewAuthHandler(userUseCase, &env, logger, tokenMaker)
 	authRouting := routing.AuthRouting(authHandler)
 
+	holidayUseCase := usecase.NewHolidayUseCase(store)
+	holidayHandler := handler.NewHolidayHandler(logger, holidayUseCase)
+	holidayRouting := routing.HolidayRouting(holidayHandler)
+
 	parentUseCase := usecase.NewParentUseCase(store)
 	parentHandler := handler.NewParentHandler(&env, logger, parentUseCase, userUseCase)
 	parentRouting := routing.ParentRouting(parentHandler)
@@ -70,12 +74,13 @@ func Init() {
 
 	arduinoUseCase := usecase.NewArduinoUseCase(store)
 	mqttHandler := mqtt.NewMQTTHandler(arduinoUseCase, env.MQTTBroker)
-	arduinoHandler := handler.NewArduinoHandler(arduinoUseCase, mqttHandler)
+	arduinoHandler := handler.NewArduinoHandler(logger, arduinoUseCase, mqttHandler)
 	arduinoRouting := routing.ArduinoRouting(arduinoHandler)
 
 	var routerList []routers.Route
 	routerList = append(routerList, authRouting...)
 	routerList = append(routerList, userRouting...)
+	routerList = append(routerList, holidayRouting...)
 	routerList = append(routerList, parentRouting...)
 	routerList = append(routerList, santriScheduleRouting...)
 	routerList = append(routerList, santriOccupationRouting...)

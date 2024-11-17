@@ -7,6 +7,8 @@ type CreateArduinoRequest struct {
 	Modes []db.ArduinoModeType `json:"modes" binding:"required"`
 }
 
+type UpdateArduinoRequest = CreateArduinoRequest
+
 type ArduinoResponse struct {
 	ID   int32  `json:"id"`
 	Name string `json:"name"`

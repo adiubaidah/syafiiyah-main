@@ -1,7 +1,7 @@
 -- Drop tables if they exist
 
 DROP TABLE IF EXISTS "user" CASCADE;
-DROP TABLE IF EXISTS "holiday_day" CASCADE;
+DROP TABLE IF EXISTS "holiday_date" CASCADE;
 DROP TABLE IF EXISTS "holiday" CASCADE;
 DROP TABLE IF EXISTS "santri_schedule" CASCADE;
 DROP TABLE IF EXISTS "santri_occupation" CASCADE;

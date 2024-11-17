@@ -43,3 +43,36 @@ func (r iteratorForCreateArduinoModes) Err() error {
 func (q *Queries) CreateArduinoModes(ctx context.Context, arg []CreateArduinoModesParams) (int64, error) {
 	return q.db.CopyFrom(ctx, []string{"arduino_mode"}, []string{"mode", "input_topic", "acknowledgment_topic", "arduino_id"}, &iteratorForCreateArduinoModes{rows: arg})
 }
+
+// iteratorForCreateHolidayDates implements pgx.CopyFromSource.
+type iteratorForCreateHolidayDates struct {
+	rows                 []CreateHolidayDatesParams
+	skippedFirstNextCall bool
+}
+
+func (r *iteratorForCreateHolidayDates) Next() bool {
+	if len(r.rows) == 0 {
+		return false
+	}
+	if !r.skippedFirstNextCall {
+		r.skippedFirstNextCall = true
+		return true
+	}
+	r.rows = r.rows[1:]
+	return len(r.rows) > 0
+}
+
+func (r iteratorForCreateHolidayDates) Values() ([]interface{}, error) {
+	return []interface{}{
+		r.rows[0].Date,
+		r.rows[0].HolidayID,
+	}, nil
+}
+
+func (r iteratorForCreateHolidayDates) Err() error {
+	return nil
+}
+
+func (q *Queries) CreateHolidayDates(ctx context.Context, arg []CreateHolidayDatesParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"holiday_date"}, []string{"date", "holiday_id"}, &iteratorForCreateHolidayDates{rows: arg})
+}

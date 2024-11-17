@@ -473,7 +473,7 @@ type Holiday struct {
 	Description pgtype.Text `db:"description"`
 }
 
-type HolidayDay struct {
+type HolidayDate struct {
 	ID        int32       `db:"id"`
 	Date      pgtype.Date `db:"date"`
 	HolidayID int32       `db:"holiday_id"`

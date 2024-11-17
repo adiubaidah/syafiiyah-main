@@ -41,6 +41,7 @@ func RandomTimeStamp() time.Time {
 	sec := RandomInt(0, delta)
 	return time.Unix(min+sec, 0)
 }
+
 func RandomTimeOnly() time.Time {
 	hour := rand.Intn(24)
 	minute := rand.Intn(60)

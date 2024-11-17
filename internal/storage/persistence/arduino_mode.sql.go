@@ -18,24 +18,16 @@ type CreateArduinoModesParams struct {
 	ArduinoID            int32           `db:"arduino_id"`
 }
 
-const deleteArduinoMode = `-- name: DeleteArduinoMode :one
+const deleteArduinoModeByArduinoId = `-- name: DeleteArduinoModeByArduinoId :exec
 DELETE FROM
     "arduino_mode"
 WHERE
-    "id" = $1 RETURNING id, mode, input_topic, acknowledgment_topic, arduino_id
+    "arduino_id" = $1
 `
 
-func (q *Queries) DeleteArduinoMode(ctx context.Context, id int32) (ArduinoMode, error) {
-	row := q.db.QueryRow(ctx, deleteArduinoMode, id)
-	var i ArduinoMode
-	err := row.Scan(
-		&i.ID,
-		&i.Mode,
-		&i.InputTopic,
-		&i.AcknowledgmentTopic,
-		&i.ArduinoID,
-	)
-	return i, err
+func (q *Queries) DeleteArduinoModeByArduinoId(ctx context.Context, arduinoID int32) error {
+	_, err := q.db.Exec(ctx, deleteArduinoModeByArduinoId, arduinoID)
+	return err
 }
 
 const listArduinoModes = `-- name: ListArduinoModes :many

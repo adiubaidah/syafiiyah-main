@@ -8,30 +8,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ArduinoRouting(handler handler.ArduinoHandler) []routers.Route {
+func HolidayRouting(handler handler.HolidayHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/arduino",
-			Handle:      handler.CreateArduinoHandler,
+			Path:        "/holiday",
+			Handle:      handler.CreateHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/arduino",
-			Handle:      handler.ListArduinosHandler,
+			Path:        "/holiday",
+			Handle:      handler.ListHolidaysHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodPut,
-			Path:        "/arduino/:id",
-			Handle:      handler.UpdateArduinoHandler,
+			Path:        "/holiday/:id",
+			Handle:      handler.UpdateHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodDelete,
-			Path:        "/arduino/:id",
-			Handle:      handler.DeleteArduinoHandler,
+			Path:        "/holiday/:id",
+			Handle:      handler.DeleteHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 	}
