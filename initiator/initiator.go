@@ -2,10 +2,12 @@ package initiator
 
 import (
 	"context"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/routing"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/storage/cache"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
@@ -15,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,13 +28,28 @@ func Init() {
 		logger.Fatalf("%s cannot load config", err.Error())
 	}
 
-	connPool, err := pgxpool.New(context.Background(), env.DBSource)
+	config, err := pgxpool.ParseConfig(env.DBSource)
 	if err != nil {
-		logger.Fatalf("%s cannot connect to database", err.Error())
+		logger.Fatalf("Unable to parse config: %v", err)
+	}
+
+	config.MaxConns = 30
+	config.MinConns = 5
+	config.MaxConnIdleTime = time.Minute * 5
+	config.MaxConnLifetime = time.Hour
+
+	connPool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		logger.Fatalf("Unable to create connection pool: %v", err)
 	}
 	defer connPool.Close()
 
 	store := db.NewStore(connPool)
+	redisClient := redis.NewClient(&redis.Options{
+		DB:   env.DBRedis,
+		Addr: env.RedisAddress,
+	})
+	defer redisClient.Close()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("santriorder", model.IsValidSantriOrder)
@@ -45,11 +63,13 @@ func Init() {
 		logger.Fatalf("%s cannot create token maker", err.Error())
 	}
 
+	cacheClient := cache.NewClient(redisClient)
+
 	userUseCase := usecase.NewUserUseCase(store)
 	userHandler := handler.NewUserHandler(logger, userUseCase)
 	userRouting := routing.UserRouting(userHandler)
 
-	authHandler := handler.NewAuthHandler(userUseCase, &env, logger, tokenMaker)
+	authHandler := handler.NewAuthHandler(userUseCase, cacheClient, &env, logger, tokenMaker)
 	authRouting := routing.AuthRouting(authHandler)
 
 	holidayUseCase := usecase.NewHolidayUseCase(store)

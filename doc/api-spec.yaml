@@ -9,12 +9,12 @@ servers:
   - url: https://syafiiyah-api.adiiskandar.my.id
     description: Development Server
 paths:
-  /auth/sign-in:
+  /auth/login:
     post:
       tags:
         - Auth
-      summary: Sign In
-      description: Sign In will set cookie for user
+      summary: Login
+      description: Login will set cookie for user
       requestBody:
         required: true
         content:
@@ -37,7 +37,20 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/User"
+                        type: object
+                        properties:
+                          session_id: 
+                            type: string
+                          access_token:
+                            type: string
+                          access_token_expires_at:
+                            type: string
+                          refresh_token:
+                            type: string
+                          refresh_token_expires_at:
+                            type: string
+                          user:
+                            $ref: "#/components/schemas/User"
         "401":
           description: Unauthorized
           content:
@@ -93,11 +106,37 @@ paths:
                         type: object
                         properties:
                           id:
-                            type: integer
+                            type: string
                           username:
                             type: string
                           role:
                             $ref: "#/components/schemas/RoleEnum"
+                        additionalProperties: 
+                          type: string
+  /auth/refresh-acess-token:
+    post:
+      tags:
+        - Auth
+      summary: Refresh token
+      description: Refresh token, it gonna set to the cookie for new access token
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        properties:
+                          access_token:
+                            type: string
+                          access_token_expires_at:
+                            type: string
   /profile/reset-password:
     put:
       tags:
@@ -599,12 +638,9 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        type: object
-                        properties:
-                          items:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/Holiday"
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Holiday"
 
     post:
       tags:

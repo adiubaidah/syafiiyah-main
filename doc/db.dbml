@@ -160,6 +160,16 @@ Table employee {
 }
 Ref: user.id - employee.user_id [delete: set null]
 
+Table admin_restrictions {
+  id int [primary key, increment]
+  admin_id int [ref: > employee.id, not null]
+  restricted_employee_id int [ref: > employee.id, not null]
+
+   Indexes {
+    (admin_id, restricted_employee_id) [unique]
+  }
+}
+
 Table employee_schedule {
   id int [increment, primary key]
   name varchar(100) [note: "ex: Pagi, siang, sore, malam", not null]

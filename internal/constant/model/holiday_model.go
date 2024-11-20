@@ -10,8 +10,8 @@ type CreateHolidayRequest struct {
 type UpdateHolidayRequest = CreateHolidayRequest
 
 type ListHolidayRequest struct {
-	Month int32 `json:"month" binding:"omitempty,min=1,max=12"`
-	Year  int32 `json:"year" binding:"omitempty,min=1"`
+	Month int32 `form:"month" binding:"omitempty,min=1,max=12"`
+	Year  int32 `form:"year" binding:"omitempty,min=1"`
 }
 
 type HolidayResponse struct {

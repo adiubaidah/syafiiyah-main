@@ -5,8 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: adiubaidah/rfid-syafiiyah:latest
-    restart: unless-stopped
+    image: ${IMAGE_NAME:-adiiskandar/rfid-syafiiyah:latest}
     ports:
       - protocol: tcp
         published: ${PORT}
@@ -21,6 +20,7 @@ services:
     env_file: "app.env"
     environment:
         - GIN_MODE=${GIN_MODE}
+        - PORT=${PORT}
 
 networks:
   bridge:

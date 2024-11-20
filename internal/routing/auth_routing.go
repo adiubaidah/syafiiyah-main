@@ -22,5 +22,17 @@ func AuthRouting(handler handler.AuthHandler) []routers.Route {
 			Handle:      handler.IsAuthHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodPost,
+			Path:        "/auth/logout",
+			Handle:      handler.LogoutHandler,
+			MiddleWares: []gin.HandlerFunc{},
+		},
+		{
+			Method:      http.MethodPost,
+			Path:        "/auth/refresh-access-token",
+			Handle:      handler.RefreshAccessTokenHandler,
+			MiddleWares: []gin.HandlerFunc{},
+		},
 	}
 }

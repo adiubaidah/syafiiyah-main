@@ -10,6 +10,9 @@ start_postgres:
 postgres:
 	docker exec -it postgres psql -U postgres -d as_syafiiyah
 
+redis:
+	docker exec -it redis redis-cli
+
 new_migration:
 	migrate create -ext sql -dir db/migration -seq $(name)
 
