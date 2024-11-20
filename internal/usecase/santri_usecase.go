@@ -41,7 +41,7 @@ func (c *santriService) CreateSantri(ctx context.Context, request *model.CreateS
 		Photo:        pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		ParentID:     pgtype.Int4{Int32: request.ParentID, Valid: request.ParentID != 0},
-		Gender:       db.Gender(request.Gender),
+		Gender:       request.Gender,
 	})
 	if err != nil {
 		return model.SantriResponse{}, err
@@ -164,7 +164,7 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 		Photo:        pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		ParentID:     pgtype.Int4{Int32: request.ParentID, Valid: request.ParentID != 0},
-		Gender:       db.NullGender{Gender: request.Gender, Valid: request.Gender != ""},
+		Gender:       db.NullGenderType{GenderType: request.Gender, Valid: true},
 	})
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {

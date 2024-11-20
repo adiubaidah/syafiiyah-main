@@ -38,11 +38,9 @@ func (s *santriOccupationService) CreateSantriOccupation(ctx context.Context, re
 	}
 
 	return model.SantriOccupationResponse{
-		ID: createdSantriOccupation.ID,
-		BaseSantriOccupation: model.BaseSantriOccupation{
-			Name:        createdSantriOccupation.Name,
-			Description: createdSantriOccupation.Description.String,
-		},
+		ID:          createdSantriOccupation.ID,
+		Name:        createdSantriOccupation.Name,
+		Description: createdSantriOccupation.Description.String,
 	}, nil
 }
 
@@ -55,8 +53,8 @@ func (s *santriOccupationService) ListSantriOccupations(ctx context.Context) ([]
 	var response []model.SantriOccupationWithCountResponse
 	for _, santriOccupation := range santriOccupations {
 		response = append(response, model.SantriOccupationWithCountResponse{
-			ID: santriOccupation.ID,
-			BaseSantriOccupation: model.BaseSantriOccupation{
+			SantriOccupationResponse: model.SantriOccupationResponse{
+				ID:          santriOccupation.ID,
 				Name:        santriOccupation.Name,
 				Description: santriOccupation.Description.String,
 			},
@@ -81,11 +79,9 @@ func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, re
 	}
 
 	return model.SantriOccupationResponse{
-		ID: updatedSantriOccupation.ID,
-		BaseSantriOccupation: model.BaseSantriOccupation{
-			Name:        updatedSantriOccupation.Name,
-			Description: updatedSantriOccupation.Description.String,
-		},
+		ID:          updatedSantriOccupation.ID,
+		Name:        updatedSantriOccupation.Name,
+		Description: updatedSantriOccupation.Description.String,
 	}, nil
 }
 
@@ -99,10 +95,8 @@ func (s *santriOccupationService) DeleteSantriOccupation(ctx context.Context, sa
 	}
 
 	return model.SantriOccupationResponse{
-		ID: deletedSantriOccupation.ID,
-		BaseSantriOccupation: model.BaseSantriOccupation{
-			Name:        deletedSantriOccupation.Name,
-			Description: deletedSantriOccupation.Description.String,
-		},
+		ID:          deletedSantriOccupation.ID,
+		Name:        deletedSantriOccupation.Name,
+		Description: deletedSantriOccupation.Description.String,
 	}, nil
 }

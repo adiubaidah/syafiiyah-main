@@ -29,19 +29,19 @@ VALUES
         $3 :: presence_type,
         $4,
         $5,
-        $6 :: presence_created_by,
+        $6 :: presence_created_by_type,
         $7
     ) RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
 `
 
 type CreateSantriPresenceParams struct {
-	ScheduleID         int32             `db:"schedule_id"`
-	ScheduleName       string            `db:"schedule_name"`
-	Type               PresenceType      `db:"type"`
-	SantriID           int32             `db:"santri_id"`
-	Notes              pgtype.Text       `db:"notes"`
-	CreatedBy          PresenceCreatedBy `db:"created_by"`
-	SantriPermissionID pgtype.Int4       `db:"santri_permission_id"`
+	ScheduleID         int32                 `db:"schedule_id"`
+	ScheduleName       string                `db:"schedule_name"`
+	Type               PresenceType          `db:"type"`
+	SantriID           int32                 `db:"santri_id"`
+	Notes              pgtype.Text           `db:"notes"`
+	CreatedBy          PresenceCreatedByType `db:"created_by"`
+	SantriPermissionID pgtype.Int4           `db:"santri_permission_id"`
 }
 
 func (q *Queries) CreateSantriPresence(ctx context.Context, arg CreateSantriPresenceParams) (SantriPresence, error) {
@@ -143,24 +143,24 @@ type ListSantriPresencesParams struct {
 }
 
 type ListSantriPresencesRow struct {
-	ID                 pgtype.Int4        `db:"id"`
-	ScheduleID         int32              `db:"schedule_id"`
-	ScheduleName       string             `db:"schedule_name"`
-	Type               PresenceType       `db:"type"`
-	SantriID           int32              `db:"santri_id"`
-	CreatedAt          pgtype.Timestamptz `db:"created_at"`
-	CreatedBy          PresenceCreatedBy  `db:"created_by"`
-	Notes              pgtype.Text        `db:"notes"`
-	SantriPermissionID pgtype.Int4        `db:"santri_permission_id"`
-	ID_2               int32              `db:"id_2"`
-	Nis                pgtype.Text        `db:"nis"`
-	Name               string             `db:"name"`
-	Gender             Gender             `db:"gender"`
-	Generation         int32              `db:"generation"`
-	IsActive           pgtype.Bool        `db:"is_active"`
-	Photo              pgtype.Text        `db:"photo"`
-	OccupationID       pgtype.Int4        `db:"occupation_id"`
-	ParentID           pgtype.Int4        `db:"parent_id"`
+	ID                 pgtype.Int4           `db:"id"`
+	ScheduleID         int32                 `db:"schedule_id"`
+	ScheduleName       string                `db:"schedule_name"`
+	Type               PresenceType          `db:"type"`
+	SantriID           int32                 `db:"santri_id"`
+	CreatedAt          pgtype.Timestamptz    `db:"created_at"`
+	CreatedBy          PresenceCreatedByType `db:"created_by"`
+	Notes              pgtype.Text           `db:"notes"`
+	SantriPermissionID pgtype.Int4           `db:"santri_permission_id"`
+	ID_2               int32                 `db:"id_2"`
+	Nis                pgtype.Text           `db:"nis"`
+	Name               string                `db:"name"`
+	Gender             GenderType            `db:"gender"`
+	Generation         int32                 `db:"generation"`
+	IsActive           pgtype.Bool           `db:"is_active"`
+	Photo              pgtype.Text           `db:"photo"`
+	OccupationID       pgtype.Int4           `db:"occupation_id"`
+	ParentID           pgtype.Int4           `db:"parent_id"`
 }
 
 func (q *Queries) ListSantriPresences(ctx context.Context, arg ListSantriPresencesParams) ([]ListSantriPresencesRow, error) {

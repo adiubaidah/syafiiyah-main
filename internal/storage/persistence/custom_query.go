@@ -45,7 +45,7 @@ FROM
 type ListSantriRow struct {
 	ID             int32       `db:"id" json:"id"`
 	Name           string      `db:"name" json:"name"`
-	Gender         Gender      `db:"gender" json:"gender"`
+	Gender         GenderType  `db:"gender" json:"gender"`
 	Nis            pgtype.Text `db:"nis" json:"nis"`
 	Generation     int32       `db:"generation" json:"generation"`
 	IsActive       pgtype.Bool `db:"is_active" json:"is_active"`
@@ -100,7 +100,7 @@ func (q *Queries) ListSantri(ctx context.Context, arg ListSantriParams) ([]ListS
 
 type ListUserParams struct {
 	Q            pgtype.Text     `db:"q"`
-	Role         NullUserRole    `db:"role"`
+	Role         NullRoleType    `db:"role"`
 	HasOwner     pgtype.Bool     `db:"has_owner"`
 	LimitNumber  int32           `db:"limit_number"`
 	OffsetNumber int32           `db:"offset_number"`
@@ -126,7 +126,7 @@ FROM list_user(
 type ListUserRow struct {
 	ID        int32       `db:"id"`
 	Username  string      `db:"username"`
-	Role      UserRole    `db:"role"`
+	Role      RoleType    `db:"role"`
 	IDOwner   pgtype.Int4 `db:"id_owner"`
 	NameOwner pgtype.Text `db:"name_owner"`
 }
@@ -193,7 +193,7 @@ FROM list_parent(
 type ListParentRow struct {
 	ID             int32       `db:"id"`
 	Name           string      `db:"name"`
-	Gender         Gender      `db:"gender"`
+	Gender         GenderType  `db:"gender"`
 	Address        string      `db:"address"`
 	WhatsappNumber pgtype.Text `db:"whatsapp_number"`
 	Photo          pgtype.Text `db:"photo"`

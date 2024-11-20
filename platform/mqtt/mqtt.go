@@ -14,12 +14,12 @@ import (
 type MQTTHandler struct {
 	Client         mqtt.Client
 	Topics         map[string]chan struct{}
-	Usecase        usecase.ArduinoUseCase
+	Usecase        usecase.DeviceUseCase
 	mu             sync.Mutex
 	MessageHandler mqtt.MessageHandler
 }
 
-func NewMQTTHandler(usecase usecase.ArduinoUseCase, brokerURL string) *MQTTHandler {
+func NewMQTTHandler(usecase usecase.DeviceUseCase, brokerURL string) *MQTTHandler {
 	handler := &MQTTHandler{
 		Topics:  make(map[string]chan struct{}),
 		Usecase: usecase,
@@ -59,7 +59,7 @@ func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
 
 func (h *MQTTHandler) RefreshTopics() {
 	log.Println("Fetching initial topics...")
-	arduinos, err := h.Usecase.ListArduinos(context.Background())
+	arduinos, err := h.Usecase.ListDevices(context.Background())
 	if err != nil {
 		log.Fatalf("Error fetching arduino topics: %v", err)
 	}

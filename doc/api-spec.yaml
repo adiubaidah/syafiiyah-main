@@ -63,7 +63,7 @@ paths:
                   code: 401
                   status: error
                   message: "Invalid username or password"
-  /auth/sign-out:
+  /auth/logout:
     post:
       tags:
         - Auth
@@ -83,7 +83,7 @@ paths:
                 example: 
                   code: 204
                   status: success
-                  message: Sign out success
+                  message: Logout success
   /auth/is-auth:
     get:
       tags:
@@ -2280,14 +2280,14 @@ paths:
                   code: 404
                   status: error
                   message: "RFID not found"
-  /arduino:
-    description: Endpoint for Arduino
+  /device:
+    description: Only superadmin can access this endpoint
     get:
       tags:
-        - Arduino
+        - Device
       security:
         - cookieAuth : []
-      summary: Get All Arduino
+      summary: Get All Device
       description: Only superadmin can access this endpoint
       responses:
         "200":
@@ -2302,14 +2302,14 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: "#/components/schemas/Arduino"
+                          $ref: "#/components/schemas/Device"
 
     post:
       tags:
-        - Arduino
+        - Device
       security:
         - cookieAuth: []
-      summary: Create Arduino
+      summary: Create Device
       description: Only superadmin can manage this endpoint
       requestBody:
         required: true
@@ -2317,12 +2317,12 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: "#/components/schemas/NewArduino"
+                - $ref: "#/components/schemas/NewDevice"
                 - properties:
                     modes:
                       type: array
                       items: 
-                        $ref: "#/components/schemas/ArduinoModeEnum"
+                        $ref: "#/components/schemas/DeviceModeEnum"
       responses:
         "201":
           description: Created
@@ -2333,18 +2333,47 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/Arduino"
-  /arduino/{id}:
+                        $ref: "#/components/schemas/Device"
+  /device/{id}:
     parameters:
       - in: path
         name: id
         required: true
         schema:
           type: integer
+    put:
+      tags:
+        - Device
+      security:
+        - cookieAuth: []
+      summary: Update Device By ID
+      description: Only superadmin can manage this endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/NewDevice"
+                - properties:
+                    modes:
+                      type: array
+                      items: 
+                        $ref: "#/components/schemas/DeviceModeEnum"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Device"
     delete:
       tags:
-        - Arduino
-      summary: Delete Arduino By ID
+        - Device
+      summary: Delete Device By ID
       security:
         - cookieAuth: []
       description: Only superadmin can manage this endpoint
@@ -2358,7 +2387,7 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/Arduino"
+                        $ref: "#/components/schemas/Device"
 
 components:
   securitySchemes:
@@ -2461,16 +2490,19 @@ components:
           nullable: true
         start_presence:
           type: string
+          description: Start Presence must be earlier than start time
           example:
             "07:45:00"
         start_time:
           type: string
+          description: Start Time must be earlier than finish time
           example:
             "08:00:00"
         finish_time:
           type: string
+          description: Finish Time must be later than start time
           example:
-            "15:00:00"
+            "8:45:00"
     SantriSchedule:
       allOf:
         - properties:
@@ -2720,27 +2752,25 @@ components:
             id:
               $ref: "#/components/schemas/Id"
         - $ref: "#/components/schemas/NewRFID"
-    ArduinoModeEnum:
+    DeviceModeEnum:
       type: string
       enum:
-        - excuse
+        - permission
         - presence
         - ping
-        - create
-    NewArduino:
+        - record
+    NewDevice:
       type: object
       properties:
         name:
           type: string
           uniqueItems: true
-        is_active:
-          type: boolean
-    Arduino:
+    Device:
       allOf:
         - properties:
             id:
               $ref: "#/components/schemas/Id"
-        - $ref: "#/components/schemas/NewArduino"
+        - $ref: "#/components/schemas/NewDevice"
         - properties:
             modes:
               type: array
@@ -2748,7 +2778,7 @@ components:
                 type: object
                 properties:
                   mode:
-                    $ref: "#/components/schemas/ArduinoModeEnum"
+                    $ref: "#/components/schemas/DeviceModeEnum"
                   input_topic:
                     type: string
                   acknowledgment_topic:

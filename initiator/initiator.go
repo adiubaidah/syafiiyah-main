@@ -53,7 +53,7 @@ func Init() {
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("santriorder", model.IsValidSantriOrder)
-		v.RegisterValidation("userrole", model.IsValidUserRole)
+		v.RegisterValidation("role", model.IsValidRole)
 		v.RegisterValidation("userorder", model.IsValidUserOrder)
 		v.RegisterValidation("parentorder", model.IsValidParentOrder)
 		v.RegisterValidation("validTime", model.IsValidTime)
@@ -94,8 +94,8 @@ func Init() {
 
 	arduinoUseCase := usecase.NewArduinoUseCase(store)
 	mqttHandler := mqtt.NewMQTTHandler(arduinoUseCase, env.MQTTBroker)
-	arduinoHandler := handler.NewArduinoHandler(logger, arduinoUseCase, mqttHandler)
-	arduinoRouting := routing.ArduinoRouting(arduinoHandler)
+	deviceHandler := handler.NewArduinoHandler(logger, arduinoUseCase, mqttHandler)
+	deviceRouting := routing.DeviceRouting(deviceHandler)
 
 	var routerList []routers.Route
 	routerList = append(routerList, authRouting...)
@@ -105,7 +105,7 @@ func Init() {
 	routerList = append(routerList, santriScheduleRouting...)
 	routerList = append(routerList, santriOccupationRouting...)
 	routerList = append(routerList, santriRouting...)
-	routerList = append(routerList, arduinoRouting...)
+	routerList = append(routerList, deviceRouting...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)
 	server.Serve()

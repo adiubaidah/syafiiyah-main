@@ -6,9 +6,9 @@ import (
 )
 
 type CreateUserRequest struct {
-	Username string `json:"username" binding:"required"`
-	Role     string `json:"role" binding:"userrole"`
-	Password string `json:"password" binding:"required"`
+	Username string      `json:"username" binding:"required"`
+	Role     db.RoleType `json:"role" binding:"required,role"`
+	Password string      `json:"password" binding:"required"`
 }
 
 type UserResponse struct {
@@ -25,24 +25,24 @@ type UserWithPassword struct {
 }
 
 type ListUserRequest struct {
-	Q        string `form:"q"`
-	Order    string `form:"order" binding:"omitempty,userorder"`
-	Limit    int32  `form:"limit" binding:"omitempty,gte=1"`
-	Page     int32  `form:"page" binding:"omitempty,gte=1"`
-	HasOwner int32  `form:"has-owner"`
-	Role     string `form:"role" binding:"omitempty,userrole"`
+	Q        string      `form:"q"`
+	Order    string      `form:"order" binding:"omitempty,userorder"`
+	Limit    int32       `form:"limit" binding:"omitempty,gte=1"`
+	Page     int32       `form:"page" binding:"omitempty,gte=1"`
+	HasOwner int32       `form:"has-owner"`
+	Role     db.RoleType `form:"role" binding:"omitempty,role"`
 }
 
 type UpdateUserRequest struct {
-	Username string `json:"username"`
-	Role     string `json:"role" binding:"userrole"`
-	Password string `json:"password"`
+	Username string      `json:"username"`
+	Role     db.RoleType `json:"role" binding:"omitempty,role"`
+	Password string      `json:"password"`
 }
 
 type UserComplete struct {
 	ID          int32  `json:"id"`
 	Username    string `json:"username"`
-	Role        string `json:"role" binding:"userrole"`
+	Role        string `json:"role"`
 	UserDetails `json:"details"`
 }
 
@@ -56,20 +56,20 @@ type ListUserResponse struct {
 	Pagination Pagination     `json:"pagination"`
 }
 
-func IsValidUserRole(fl validator.FieldLevel) bool {
-	role := db.UserRole(fl.Field().String())
-	switch role {
-	case db.UserRoleSuperadmin, db.UserRoleAdmin, db.UserRoleEmployee, db.UserRoleParent:
+func IsValidUserOrder(fl validator.FieldLevel) bool {
+	order := db.UserOrderBy(fl.Field().String())
+	switch order {
+	case db.UserOrderByAscUsername, db.UserOrderByDescUsername, db.UserOrderByAscName, db.UserOrderByDescName:
 		return true
 	default:
 		return false
 	}
 }
 
-func IsValidUserOrder(fl validator.FieldLevel) bool {
-	order := db.UserOrderBy(fl.Field().String())
-	switch order {
-	case db.UserOrderByAscUsername, db.UserOrderByDescUsername, db.UserOrderByAscName, db.UserOrderByDescName:
+func IsValidRole(fl validator.FieldLevel) bool {
+	role := db.RoleType(fl.Field().String())
+	switch role {
+	case db.RoleTypeAdmin, db.RoleTypeEmployee, db.RoleTypeParent, db.RoleTypeSuperadmin:
 		return true
 	default:
 		return false

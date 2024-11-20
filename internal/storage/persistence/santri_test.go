@@ -19,7 +19,7 @@ func createRandomSantri(t *testing.T) Santri {
 	arg := CreateSantriParams{
 		Name:       random.RandomString(8),
 		Nis:        pgtype.Text{String: random.RandomString(15), Valid: true},
-		Gender:     GenderMale,
+		Gender:     GenderTypeMale,
 		Generation: int32(random.RandomInt(2010, 2030)),
 		IsActive:   pgtype.Bool{Bool: random.RandomBool(), Valid: true},
 		Photo:      pgtype.Text{String: random.RandomString(12), Valid: true},
@@ -44,7 +44,7 @@ func createRandomSantriWithParent(t *testing.T) (Santri, Parent) {
 	arg := CreateSantriParams{
 		Name:       random.RandomString(8),
 		Nis:        pgtype.Text{String: random.RandomString(15), Valid: true},
-		Gender:     GenderMale,
+		Gender:     GenderTypeMale,
 		Generation: int32(random.RandomInt(2010, 2030)),
 		Photo:      pgtype.Text{String: random.RandomString(12), Valid: true},
 		ParentID:   pgtype.Int4{Int32: parent.ID, Valid: true},
@@ -274,7 +274,7 @@ func TestUpdateSantri(t *testing.T) {
 	arg := UpdateSantriParams{
 		ID:         santri.ID,
 		Name:       pgtype.Text{String: random.RandomString(8), Valid: true},
-		Gender:     NullGender{Valid: false},
+		Gender:     NullGenderType{Valid: false},
 		Nis:        pgtype.Text{String: random.RandomString(15), Valid: true},
 		IsActive:   pgtype.Bool{Bool: random.RandomBool(), Valid: true},
 		Generation: pgtype.Int4{Int32: int32(random.RandomInt(2010, 2030)), Valid: true},

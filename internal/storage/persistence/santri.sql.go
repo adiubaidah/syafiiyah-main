@@ -85,7 +85,7 @@ VALUES
 type CreateSantriParams struct {
 	Nis          pgtype.Text `db:"nis"`
 	Name         string      `db:"name"`
-	Gender       Gender      `db:"gender"`
+	Gender       GenderType  `db:"gender"`
 	IsActive     pgtype.Bool `db:"is_active"`
 	Generation   int32       `db:"generation"`
 	Photo        pgtype.Text `db:"photo"`
@@ -163,7 +163,7 @@ type GetSantriRow struct {
 	ID                   int32       `db:"id"`
 	Nis                  pgtype.Text `db:"nis"`
 	Name                 string      `db:"name"`
-	Gender               Gender      `db:"gender"`
+	Gender               GenderType  `db:"gender"`
 	Generation           int32       `db:"generation"`
 	IsActive             pgtype.Bool `db:"is_active"`
 	Photo                pgtype.Text `db:"photo"`
@@ -206,7 +206,7 @@ SET
     "name" = COALESCE($2, name),
     "generation" = COALESCE($3, generation),
     "is_active" = COALESCE($4 :: boolean, is_active),
-    "gender" = COALESCE($5 :: gender, gender),
+    "gender" = COALESCE($5::gender_type, gender),
     "photo" = COALESCE($6, photo),
     "occupation_id"= $7,
     "parent_id" = $8
@@ -215,15 +215,15 @@ WHERE
 `
 
 type UpdateSantriParams struct {
-	Nis          pgtype.Text `db:"nis"`
-	Name         pgtype.Text `db:"name"`
-	Generation   pgtype.Int4 `db:"generation"`
-	IsActive     pgtype.Bool `db:"is_active"`
-	Gender       NullGender  `db:"gender"`
-	Photo        pgtype.Text `db:"photo"`
-	OccupationID pgtype.Int4 `db:"occupation_id"`
-	ParentID     pgtype.Int4 `db:"parent_id"`
-	ID           int32       `db:"id"`
+	Nis          pgtype.Text    `db:"nis"`
+	Name         pgtype.Text    `db:"name"`
+	Generation   pgtype.Int4    `db:"generation"`
+	IsActive     pgtype.Bool    `db:"is_active"`
+	Gender       NullGenderType `db:"gender"`
+	Photo        pgtype.Text    `db:"photo"`
+	OccupationID pgtype.Int4    `db:"occupation_id"`
+	ParentID     pgtype.Int4    `db:"parent_id"`
+	ID           int32          `db:"id"`
 }
 
 func (q *Queries) UpdateSantri(ctx context.Context, arg UpdateSantriParams) (Santri, error) {

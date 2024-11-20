@@ -35,7 +35,7 @@ VALUES
 type CreateEmployeeParams struct {
 	Nip          pgtype.Text `db:"nip"`
 	Name         string      `db:"name"`
-	Gender       Gender      `db:"gender"`
+	Gender       GenderType  `db:"gender"`
 	Photo        pgtype.Text `db:"photo"`
 	OccupationID int32       `db:"occupation_id"`
 	UserID       pgtype.Int4 `db:"user_id"`
@@ -102,7 +102,7 @@ type GetEmployeeRow struct {
 	ID           int32       `db:"id"`
 	Nip          pgtype.Text `db:"nip"`
 	Name         string      `db:"name"`
-	Gender       Gender      `db:"gender"`
+	Gender       GenderType  `db:"gender"`
 	Photo        pgtype.Text `db:"photo"`
 	OccupationID int32       `db:"occupation_id"`
 	UserID       pgtype.Int4 `db:"user_id"`
@@ -169,7 +169,7 @@ type ListEmployeesAscRow struct {
 	ID           int32       `db:"id"`
 	Nip          pgtype.Text `db:"nip"`
 	Name         string      `db:"name"`
-	Gender       Gender      `db:"gender"`
+	Gender       GenderType  `db:"gender"`
 	Photo        pgtype.Text `db:"photo"`
 	OccupationID int32       `db:"occupation_id"`
 	UserID       pgtype.Int4 `db:"user_id"`
@@ -218,7 +218,7 @@ UPDATE
 SET
     "nip" = $1,
     "name" = COALESCE($2, name),
-    "gender" = COALESCE($3::gender, gender),
+    "gender" = COALESCE($3::gender_type, gender),
     "photo" = $4,
     "occupation_id" = COALESCE($5, occupation_id),
     "user_id" = $6
@@ -227,13 +227,13 @@ WHERE
 `
 
 type UpdateEmployeeParams struct {
-	Nip          pgtype.Text `db:"nip"`
-	Name         pgtype.Text `db:"name"`
-	Gender       NullGender  `db:"gender"`
-	Photo        pgtype.Text `db:"photo"`
-	OccupationID pgtype.Int4 `db:"occupation_id"`
-	UserID       pgtype.Int4 `db:"user_id"`
-	ID           int32       `db:"id"`
+	Nip          pgtype.Text    `db:"nip"`
+	Name         pgtype.Text    `db:"name"`
+	Gender       NullGenderType `db:"gender"`
+	Photo        pgtype.Text    `db:"photo"`
+	OccupationID pgtype.Int4    `db:"occupation_id"`
+	UserID       pgtype.Int4    `db:"user_id"`
+	ID           int32          `db:"id"`
 }
 
 func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) (Employee, error) {

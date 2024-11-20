@@ -18,7 +18,7 @@ func createRandomParent(t *testing.T) Parent {
 	arg := CreateParentParams{
 		Name:           random.RandomString(8),
 		Address:        random.RandomString(50),
-		Gender:         GenderMale,
+		Gender:         GenderTypeMale,
 		WhatsappNumber: pgtype.Text{String: random.RandomString(12), Valid: true},
 		Photo:          pgtype.Text{String: random.RandomString(12), Valid: true},
 	}
@@ -36,11 +36,11 @@ func createRandomParent(t *testing.T) Parent {
 }
 
 func createRandomParentWithUser(t *testing.T) (Parent, User) {
-	user := createRandomUser(t, UserRoleParent)
+	user := createRandomUser(t, RoleTypeParent)
 	arg := CreateParentParams{
 		Name:           random.RandomString(8),
 		Address:        random.RandomString(50),
-		Gender:         GenderMale,
+		Gender:         GenderTypeMale,
 		WhatsappNumber: pgtype.Text{String: random.RandomString(12), Valid: true},
 		Photo:          pgtype.Text{String: random.RandomString(12), Valid: true},
 		UserID:         pgtype.Int4{Int32: user.ID, Valid: true},
@@ -243,7 +243,7 @@ func TestUpdateParent(t *testing.T) {
 	arg := UpdateParentParams{
 		ID:             parent1.ID,
 		Name:           pgtype.Text{String: newName, Valid: true},
-		Gender:         NullGender{Valid: false},
+		Gender:         NullGenderType{Valid: false},
 		Address:        pgtype.Text{String: newAddress, Valid: true},
 		WhatsappNumber: pgtype.Text{String: newNoWa, Valid: true},
 		Photo:          pgtype.Text{String: newPhoto, Valid: true},

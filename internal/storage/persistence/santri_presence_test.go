@@ -25,7 +25,7 @@ func createRandomSantriPresence(t *testing.T) SantriPresence {
 		ScheduleName: schedule.Name,
 		Type:         types[random.RandomInt(0, int64(n-1))],
 		Notes:        pgtype.Text{Valid: false},
-		CreatedBy:    PresenceCreatedByTap,
+		CreatedBy:    PresenceCreatedByTypeTap,
 	}
 
 	santriPresence, err := testStore.CreateSantriPresence(context.Background(), arg)

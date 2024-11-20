@@ -32,7 +32,7 @@ func (c *parentService) CreateParent(ctx context.Context, request *model.CreateP
 		Name:           request.Name,
 		Address:        request.Address,
 		WhatsappNumber: pgtype.Text{String: request.WhatsappNumber, Valid: request.WhatsappNumber != ""},
-		Gender:         db.Gender(request.Gender),
+		Gender:         request.Gender,
 		Photo:          pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		UserID:         pgtype.Int4{Int32: request.UserID, Valid: request.UserID != 0},
 	}
@@ -105,7 +105,7 @@ func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateP
 		Name:           pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Address:        pgtype.Text{String: request.Address, Valid: request.Address != ""},
 		WhatsappNumber: pgtype.Text{String: request.WhatsappNumber, Valid: request.WhatsappNumber != ""},
-		Gender:         db.NullGender{Gender: request.Gender, Valid: true},
+		Gender:         db.NullGenderType{GenderType: request.Gender, Valid: true},
 		Photo:          pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		UserID:         pgtype.Int4{Int32: request.UserID, Valid: request.UserID != 0},
 	}

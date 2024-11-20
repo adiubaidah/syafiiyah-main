@@ -11,89 +11,90 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type ArduinoModeType string
+type DeviceModeType string
 
 const (
-	ArduinoModeTypeRecord   ArduinoModeType = "record"
-	ArduinoModeTypePresence ArduinoModeType = "presence"
-	ArduinoModeTypeExcuse   ArduinoModeType = "excuse"
+	DeviceModeTypeRecord     DeviceModeType = "record"
+	DeviceModeTypePresence   DeviceModeType = "presence"
+	DeviceModeTypePermission DeviceModeType = "permission"
+	DeviceModeTypePing       DeviceModeType = "ping"
 )
 
-func (e *ArduinoModeType) Scan(src interface{}) error {
+func (e *DeviceModeType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = ArduinoModeType(s)
+		*e = DeviceModeType(s)
 	case string:
-		*e = ArduinoModeType(s)
+		*e = DeviceModeType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for ArduinoModeType: %T", src)
+		return fmt.Errorf("unsupported scan type for DeviceModeType: %T", src)
 	}
 	return nil
 }
 
-type NullArduinoModeType struct {
-	ArduinoModeType ArduinoModeType
-	Valid           bool // Valid is true if ArduinoModeType is not NULL
+type NullDeviceModeType struct {
+	DeviceModeType DeviceModeType
+	Valid          bool // Valid is true if DeviceModeType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullArduinoModeType) Scan(value interface{}) error {
+func (ns *NullDeviceModeType) Scan(value interface{}) error {
 	if value == nil {
-		ns.ArduinoModeType, ns.Valid = "", false
+		ns.DeviceModeType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.ArduinoModeType.Scan(value)
+	return ns.DeviceModeType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullArduinoModeType) Value() (driver.Value, error) {
+func (ns NullDeviceModeType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.ArduinoModeType), nil
+	return string(ns.DeviceModeType), nil
 }
 
-type Gender string
+type GenderType string
 
 const (
-	GenderMale   Gender = "male"
-	GenderFemale Gender = "female"
+	GenderTypeMale   GenderType = "male"
+	GenderTypeFemale GenderType = "female"
 )
 
-func (e *Gender) Scan(src interface{}) error {
+func (e *GenderType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = Gender(s)
+		*e = GenderType(s)
 	case string:
-		*e = Gender(s)
+		*e = GenderType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for Gender: %T", src)
+		return fmt.Errorf("unsupported scan type for GenderType: %T", src)
 	}
 	return nil
 }
 
-type NullGender struct {
-	Gender Gender
-	Valid  bool // Valid is true if Gender is not NULL
+type NullGenderType struct {
+	GenderType GenderType
+	Valid      bool // Valid is true if GenderType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullGender) Scan(value interface{}) error {
+func (ns *NullGenderType) Scan(value interface{}) error {
 	if value == nil {
-		ns.Gender, ns.Valid = "", false
+		ns.GenderType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.Gender.Scan(value)
+	return ns.GenderType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullGender) Value() (driver.Value, error) {
+func (ns NullGenderType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.Gender), nil
+	return string(ns.GenderType), nil
 }
 
 type ParentOrderBy string
@@ -138,47 +139,47 @@ func (ns NullParentOrderBy) Value() (driver.Value, error) {
 	return string(ns.ParentOrderBy), nil
 }
 
-type PresenceCreatedBy string
+type PresenceCreatedByType string
 
 const (
-	PresenceCreatedBySystem PresenceCreatedBy = "system"
-	PresenceCreatedByTap    PresenceCreatedBy = "tap"
-	PresenceCreatedByAdmin  PresenceCreatedBy = "admin"
+	PresenceCreatedByTypeSystem PresenceCreatedByType = "system"
+	PresenceCreatedByTypeTap    PresenceCreatedByType = "tap"
+	PresenceCreatedByTypeAdmin  PresenceCreatedByType = "admin"
 )
 
-func (e *PresenceCreatedBy) Scan(src interface{}) error {
+func (e *PresenceCreatedByType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = PresenceCreatedBy(s)
+		*e = PresenceCreatedByType(s)
 	case string:
-		*e = PresenceCreatedBy(s)
+		*e = PresenceCreatedByType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for PresenceCreatedBy: %T", src)
+		return fmt.Errorf("unsupported scan type for PresenceCreatedByType: %T", src)
 	}
 	return nil
 }
 
-type NullPresenceCreatedBy struct {
-	PresenceCreatedBy PresenceCreatedBy
-	Valid             bool // Valid is true if PresenceCreatedBy is not NULL
+type NullPresenceCreatedByType struct {
+	PresenceCreatedByType PresenceCreatedByType
+	Valid                 bool // Valid is true if PresenceCreatedByType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullPresenceCreatedBy) Scan(value interface{}) error {
+func (ns *NullPresenceCreatedByType) Scan(value interface{}) error {
 	if value == nil {
-		ns.PresenceCreatedBy, ns.Valid = "", false
+		ns.PresenceCreatedByType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.PresenceCreatedBy.Scan(value)
+	return ns.PresenceCreatedByType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullPresenceCreatedBy) Value() (driver.Value, error) {
+func (ns NullPresenceCreatedByType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.PresenceCreatedBy), nil
+	return string(ns.PresenceCreatedByType), nil
 }
 
 type PresenceType string
@@ -224,6 +225,50 @@ func (ns NullPresenceType) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.PresenceType), nil
+}
+
+type RoleType string
+
+const (
+	RoleTypeSuperadmin RoleType = "superadmin"
+	RoleTypeAdmin      RoleType = "admin"
+	RoleTypeEmployee   RoleType = "employee"
+	RoleTypeParent     RoleType = "parent"
+)
+
+func (e *RoleType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RoleType(s)
+	case string:
+		*e = RoleType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RoleType: %T", src)
+	}
+	return nil
+}
+
+type NullRoleType struct {
+	RoleType RoleType
+	Valid    bool // Valid is true if RoleType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRoleType) Scan(value interface{}) error {
+	if value == nil {
+		ns.RoleType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RoleType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRoleType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RoleType), nil
 }
 
 type SantriOrderBy string
@@ -358,71 +403,33 @@ func (ns NullUserOrderBy) Value() (driver.Value, error) {
 	return string(ns.UserOrderBy), nil
 }
 
-type UserRole string
-
-const (
-	UserRoleSuperadmin UserRole = "superadmin"
-	UserRoleAdmin      UserRole = "admin"
-	UserRoleEmployee   UserRole = "employee"
-	UserRoleParent     UserRole = "parent"
-)
-
-func (e *UserRole) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = UserRole(s)
-	case string:
-		*e = UserRole(s)
-	default:
-		return fmt.Errorf("unsupported scan type for UserRole: %T", src)
-	}
-	return nil
+type AdminRestriction struct {
+	ID                   int32 `db:"id"`
+	AdminID              int32 `db:"admin_id"`
+	RestrictedEmployeeID int32 `db:"restricted_employee_id"`
 }
 
-type NullUserRole struct {
-	UserRole UserRole
-	Valid    bool // Valid is true if UserRole is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullUserRole) Scan(value interface{}) error {
-	if value == nil {
-		ns.UserRole, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.UserRole.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullUserRole) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.UserRole), nil
-}
-
-type Arduino struct {
+type Device struct {
 	ID int32 `db:"id"`
-	// ex: arduino1
+	// ex: device1
 	Name string `db:"name"`
 }
 
-type ArduinoMode struct {
-	ID   int32           `db:"id"`
-	Mode ArduinoModeType `db:"mode"`
+type DeviceMode struct {
+	ID   int32          `db:"id"`
+	Mode DeviceModeType `db:"mode"`
 	// topic for input
 	InputTopic string `db:"input_topic"`
 	// topic for acknowledgment
 	AcknowledgmentTopic string `db:"acknowledgment_topic"`
-	ArduinoID           int32  `db:"arduino_id"`
+	DeviceID            int32  `db:"device_id"`
 }
 
 type Employee struct {
 	ID           int32       `db:"id"`
 	Nip          pgtype.Text `db:"nip"`
 	Name         string      `db:"name"`
-	Gender       Gender      `db:"gender"`
+	Gender       GenderType  `db:"gender"`
 	Photo        pgtype.Text `db:"photo"`
 	OccupationID int32       `db:"occupation_id"`
 	UserID       pgtype.Int4 `db:"user_id"`
@@ -483,7 +490,7 @@ type Parent struct {
 	ID             int32       `db:"id"`
 	Name           string      `db:"name"`
 	Address        string      `db:"address"`
-	Gender         Gender      `db:"gender"`
+	Gender         GenderType  `db:"gender"`
 	WhatsappNumber pgtype.Text `db:"whatsapp_number"`
 	Photo          pgtype.Text `db:"photo"`
 	UserID         pgtype.Int4 `db:"user_id"`
@@ -504,7 +511,7 @@ type Santri struct {
 	ID     int32       `db:"id"`
 	Nis    pgtype.Text `db:"nis"`
 	Name   string      `db:"name"`
-	Gender Gender      `db:"gender"`
+	Gender GenderType  `db:"gender"`
 	// ex: 2024, 2022
 	Generation   int32       `db:"generation"`
 	IsActive     pgtype.Bool `db:"is_active"`
@@ -534,12 +541,12 @@ type SantriPresence struct {
 	// Karena bisa saja activitynya dihapus
 	ScheduleID int32 `db:"schedule_id"`
 	// menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history
-	ScheduleName string             `db:"schedule_name"`
-	Type         PresenceType       `db:"type"`
-	SantriID     int32              `db:"santri_id"`
-	CreatedAt    pgtype.Timestamptz `db:"created_at"`
-	CreatedBy    PresenceCreatedBy  `db:"created_by"`
-	Notes        pgtype.Text        `db:"notes"`
+	ScheduleName string                `db:"schedule_name"`
+	Type         PresenceType          `db:"type"`
+	SantriID     int32                 `db:"santri_id"`
+	CreatedAt    pgtype.Timestamptz    `db:"created_at"`
+	CreatedBy    PresenceCreatedByType `db:"created_by"`
+	Notes        pgtype.Text           `db:"notes"`
 	// Jika izin ditengah kegiatan maka akan diisi
 	SantriPermissionID pgtype.Int4 `db:"santri_permission_id"`
 }
@@ -557,7 +564,7 @@ type SantriSchedule struct {
 
 type User struct {
 	ID       int32        `db:"id"`
-	Role     NullUserRole `db:"role"`
+	Role     NullRoleType `db:"role"`
 	Username pgtype.Text  `db:"username"`
 	Password pgtype.Text  `db:"password"`
 }

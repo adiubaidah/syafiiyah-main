@@ -3,7 +3,7 @@ INSERT INTO
     "user" ("role", "username", "password")
 VALUES
     (
-        @role :: user_role,
+        @role :: role_type,
         @username :: text,
         @password :: text
     ) RETURNING *;
@@ -21,7 +21,7 @@ WHERE
         OR "username" ILIKE '%' || sqlc.narg(q) || '%'
     )
     AND (
-        sqlc.narg(role) :: user_role IS NULL
+        sqlc.narg(role) :: role_type  IS NULL
         OR "role" = sqlc.narg(role)
     )
     AND (
@@ -64,7 +64,7 @@ LIMIT
 UPDATE
     "user"
 SET
-    "role" = COALESCE(sqlc.narg(role)::user_role, "role"),
+    "role" = COALESCE(sqlc.narg(role)::role_type, "role"),
     "username" = COALESCE(sqlc.narg(username), "username"),
     "password" = COALESCE(sqlc.narg(password), "password")
 WHERE

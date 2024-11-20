@@ -6,56 +6,56 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (store *SQLStore) CreateArduinoWithModes(ctx context.Context, arduinoName string, modeParams []CreateArduinoModesParams) (Arduino, error) {
-	var createdArduino Arduino
+func (store *SQLStore) CreateArduinoWithModes(ctx context.Context, arduinoName string, modeParams []CreateDeviceModesParams) (Device, error) {
+	var createdDevice Device
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		arduino, err := q.CreateArduino(ctx, arduinoName)
+		device, err := q.CreateDevice(ctx, arduinoName)
 		if err != nil {
 			return err
 		}
-		createdArduino = arduino
+		createdDevice = device
 
 		for i := range modeParams {
-			modeParams[i].ArduinoID = arduino.ID
+			modeParams[i].DeviceID = device.ID
 		}
-		_, err = q.CreateArduinoModes(ctx, modeParams)
+		_, err = q.CreateDeviceModes(ctx, modeParams)
 		return err
 
 	})
-	return createdArduino, err
+	return createdDevice, err
 }
 
-func (store *SQLStore) UpdateArduinoWithModes(ctx context.Context, arduinoID int32,
+func (store *SQLStore) UpdateArduinoWithModes(ctx context.Context, deviceID int32,
 	name string,
-	modeParams []CreateArduinoModesParams) (Arduino, error) {
-	var updatedArduino Arduino
+	modeParams []CreateDeviceModesParams) (Device, error) {
+	var updatedArduino Device
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		arduino, err := q.UpdateArduino(ctx, UpdateArduinoParams{
-			ID:   arduinoID,
+		device, err := q.UpdateDevice(ctx, UpdateDeviceParams{
+			ID:   deviceID,
 			Name: pgtype.Text{String: name, Valid: name != ""},
 		})
 		if err != nil {
 			return err
 		}
 
-		updatedArduino = arduino
+		updatedArduino = device
 
-		err = q.DeleteArduinoModeByArduinoId(ctx, arduinoID)
+		err = q.DeleteDeviceModeByDeviceId(ctx, deviceID)
 		if err != nil {
 			return err
 		}
 
 		for i := range modeParams {
-			modeParams[i].ArduinoID = arduinoID
+			modeParams[i].DeviceID = device.ID
 		}
 
-		_, err = q.CreateArduinoModes(ctx, modeParams)
+		_, err = q.CreateDeviceModes(ctx, modeParams)
 		return err
 
 	})

@@ -15,7 +15,7 @@ func clearUserTable(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func createRandomUser(t *testing.T, role UserRole) User {
+func createRandomUser(t *testing.T, role RoleType) User {
 	hashedPassword, err := util.HashPassword(random.RandomString(6))
 	require.NoError(t, err)
 	arg := CreateUserParams{
@@ -28,7 +28,7 @@ func createRandomUser(t *testing.T, role UserRole) User {
 	require.NotEmpty(t, user)
 
 	require.Equal(t, arg.Username, user.Username.String)
-	require.Equal(t, arg.Role, user.Role.UserRole)
+	require.Equal(t, arg.Role, user.Role.RoleType)
 
 	return user
 }
@@ -37,12 +37,12 @@ func TestCreateUser(t *testing.T) {
 	clearParentTable(t)
 	clearEmployeeTable(t)
 	clearUserTable(t)
-	roles := []UserRole{UserRoleSuperadmin, UserRoleAdmin, UserRoleEmployee, UserRoleParent}
+	roles := []RoleType{RoleTypeSuperadmin, RoleTypeAdmin, RoleTypeEmployee, RoleTypeParent}
 	n := len(roles)
 	createRandomUser(t, roles[random.RandomInt(0, int64(n-1))])
 }
 
-func TestListUsersRelation(t *testing.T) {
+func TestListUsersOwner(t *testing.T) {
 	clearEmployeeTable(t)
 	clearParentTable(t)
 	clearUserTable(t)
@@ -53,7 +53,7 @@ func TestListUsersRelation(t *testing.T) {
 	t.Run("Should return users matching List", func(t *testing.T) {
 		arg := ListUserParams{
 			Q:            pgtype.Text{String: parentUser1.Username.String, Valid: true},
-			Role:         NullUserRole{Valid: false},
+			Role:         NullRoleType{Valid: false},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 			HasOwner:     pgtype.Bool{Valid: false},
@@ -68,7 +68,7 @@ func TestListUsersRelation(t *testing.T) {
 	t.Run("list user should match role", func(t *testing.T) {
 		arg := ListUserParams{
 			Q:            pgtype.Text{String: "", Valid: false},
-			Role:         NullUserRole{Valid: true, UserRole: UserRoleParent},
+			Role:         NullRoleType{Valid: true, RoleType: RoleTypeParent},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 			HasOwner:     pgtype.Bool{Valid: false},
@@ -78,7 +78,7 @@ func TestListUsersRelation(t *testing.T) {
 		require.NotEmpty(t, users)
 
 		for _, user := range users {
-			require.Equal(t, UserRoleParent, user.Role)
+			require.Equal(t, RoleTypeParent, user.Role)
 		}
 	})
 
@@ -86,7 +86,7 @@ func TestListUsersRelation(t *testing.T) {
 
 		arg := ListUserParams{
 			Q:            pgtype.Text{String: "", Valid: false},
-			Role:         NullUserRole{Valid: false},
+			Role:         NullRoleType{Valid: false},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 			HasOwner:     pgtype.Bool{Valid: true, Bool: true},
@@ -110,7 +110,7 @@ func TestListUsersRelation(t *testing.T) {
 func TestListUserPagination(t *testing.T) {
 	clearUserTable(t)
 	for i := 0; i < 10; i++ {
-		createRandomUser(t, UserRoleSuperadmin)
+		createRandomUser(t, RoleTypeSuperadmin)
 	}
 
 	testCases := []struct {
@@ -156,7 +156,7 @@ func TestListUserPagination(t *testing.T) {
 func TestCountUsers(t *testing.T) {
 	clearUserTable(t)
 	for i := 0; i < 5; i++ {
-		createRandomUser(t, UserRoleSuperadmin)
+		createRandomUser(t, RoleTypeSuperadmin)
 	}
 
 	count, err := testStore.CountUsers(context.Background(), CountUsersParams{})
@@ -166,11 +166,11 @@ func TestCountUsers(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	clearUserTable(t)
-	user1 := createRandomUser(t, UserRoleSuperadmin)
+	user1 := createRandomUser(t, RoleTypeSuperadmin)
 
 	arg := UpdateUserParams{
 		Username: pgtype.Text{String: random.RandomString(8), Valid: true},
-		Role:     NullUserRole{Valid: true, UserRole: UserRoleAdmin},
+		Role:     NullRoleType{Valid: true, RoleType: RoleTypeAdmin},
 		ID:       user1.ID,
 	}
 
@@ -179,12 +179,12 @@ func TestUpdateUser(t *testing.T) {
 	require.NotEmpty(t, user)
 
 	require.Equal(t, arg.Username.String, user.Username.String)
-	require.Equal(t, arg.Role.UserRole, user.Role.UserRole)
+	require.Equal(t, arg.Role.RoleType, user.Role.RoleType)
 }
 
 func TestDeleteUser(t *testing.T) {
 	clearUserTable(t)
-	user1 := createRandomUser(t, UserRoleSuperadmin)
+	user1 := createRandomUser(t, RoleTypeSuperadmin)
 
 	userDeleted, err := testStore.DeleteUser(context.Background(), user1.ID)
 	require.NoError(t, err)
@@ -192,5 +192,5 @@ func TestDeleteUser(t *testing.T) {
 
 	require.Equal(t, user1.ID, userDeleted.ID)
 	require.Equal(t, user1.Username.String, userDeleted.Username.String)
-	require.Equal(t, user1.Role.UserRole, userDeleted.Role.UserRole)
+	require.Equal(t, user1.Role.RoleType, userDeleted.Role.RoleType)
 }

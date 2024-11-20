@@ -37,7 +37,7 @@ func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserR
 
 	createdUser, err := c.store.CreateUser(ctx, db.CreateUserParams{
 		Username: request.Username,
-		Role:     db.UserRole(request.Role),
+		Role:     request.Role,
 		Password: hashedPassword,
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserR
 	return model.UserResponse{
 		ID:       createdUser.ID,
 		Username: createdUser.Username.String,
-		Role:     string(createdUser.Role.UserRole),
+		Role:     string(createdUser.Role.RoleType),
 	}, nil
 
 }
@@ -56,7 +56,7 @@ func (c *userService) ListUsers(ctx context.Context, request *model.ListUserRequ
 
 	arg := db.ListUserParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
-		Role:         db.NullUserRole{UserRole: db.UserRole(request.Role), Valid: request.Role != ""},
+		Role:         db.NullRoleType{RoleType: request.Role, Valid: true},
 		HasOwner:     pgtype.Bool{Bool: request.HasOwner == 1, Valid: request.HasOwner != 0},
 		LimitNumber:  request.Limit,
 		OffsetNumber: (request.Page - 1) * request.Limit,
@@ -97,7 +97,7 @@ func (c *userService) GetUser(ctx context.Context, userId int32, username string
 	return model.UserWithPassword{
 		ID:       user.ID,
 		Username: user.Username.String,
-		Role:     string(user.Role.UserRole),
+		Role:     string(user.Role.RoleType),
 		Password: user.Password.String,
 	}, nil
 }
@@ -106,7 +106,7 @@ func (c *userService) CountUsers(ctx context.Context, request *model.ListUserReq
 	count, err := c.store.CountUsers(ctx, db.CountUsersParams{
 		Q:        pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasOwner: pgtype.Bool{Bool: request.HasOwner == 1, Valid: request.HasOwner != -1},
-		Role:     db.NullUserRole{UserRole: db.UserRole(request.Role), Valid: request.Role != ""},
+		Role:     db.NullRoleType{RoleType: request.Role, Valid: true},
 	})
 	if err != nil {
 		return 0, err
@@ -129,7 +129,7 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 	updatedUser, err := c.store.UpdateUser(ctx, db.UpdateUserParams{
 		ID:       userId,
 		Username: pgtype.Text{String: request.Username, Valid: request.Username != ""},
-		Role:     db.NullUserRole{UserRole: db.UserRole(request.Role), Valid: request.Role != ""},
+		Role:     db.NullRoleType{RoleType: request.Role, Valid: true},
 		Password: pgtype.Text{String: newPassword, Valid: newPassword != ""},
 	})
 	if err != nil {
@@ -142,7 +142,7 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 	return model.UserResponse{
 		ID:       updatedUser.ID,
 		Username: updatedUser.Username.String,
-		Role:     string(updatedUser.Role.UserRole),
+		Role:     string(updatedUser.Role.RoleType),
 	}, nil
 }
 
@@ -160,6 +160,6 @@ func (c *userService) DeleteUser(ctx context.Context, userId int32) (model.UserR
 	return model.UserResponse{
 		ID:       userDeleted.ID,
 		Username: userDeleted.Username.String,
-		Role:     string(userDeleted.Role.UserRole),
+		Role:     string(userDeleted.Role.RoleType),
 	}, nil
 }

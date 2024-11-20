@@ -92,7 +92,7 @@ SET
     "name" = COALESCE(sqlc.narg(name), name),
     "generation" = COALESCE(sqlc.narg(generation), generation),
     "is_active" = COALESCE(sqlc.narg(is_active) :: boolean, is_active),
-    "gender" = COALESCE(sqlc.narg(gender) :: gender, gender),
+    "gender" = COALESCE(sqlc.narg(gender)::gender_type, gender),
     "photo" = COALESCE(sqlc.narg(photo), photo),
     "occupation_id"= sqlc.narg(occupation_id),
     "parent_id" = sqlc.narg(parent_id)

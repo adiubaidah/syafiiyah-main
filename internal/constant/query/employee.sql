@@ -54,7 +54,7 @@ UPDATE
 SET
     "nip" = sqlc.narg(nip),
     "name" = COALESCE(sqlc.narg(name), name),
-    "gender" = COALESCE(sqlc.narg(gender)::gender, gender),
+    "gender" = COALESCE(sqlc.narg(gender)::gender_type, gender),
     "photo" = sqlc.narg(photo),
     "occupation_id" = COALESCE(sqlc.narg(occupation_id), occupation_id),
     "user_id" = sqlc.narg(user_id)

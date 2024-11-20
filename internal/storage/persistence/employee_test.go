@@ -20,7 +20,7 @@ func createRandomEmployee(t *testing.T) Employee {
 	arg := CreateEmployeeParams{
 		Nip:          pgtype.Text{String: random.RandomString(18), Valid: true},
 		Name:         random.RandomString(8),
-		Gender:       GenderMale,
+		Gender:       GenderTypeMale,
 		Photo:        pgtype.Text{String: random.RandomString(12), Valid: true},
 		OccupationID: occupation.ID,
 	}
@@ -38,11 +38,11 @@ func createRandomEmployee(t *testing.T) Employee {
 }
 func createRandomEmployeeWithUser(t *testing.T) (Employee, User) {
 	occupation := createRandomEmployeeOccupation(t)
-	user := createRandomUser(t, UserRoleEmployee)
+	user := createRandomUser(t, RoleTypeEmployee)
 	arg := CreateEmployeeParams{
 		Nip:          pgtype.Text{String: random.RandomString(18), Valid: true},
 		Name:         random.RandomString(8),
-		Gender:       GenderMale,
+		Gender:       GenderTypeMale,
 		Photo:        pgtype.Text{String: random.RandomString(12), Valid: true},
 		OccupationID: occupation.ID,
 		UserID:       pgtype.Int4{Int32: user.ID, Valid: true},
@@ -215,7 +215,7 @@ func TestUpdateEmployee(t *testing.T) {
 		ID:           employee1.ID,
 		Nip:          pgtype.Text{String: random.RandomString(18), Valid: true},
 		Name:         pgtype.Text{String: random.RandomString(8), Valid: true},
-		Gender:       NullGender{Valid: false},
+		Gender:       NullGenderType{Valid: false},
 		Photo:        pgtype.Text{String: newPhoto, Valid: true},
 		OccupationID: pgtype.Int4{Int32: employee1.OccupationID, Valid: true},
 		UserID:       employee1.UserID,

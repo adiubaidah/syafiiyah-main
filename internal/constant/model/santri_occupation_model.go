@@ -1,25 +1,22 @@
 package model
 
-type BaseSantriOccupation struct {
+type CreateSantriOccupationRequest struct {
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description"`
+}
+
+type UpdateSantriOccupationRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-type CreateSantriOccupationRequest struct {
-	BaseSantriOccupation
-}
-
-type UpdateSantriOccupationRequest struct {
-	BaseSantriOccupation
-}
-
 type SantriOccupationResponse struct {
-	ID int32 `json:"id"`
-	BaseSantriOccupation
+	ID          int32  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type SantriOccupationWithCountResponse struct {
-	ID int32 `json:"id"`
-	BaseSantriOccupation
+	SantriOccupationResponse
 	Count int32 `json:"count"`
 }

@@ -20,7 +20,7 @@ CREATE OR REPLACE FUNCTION list_santri(
 ) RETURNS TABLE (
     id INTEGER,
     name TEXT,
-    gender gender,
+    gender gender_type,
     nis TEXT,
     generation INTEGER,
     is_active BOOLEAN,
@@ -60,7 +60,7 @@ BEGIN
         SELECT
             santri.id,
             santri.name::text,
-            santri.gender::gender,
+            santri.gender::gender_type,
             santri.nis::text,
             santri.generation,
             santri.is_active::boolean,
@@ -100,7 +100,7 @@ CREATE TYPE user_order_by AS ENUM (
 
 CREATE OR REPLACE FUNCTION list_user(
     q TEXT,
-    role_param user_role,
+    role_param role_type,
     has_owner BOOLEAN,
     limit_number INTEGER,
     offset_number INTEGER,
@@ -108,7 +108,7 @@ CREATE OR REPLACE FUNCTION list_user(
 ) RETURNS TABLE (
     id INTEGER,
     username TEXT,
-    role user_role,
+    role role_type,
     id_owner INTEGER,
     name_owner TEXT
 ) AS $$
@@ -136,7 +136,7 @@ BEGIN
         SELECT
             "user".id,
             "user".username::text,
-            "user".role::user_role,
+            "user".role::role_type,
             COALESCE(parent.id, employee.id) AS id_owner,
             COALESCE(parent.name::text, employee.name::text) AS name_owner
         FROM
@@ -181,7 +181,7 @@ CREATE OR REPLACE FUNCTION list_parent(
     id INTEGER,
     name TEXT,
     address TEXT,
-    gender gender,
+    gender gender_type,
     whatsapp_number TEXT,
     photo TEXT,
     user_id INTEGER,
@@ -205,7 +205,7 @@ BEGIN
             parent.id,
             parent.name::text,
             parent.address::text,
-            parent.gender::gender,
+            parent.gender::gender_type,
             parent.whatsapp_number::text,
             parent.photo::text,
             "user".id AS user_id,

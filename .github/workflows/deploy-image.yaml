@@ -1,12 +1,17 @@
-name: Build and Deploy Docker Container
+name: Build Image and Push to Docker Hub
 
 on:
   workflow_dispatch:
     inputs:
       environment:
+        type: choice
         description: "Deployment environment (dev, stg, prod)"
         required: true
-        default: "dev"
+        options:
+          - dev
+          - stg
+          - prod
+        default: dev
 jobs:
   build:
     runs-on: ubuntu-latest

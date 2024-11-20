@@ -16,7 +16,7 @@ VALUES
         @type :: presence_type,
         @santri_id,
         @notes,
-        @created_by :: presence_created_by,
+        @created_by :: presence_created_by_type,
         @santri_permission_id
     ) RETURNING *;
 

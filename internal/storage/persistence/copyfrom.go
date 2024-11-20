@@ -9,13 +9,13 @@ import (
 	"context"
 )
 
-// iteratorForCreateArduinoModes implements pgx.CopyFromSource.
-type iteratorForCreateArduinoModes struct {
-	rows                 []CreateArduinoModesParams
+// iteratorForCreateDeviceModes implements pgx.CopyFromSource.
+type iteratorForCreateDeviceModes struct {
+	rows                 []CreateDeviceModesParams
 	skippedFirstNextCall bool
 }
 
-func (r *iteratorForCreateArduinoModes) Next() bool {
+func (r *iteratorForCreateDeviceModes) Next() bool {
 	if len(r.rows) == 0 {
 		return false
 	}
@@ -27,21 +27,21 @@ func (r *iteratorForCreateArduinoModes) Next() bool {
 	return len(r.rows) > 0
 }
 
-func (r iteratorForCreateArduinoModes) Values() ([]interface{}, error) {
+func (r iteratorForCreateDeviceModes) Values() ([]interface{}, error) {
 	return []interface{}{
 		r.rows[0].Mode,
 		r.rows[0].InputTopic,
 		r.rows[0].AcknowledgementTopic,
-		r.rows[0].ArduinoID,
+		r.rows[0].DeviceID,
 	}, nil
 }
 
-func (r iteratorForCreateArduinoModes) Err() error {
+func (r iteratorForCreateDeviceModes) Err() error {
 	return nil
 }
 
-func (q *Queries) CreateArduinoModes(ctx context.Context, arg []CreateArduinoModesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"arduino_mode"}, []string{"mode", "input_topic", "acknowledgment_topic", "arduino_id"}, &iteratorForCreateArduinoModes{rows: arg})
+func (q *Queries) CreateDeviceModes(ctx context.Context, arg []CreateDeviceModesParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"device_mode"}, []string{"mode", "input_topic", "acknowledgment_topic", "device_id"}, &iteratorForCreateDeviceModes{rows: arg})
 }
 
 // iteratorForCreateHolidayDates implements pgx.CopyFromSource.

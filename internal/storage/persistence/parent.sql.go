@@ -64,7 +64,7 @@ VALUES
 type CreateParentParams struct {
 	Name           string      `db:"name"`
 	Address        string      `db:"address"`
-	Gender         Gender      `db:"gender"`
+	Gender         GenderType  `db:"gender"`
 	WhatsappNumber pgtype.Text `db:"whatsapp_number"`
 	Photo          pgtype.Text `db:"photo"`
 	UserID         pgtype.Int4 `db:"user_id"`
@@ -130,7 +130,7 @@ type GetParentRow struct {
 	ID             int32       `db:"id"`
 	Name           string      `db:"name"`
 	Address        string      `db:"address"`
-	Gender         Gender      `db:"gender"`
+	Gender         GenderType  `db:"gender"`
 	WhatsappNumber pgtype.Text `db:"whatsapp_number"`
 	Photo          pgtype.Text `db:"photo"`
 	UserID         pgtype.Int4 `db:"user_id"`
@@ -161,7 +161,7 @@ UPDATE
 SET
     "name" = COALESCE($1, name),
     "address" = COALESCE($2, address),
-    "gender" = COALESCE($3::gender, gender),
+    "gender" = COALESCE($3::gender_type, gender),
     "whatsapp_number" = COALESCE($4, whatsapp_number),
     "photo" = COALESCE($5, photo),
     "user_id" = $6
@@ -170,13 +170,13 @@ WHERE
 `
 
 type UpdateParentParams struct {
-	Name           pgtype.Text `db:"name"`
-	Address        pgtype.Text `db:"address"`
-	Gender         NullGender  `db:"gender"`
-	WhatsappNumber pgtype.Text `db:"whatsapp_number"`
-	Photo          pgtype.Text `db:"photo"`
-	UserID         pgtype.Int4 `db:"user_id"`
-	ID             int32       `db:"id"`
+	Name           pgtype.Text    `db:"name"`
+	Address        pgtype.Text    `db:"address"`
+	Gender         NullGenderType `db:"gender"`
+	WhatsappNumber pgtype.Text    `db:"whatsapp_number"`
+	Photo          pgtype.Text    `db:"photo"`
+	UserID         pgtype.Int4    `db:"user_id"`
+	ID             int32          `db:"id"`
 }
 
 func (q *Queries) UpdateParent(ctx context.Context, arg UpdateParentParams) (Parent, error) {

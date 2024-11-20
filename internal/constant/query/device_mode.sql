@@ -1,31 +1,31 @@
 
--- name: CreateArduinoModes :copyfrom
+-- name: CreateDeviceModes :copyfrom
 INSERT INTO
-    "arduino_mode" (
+    "device_mode" (
         "mode",
         "input_topic",
         "acknowledgment_topic",
-        "arduino_id"
+        "device_id"
     )
 VALUES
     (
         @mode :: arduino_mode_type,
         @input_topic,
         @acknowledgement_topic,
-        @arduino_id
+        @device_id
     );
 
--- name: ListArduinoModes :many
+-- name: ListDeviceModes :many
 SELECT
     *
 FROM
-    "arduino_mode"
+    "device_mode"
 WHERE
-    arduino_id = @arduino_id;
+    device_id = @device_id;
 
--- name: UpdateArduinoMode :one
+-- name: UpdateDeviceMode :one
 UPDATE
-    "arduino_mode"
+    "device_mode"
 SET
     "mode" = COALESCE(sqlc.narg(mode)),
     "input_topic" = COALESCE(sqlc.narg(input_topic), input_topic),
@@ -33,8 +33,8 @@ SET
 WHERE
     "id" = @id RETURNING *;
 
--- name: DeleteArduinoModeByArduinoId :exec
+-- name: DeleteDeviceModeByDeviceId :exec
 DELETE FROM
-    "arduino_mode"
+    "device_mode"
 WHERE
-    "arduino_id" = @arduino_id;
+    "device_id" = @device_id;

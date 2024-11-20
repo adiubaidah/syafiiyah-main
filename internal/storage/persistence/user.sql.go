@@ -24,7 +24,7 @@ WHERE
         OR "username" ILIKE '%' || $1 || '%'
     )
     AND (
-        $2 :: user_role IS NULL
+        $2 :: role_type  IS NULL
         OR "role" = $2
     )
     AND (
@@ -46,7 +46,7 @@ WHERE
 
 type CountUsersParams struct {
 	Q        pgtype.Text  `db:"q"`
-	Role     NullUserRole `db:"role"`
+	Role     NullRoleType `db:"role"`
 	HasOwner pgtype.Bool  `db:"has_owner"`
 }
 
@@ -62,14 +62,14 @@ INSERT INTO
     "user" ("role", "username", "password")
 VALUES
     (
-        $1 :: user_role,
+        $1 :: role_type,
         $2 :: text,
         $3 :: text
     ) RETURNING id, role, username, password
 `
 
 type CreateUserParams struct {
-	Role     UserRole `db:"role"`
+	Role     RoleType `db:"role"`
 	Username string   `db:"username"`
 	Password string   `db:"password"`
 }
@@ -147,7 +147,7 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE
     "user"
 SET
-    "role" = COALESCE($1::user_role, "role"),
+    "role" = COALESCE($1::role_type, "role"),
     "username" = COALESCE($2, "username"),
     "password" = COALESCE($3, "password")
 WHERE
@@ -155,7 +155,7 @@ WHERE
 `
 
 type UpdateUserParams struct {
-	Role     NullUserRole `db:"role"`
+	Role     NullRoleType `db:"role"`
 	Username pgtype.Text  `db:"username"`
 	Password pgtype.Text  `db:"password"`
 	ID       int32        `db:"id"`

@@ -16,13 +16,13 @@ DROP TABLE IF EXISTS "admin_restrictions" CASCADE;
 DROP TABLE IF EXISTS "employee_schedule" CASCADE;
 DROP TABLE IF EXISTS "employee_presence" CASCADE;
 DROP TABLE IF EXISTS "employee_permission" CASCADE;
-DROP TABLE IF EXISTS "arduino" CASCADE;
-DROP TABLE IF EXISTS "arduino_mode" CASCADE;
+DROP TABLE IF EXISTS "device" CASCADE;
+DROP TABLE IF EXISTS "device_mode" CASCADE;
 
 -- Drop enums if they exist
-DROP TYPE IF EXISTS "user_role" CASCADE;
-DROP TYPE IF EXISTS "gender" CASCADE;
+DROP TYPE IF EXISTS "role_type" CASCADE;
+DROP TYPE IF EXISTS "gender_type" CASCADE;
 DROP TYPE IF EXISTS "presence_type" CASCADE;
-DROP TYPE IF EXISTS "arduino_mode_type" CASCADE;
+DROP TYPE IF EXISTS "device_mode_type" CASCADE;
 DROP TYPE IF EXISTS "santri_permission_type" CASCADE;
-DROP TYPE IF EXISTS "presence_created_by" CASCADE;
+DROP TYPE IF EXISTS "presence_created_by_type" CASCADE;

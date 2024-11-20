@@ -10,35 +10,35 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ArduinoHandler interface {
-	CreateArduinoHandler(c *gin.Context)
-	ListArduinosHandler(c *gin.Context)
-	UpdateArduinoHandler(c *gin.Context)
-	DeleteArduinoHandler(c *gin.Context)
+type DeviceHandler interface {
+	CreateDeviceHandler(c *gin.Context)
+	ListDevicesHandler(c *gin.Context)
+	UpdateDeviceHandler(c *gin.Context)
+	DeleteDeviceHandler(c *gin.Context)
 }
 
-type arduinoHandler struct {
+type deviceHandler struct {
 	logger      *logrus.Logger
-	usecase     usecase.ArduinoUseCase
+	usecase     usecase.DeviceUseCase
 	mqttHandler *mqtt.MQTTHandler
 }
 
-func NewArduinoHandler(logger *logrus.Logger, usecase usecase.ArduinoUseCase, mqttHandler *mqtt.MQTTHandler) ArduinoHandler {
-	return &arduinoHandler{
+func NewArduinoHandler(logger *logrus.Logger, usecase usecase.DeviceUseCase, mqttHandler *mqtt.MQTTHandler) DeviceHandler {
+	return &deviceHandler{
 		logger:      logger,
 		usecase:     usecase,
 		mqttHandler: mqttHandler,
 	}
 }
 
-func (h *arduinoHandler) CreateArduinoHandler(c *gin.Context) {
-	var request model.CreateArduinoRequest
+func (h *deviceHandler) CreateDeviceHandler(c *gin.Context) {
+	var request model.CreateDeviceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	arduino, err := h.usecase.CreateArduino(c, &request)
+	device, err := h.usecase.CreateDevice(c, &request)
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
@@ -46,20 +46,20 @@ func (h *arduinoHandler) CreateArduinoHandler(c *gin.Context) {
 
 	h.mqttHandler.RefreshTopics()
 
-	c.JSON(200, model.ResponseData[model.ArduinoResponse]{Code: 200, Status: "success", Data: arduino})
+	c.JSON(200, model.ResponseData[model.DeviceResponse]{Code: 200, Status: "success", Data: device})
 }
 
-func (h *arduinoHandler) ListArduinosHandler(c *gin.Context) {
-	arduinos, err := h.usecase.ListArduinos(c)
+func (h *deviceHandler) ListDevicesHandler(c *gin.Context) {
+	arduinos, err := h.usecase.ListDevices(c)
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	c.JSON(200, model.ResponseData[[]model.ArduinoWithModesResponse]{Code: 200, Status: "success", Data: arduinos})
+	c.JSON(200, model.ResponseData[[]model.DeviceWithModesResponse]{Code: 200, Status: "success", Data: arduinos})
 }
 
-func (h *arduinoHandler) UpdateArduinoHandler(c *gin.Context) {
+func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	arduinoId, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -67,7 +67,7 @@ func (h *arduinoHandler) UpdateArduinoHandler(c *gin.Context) {
 		return
 	}
 
-	var request model.CreateArduinoRequest
+	var request model.CreateDeviceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
@@ -81,10 +81,10 @@ func (h *arduinoHandler) UpdateArduinoHandler(c *gin.Context) {
 
 	h.mqttHandler.RefreshTopics()
 
-	c.JSON(200, model.ResponseData[model.ArduinoResponse]{Code: 200, Status: "success", Data: arduino})
+	c.JSON(200, model.ResponseData[model.DeviceResponse]{Code: 200, Status: "success", Data: arduino})
 }
 
-func (h *arduinoHandler) DeleteArduinoHandler(c *gin.Context) {
+func (h *deviceHandler) DeleteDeviceHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	arduinoId, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -99,5 +99,5 @@ func (h *arduinoHandler) DeleteArduinoHandler(c *gin.Context) {
 
 	h.mqttHandler.RefreshTopics()
 
-	c.JSON(200, model.ResponseData[model.ArduinoResponse]{Code: 200, Status: "success", Data: arduino})
+	c.JSON(200, model.ResponseData[model.DeviceResponse]{Code: 200, Status: "success", Data: arduino})
 }

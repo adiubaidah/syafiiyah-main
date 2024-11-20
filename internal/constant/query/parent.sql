@@ -41,7 +41,7 @@ UPDATE
 SET
     "name" = COALESCE(sqlc.narg(name), name),
     "address" = COALESCE(sqlc.narg(address), address),
-    "gender" = COALESCE(sqlc.narg(gender)::gender, gender),
+    "gender" = COALESCE(sqlc.narg(gender)::gender_type, gender),
     "whatsapp_number" = COALESCE(sqlc.narg(whatsapp_number), whatsapp_number),
     "photo" = COALESCE(sqlc.narg(photo), photo),
     "user_id" = sqlc.narg(user_id)

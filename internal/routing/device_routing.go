@@ -8,30 +8,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ArduinoRouting(handler handler.ArduinoHandler) []routers.Route {
+func DeviceRouting(handler handler.DeviceHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/arduino",
-			Handle:      handler.CreateArduinoHandler,
+			Path:        "/device",
+			Handle:      handler.CreateDeviceHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/arduino",
-			Handle:      handler.ListArduinosHandler,
+			Path:        "/device",
+			Handle:      handler.ListDevicesHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodPut,
-			Path:        "/arduino/:id",
-			Handle:      handler.UpdateArduinoHandler,
+			Path:        "/device/:id",
+			Handle:      handler.UpdateDeviceHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodDelete,
-			Path:        "/arduino/:id",
-			Handle:      handler.DeleteArduinoHandler,
+			Path:        "/device/:id",
+			Handle:      handler.DeleteDeviceHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 	}
