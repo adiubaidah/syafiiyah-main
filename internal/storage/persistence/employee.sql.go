@@ -217,10 +217,10 @@ UPDATE
     "employee"
 SET
     "nip" = $1,
-    "name" = $2,
-    "gender" = $3,
+    "name" = COALESCE($2, name),
+    "gender" = COALESCE($3::gender, gender),
     "photo" = $4,
-    "occupation_id" = $5,
+    "occupation_id" = COALESCE($5, occupation_id),
     "user_id" = $6
 WHERE
     "id" = $7 RETURNING id, nip, name, gender, photo, occupation_id, user_id
@@ -228,10 +228,10 @@ WHERE
 
 type UpdateEmployeeParams struct {
 	Nip          pgtype.Text `db:"nip"`
-	Name         string      `db:"name"`
-	Gender       Gender      `db:"gender"`
+	Name         pgtype.Text `db:"name"`
+	Gender       NullGender  `db:"gender"`
 	Photo        pgtype.Text `db:"photo"`
-	OccupationID int32       `db:"occupation_id"`
+	OccupationID pgtype.Int4 `db:"occupation_id"`
 	UserID       pgtype.Int4 `db:"user_id"`
 	ID           int32       `db:"id"`
 }

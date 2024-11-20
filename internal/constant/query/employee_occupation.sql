@@ -20,8 +20,8 @@ VALUES
 UPDATE
     "employee_occupation"
 SET
-    "name" = @name,
-    "description" = @description
+    "name" = COALESCE(sqlc.narg(name), name),
+    "description" = sqlc.narg(description)
 WHERE
     "id" = @id RETURNING *;
 

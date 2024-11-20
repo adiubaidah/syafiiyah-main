@@ -12,7 +12,10 @@ import (
 )
 
 const createHoliday = `-- name: CreateHoliday :one
-INSERT INTO "holiday" ("name", "color", "description") VALUES ($1, $2, $3) RETURNING id, name, color, description
+INSERT INTO
+    "holiday" ("name", "color", "description")
+VALUES
+    ($1, $2, $3) RETURNING id, name, color, description
 `
 
 type CreateHolidayParams struct {
@@ -34,7 +37,10 @@ func (q *Queries) CreateHoliday(ctx context.Context, arg CreateHolidayParams) (H
 }
 
 const deleteHoliday = `-- name: DeleteHoliday :one
-DELETE FROM "holiday" WHERE "id" = $1 RETURNING id, name, color, description
+DELETE FROM
+    "holiday"
+WHERE
+    "id" = $1 RETURNING id, name, color, description
 `
 
 func (q *Queries) DeleteHoliday(ctx context.Context, id int32) (Holiday, error) {
@@ -49,12 +55,95 @@ func (q *Queries) DeleteHoliday(ctx context.Context, id int32) (Holiday, error) 
 	return i, err
 }
 
+const listHolidays = `-- name: ListHolidays :many
+SELECT
+    holiday.id, holiday.name, holiday.color, holiday.description,
+    "holiday_date"."id" AS "holiday_date_id",
+    "holiday_date"."date" AS "holiday_date"
+FROM
+    "holiday"
+    LEFT JOIN "holiday_date" ON "holiday"."id" = "holiday_date"."holiday_id"
+WHERE
+    (
+        $1::text IS NULL
+        OR "holiday"."name" ILIKE $1
+    )
+    AND
+    (
+        $2::integer IS NULL
+        OR EXTRACT(
+            MONTH
+            FROM
+                "holiday_date"."date"
+        ) = CAST($2 AS INTEGER)
+    )
+    AND (
+        $3::integer IS NULL
+        OR EXTRACT(
+            YEAR
+            FROM
+                "holiday_date"."date"
+        ) = COALESCE($3, EXTRACT(YEAR FROM CURRENT_DATE))
+    )
+ORDER BY
+    "holiday_date"."date" ASC
+`
+
+type ListHolidaysParams struct {
+	Q     pgtype.Text `db:"q"`
+	Month pgtype.Int4 `db:"month"`
+	Year  pgtype.Int4 `db:"year"`
+}
+
+type ListHolidaysRow struct {
+	ID            int32       `db:"id"`
+	Name          string      `db:"name"`
+	Color         pgtype.Text `db:"color"`
+	Description   pgtype.Text `db:"description"`
+	HolidayDateID pgtype.Int4 `db:"holiday_date_id"`
+	HolidayDate   pgtype.Date `db:"holiday_date"`
+}
+
+func (q *Queries) ListHolidays(ctx context.Context, arg ListHolidaysParams) ([]ListHolidaysRow, error) {
+	rows, err := q.db.Query(ctx, listHolidays, arg.Q, arg.Month, arg.Year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListHolidaysRow{}
+	for rows.Next() {
+		var i ListHolidaysRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Color,
+			&i.Description,
+			&i.HolidayDateID,
+			&i.HolidayDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateHoliday = `-- name: UpdateHoliday :one
-UPDATE "holiday" SET "name" = $1, "color" = $2, "description" = $3 WHERE "id" = $4 RETURNING id, name, color, description
+UPDATE
+    "holiday"
+SET
+    "name" = COALESCE($1, "name"),
+    "color" = $2,
+    "description" = $3
+WHERE
+    "id" = $4 RETURNING id, name, color, description
 `
 
 type UpdateHolidayParams struct {
-	Name        string      `db:"name"`
+	Name        pgtype.Text `db:"name"`
 	Color       pgtype.Text `db:"color"`
 	Description pgtype.Text `db:"description"`
 	ID          int32       `db:"id"`

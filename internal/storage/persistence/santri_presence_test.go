@@ -140,11 +140,11 @@ func TestUpdateSantriPresence(t *testing.T) {
 	santriPresence := createRandomSantriPresence(t)
 	arg := UpdateSantriPresenceParams{
 		ID:                 santriPresence.ID,
-		ScheduleID:         santriPresence.ScheduleID,
-		ScheduleName:       santriPresence.ScheduleName,
-		Type:               PresenceTypePermission,
+		ScheduleID:         pgtype.Int4{Valid: false},
+		ScheduleName:       pgtype.Text{Valid: false},
+		Type:               NullPresenceType{PresenceType: PresenceTypeAlpha, Valid: true},
 		SantriPermissionID: pgtype.Int4{Valid: false},
-		SantriID:           santriPresence.SantriID,
+		SantriID:           pgtype.Int4{Int32: santriPresence.SantriID, Valid: true},
 		Notes:              pgtype.Text{Valid: true, String: "Example notes"},
 	}
 
@@ -152,11 +152,11 @@ func TestUpdateSantriPresence(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedSantriPresence)
 
-	require.Equal(t, arg.ScheduleID, updatedSantriPresence.ScheduleID)
-	require.Equal(t, arg.ScheduleName, updatedSantriPresence.ScheduleName)
-	require.Equal(t, arg.Type, updatedSantriPresence.Type)
+	require.NotEqual(t, arg.ScheduleID.Int32, updatedSantriPresence.ScheduleID)
+	require.NotEqual(t, arg.ScheduleName.String, updatedSantriPresence.ScheduleName)
+	require.Equal(t, arg.Type.PresenceType, updatedSantriPresence.Type)
 	require.Equal(t, arg.SantriPermissionID.Int32, updatedSantriPresence.SantriPermissionID.Int32)
-	require.Equal(t, arg.SantriID, updatedSantriPresence.SantriID)
+	require.Equal(t, arg.SantriID.Int32, updatedSantriPresence.SantriID)
 	require.Equal(t, santriPresence.ID, updatedSantriPresence.ID)
 	require.Equal(t, arg.Notes.String, updatedSantriPresence.Notes.String)
 }

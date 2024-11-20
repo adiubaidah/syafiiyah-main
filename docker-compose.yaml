@@ -5,11 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: adiubaidah/rfid-syafiiyah:latest
+    image: ${IMAGE_NAME:-adiiskandar/rfid-syafiiyah:latest}
     ports:
       - protocol: tcp
         published: ${PORT}
-        target: ${PORT}
+        target: 8080
     networks:
       - bridge
     volumes:
@@ -17,10 +17,10 @@ services:
         source: photo
         target: /app/internal/storage/photo
         read_only: false
-    env_file: 
-      - app.env
+    env_file: "app.env"
     environment:
-      - GIN_MODE=${GIN_MODE}
+        - GIN_MODE=${GIN_MODE}
+        - PORT=${PORT}
 
 networks:
   bridge:

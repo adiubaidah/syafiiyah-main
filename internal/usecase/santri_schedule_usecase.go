@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
@@ -40,6 +42,34 @@ func (c *santriScheduleService) CreateSantriSchedule(ctx context.Context, reques
 		return model.SantriScheduleResponse{}, err
 	}
 
+	crashStartPresence, err := c.store.ListSantriSchedules(ctx, util.ConvertToPgxTime(startPresence))
+	if err != nil {
+		return model.SantriScheduleResponse{}, err
+	}
+
+	if len(crashStartPresence) > 0 {
+		var crashedName []string
+		for _, presence := range crashStartPresence {
+			crashedName = append(crashedName, presence.Name)
+		}
+
+		return model.SantriScheduleResponse{}, exception.NewValidationError(fmt.Sprintf("start presence crash with %s", strings.Join(crashedName, ", ")))
+	}
+
+	crashFinishTime, err := c.store.ListSantriSchedules(ctx, util.ConvertToPgxTime(finishTime))
+	if err != nil {
+		return model.SantriScheduleResponse{}, err
+	}
+
+	if len(crashFinishTime) > 0 {
+		var crashedName []string
+		for _, presence := range crashFinishTime {
+			crashedName = append(crashedName, presence.Name)
+		}
+
+		return model.SantriScheduleResponse{}, exception.NewValidationError(fmt.Sprintf("finish time crash with %s", strings.Join(crashedName, ", ")))
+	}
+
 	if !startTime.After(startPresence) {
 		return model.SantriScheduleResponse{}, exception.NewValidationError("start_time must be after start_presence")
 	}
@@ -73,7 +103,7 @@ func (c *santriScheduleService) CreateSantriSchedule(ctx context.Context, reques
 }
 
 func (c *santriScheduleService) ListSantriSchedule(ctx context.Context) ([]model.SantriScheduleResponse, error) {
-	santriSchedules, err := c.store.ListSantriSchedules(ctx)
+	santriSchedules, err := c.store.ListSantriSchedules(ctx, pgtype.Time{Valid: false})
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +139,7 @@ func (c *santriScheduleService) UpdateSantriSchedule(ctx context.Context, reques
 
 	updatedSantriSchedule, err := c.store.UpdateSantriSchedule(ctx, db.UpdateSantriScheduleParams{
 		ID:            santriScheduleId,
-		Name:          request.Name,
+		Name:          pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Description:   pgtype.Text{String: request.Description, Valid: request.Description != ""},
 		StartPresence: util.ConvertToPgxTime(startPresence),
 		StartTime:     util.ConvertToPgxTime(startTime),

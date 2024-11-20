@@ -59,10 +59,10 @@ WHERE
 UPDATE
     "santri_permission"
 SET
-    "santri_id" = @santri_id,
-    "start_permission" = @start_permission,
+    "santri_id" = COALESCE(sqlc.narg(santri_id), santri_id),
+    "start_permission" = COALESCE(sqlc.narg(start_permission), start_permission),
     "end_permission" = sqlc.narg(end_permission),
-    "excuse" = @excuse
+    "excuse" = COALESCE(sqlc.narg(excuse), excuse)
 WHERE
     "id" = @id RETURNING *;
 

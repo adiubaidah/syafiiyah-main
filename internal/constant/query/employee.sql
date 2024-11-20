@@ -52,11 +52,11 @@ VALUES
 UPDATE
     "employee"
 SET
-    "nip" = @nip,
-    "name" = @name,
-    "gender" = @gender,
+    "nip" = sqlc.narg(nip),
+    "name" = COALESCE(sqlc.narg(name), name),
+    "gender" = COALESCE(sqlc.narg(gender)::gender, gender),
     "photo" = sqlc.narg(photo),
-    "occupation_id" = @occupation_id,
+    "occupation_id" = COALESCE(sqlc.narg(occupation_id), occupation_id),
     "user_id" = sqlc.narg(user_id)
 WHERE
     "id" = @id RETURNING *;

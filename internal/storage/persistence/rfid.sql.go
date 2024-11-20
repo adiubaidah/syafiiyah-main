@@ -212,8 +212,8 @@ const updateRfid = `-- name: UpdateRfid :one
 UPDATE
     rfid
 SET
-    "uid" = $1,
-    "is_active" = $2,
+    "uid" = COALESCE($1, uid),
+    "is_active" = COALESCE($2, is_active),
     "santri_id" = $3,
     "employee_id" = $4
 WHERE
@@ -221,8 +221,8 @@ WHERE
 `
 
 type UpdateRfidParams struct {
-	Uid        string      `db:"uid"`
-	IsActive   bool        `db:"is_active"`
+	Uid        pgtype.Text `db:"uid"`
+	IsActive   pgtype.Bool `db:"is_active"`
 	SantriID   pgtype.Int4 `db:"santri_id"`
 	EmployeeID pgtype.Int4 `db:"employee_id"`
 	ID         int32       `db:"id"`

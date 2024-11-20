@@ -159,10 +159,10 @@ const updateParent = `-- name: UpdateParent :one
 UPDATE
     "parent"
 SET
-    "name" = $1,
-    "address" = $2,
-    "gender" = $3,
-    "whatsapp_number" = $4,
+    "name" = COALESCE($1, name),
+    "address" = COALESCE($2, address),
+    "gender" = COALESCE($3::gender, gender),
+    "whatsapp_number" = COALESCE($4, whatsapp_number),
     "photo" = COALESCE($5, photo),
     "user_id" = $6
 WHERE
@@ -170,9 +170,9 @@ WHERE
 `
 
 type UpdateParentParams struct {
-	Name           string      `db:"name"`
-	Address        string      `db:"address"`
-	Gender         Gender      `db:"gender"`
+	Name           pgtype.Text `db:"name"`
+	Address        pgtype.Text `db:"address"`
+	Gender         NullGender  `db:"gender"`
 	WhatsappNumber pgtype.Text `db:"whatsapp_number"`
 	Photo          pgtype.Text `db:"photo"`
 	UserID         pgtype.Int4 `db:"user_id"`

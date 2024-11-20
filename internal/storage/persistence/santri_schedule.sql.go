@@ -79,31 +79,6 @@ func (q *Queries) DeleteSantriSchedule(ctx context.Context, id int32) (SantriSch
 	return i, err
 }
 
-const existBetweenSantriSchedule = `-- name: ExistBetweenSantriSchedule :one
-SELECT
-    EXISTS (
-        SELECT
-            1
-        FROM
-            "santri_schedule"
-        WHERE
-            "start_time" <= $1 :: time
-            AND "finish_time" >= $2 :: time
-    ) AS "exist"
-`
-
-type ExistBetweenSantriScheduleParams struct {
-	StartTime  pgtype.Time `db:"start_time"`
-	FinishTime pgtype.Time `db:"finish_time"`
-}
-
-func (q *Queries) ExistBetweenSantriSchedule(ctx context.Context, arg ExistBetweenSantriScheduleParams) (bool, error) {
-	row := q.db.QueryRow(ctx, existBetweenSantriSchedule, arg.StartTime, arg.FinishTime)
-	var exist bool
-	err := row.Scan(&exist)
-	return exist, err
-}
-
 const getLastSantriSchedule = `-- name: GetLastSantriSchedule :one
 SELECT
     id, name, description, start_presence, start_time, finish_time
@@ -137,12 +112,17 @@ SELECT
     id, name, description, start_presence, start_time, finish_time
 FROM
     "santri_schedule"
+WHERE
+(   
+    $1::time IS NULL OR 
+    $1::time BETWEEN start_presence AND finish_time
+)   
 ORDER BY
-    "start_time" ASC
+    "start_time"
 `
 
-func (q *Queries) ListSantriSchedules(ctx context.Context) ([]SantriSchedule, error) {
-	rows, err := q.db.Query(ctx, listSantriSchedules)
+func (q *Queries) ListSantriSchedules(ctx context.Context, time pgtype.Time) ([]SantriSchedule, error) {
+	rows, err := q.db.Query(ctx, listSantriSchedules, time)
 	if err != nil {
 		return nil, err
 	}
@@ -172,9 +152,12 @@ const updateSantriSchedule = `-- name: UpdateSantriSchedule :one
 UPDATE
     "santri_schedule"
 SET
-    "name" = $1,
+    "name" = COALESCE($1, name),
     "description" = $2,
-    "start_presence" = COALESCE($3 :: time, start_presence),
+    "start_presence" = COALESCE(
+        $3 :: time,
+        start_presence
+    ),
     "start_time" = COALESCE($4 :: time, start_time),
     "finish_time" = COALESCE($5 :: time, finish_time)
 WHERE
@@ -182,7 +165,7 @@ WHERE
 `
 
 type UpdateSantriScheduleParams struct {
-	Name          string      `db:"name"`
+	Name          pgtype.Text `db:"name"`
 	Description   pgtype.Text `db:"description"`
 	StartPresence pgtype.Time `db:"start_presence"`
 	StartTime     pgtype.Time `db:"start_time"`

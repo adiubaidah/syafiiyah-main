@@ -12,7 +12,10 @@ import (
 )
 
 const createArduino = `-- name: CreateArduino :one
-INSERT INTO "arduino" ("name") VALUES ($1) RETURNING id, name
+INSERT INTO
+    "arduino" ("name")
+VALUES
+    ($1) RETURNING id, name
 `
 
 func (q *Queries) CreateArduino(ctx context.Context, name string) (Arduino, error) {
@@ -23,7 +26,10 @@ func (q *Queries) CreateArduino(ctx context.Context, name string) (Arduino, erro
 }
 
 const deleteArduino = `-- name: DeleteArduino :one
-DELETE FROM "arduino" WHERE "id" = $1 RETURNING id, name
+DELETE FROM
+    "arduino"
+WHERE
+    "id" = $1 RETURNING id, name
 `
 
 func (q *Queries) DeleteArduino(ctx context.Context, id int32) (Arduino, error) {
@@ -34,25 +40,45 @@ func (q *Queries) DeleteArduino(ctx context.Context, id int32) (Arduino, error) 
 }
 
 const listArduinos = `-- name: ListArduinos :many
-SELECT id, name FROM "arduino" WHERE "name" ILIKE '%' || $1 || '%' LIMIT $3 OFFSET $2
+SELECT
+    "arduino"."id" AS "id",
+    "arduino"."name" AS "name",
+    "arduino_mode"."id" AS "arduino_mode.id",
+    "arduino_mode"."mode" AS "arduino_mode.mode",
+    "arduino_mode"."input_topic" AS "arduino_mode.input_topic",
+    "arduino_mode"."acknowledgment_topic" AS "arduino_mode.acknowledgement_topic"
+FROM
+    "arduino"
+LEFT JOIN
+    "arduino_mode" ON "arduino"."id" = "arduino_mode"."arduino_id"
 `
 
-type ListArduinosParams struct {
-	Name         pgtype.Text `db:"name"`
-	OffsetNumber int32       `db:"offset_number"`
-	LimitNumber  int32       `db:"limit_number"`
+type ListArduinosRow struct {
+	ID                              int32               `db:"id"`
+	Name                            string              `db:"name"`
+	ArduinoModeID                   pgtype.Int4         `db:"arduino_mode.id"`
+	ArduinoModeMode                 NullArduinoModeType `db:"arduino_mode.mode"`
+	ArduinoModeInputTopic           pgtype.Text         `db:"arduino_mode.input_topic"`
+	ArduinoModeAcknowledgementTopic pgtype.Text         `db:"arduino_mode.acknowledgement_topic"`
 }
 
-func (q *Queries) ListArduinos(ctx context.Context, arg ListArduinosParams) ([]Arduino, error) {
-	rows, err := q.db.Query(ctx, listArduinos, arg.Name, arg.OffsetNumber, arg.LimitNumber)
+func (q *Queries) ListArduinos(ctx context.Context) ([]ListArduinosRow, error) {
+	rows, err := q.db.Query(ctx, listArduinos)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Arduino{}
+	items := []ListArduinosRow{}
 	for rows.Next() {
-		var i Arduino
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		var i ListArduinosRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ArduinoModeID,
+			&i.ArduinoModeMode,
+			&i.ArduinoModeInputTopic,
+			&i.ArduinoModeAcknowledgementTopic,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -64,12 +90,17 @@ func (q *Queries) ListArduinos(ctx context.Context, arg ListArduinosParams) ([]A
 }
 
 const updateArduino = `-- name: UpdateArduino :one
-UPDATE "arduino" SET "name" = $1 WHERE "id" = $2 RETURNING id, name
+UPDATE
+    "arduino"
+SET
+    "name" = COALESCE($1, name)
+WHERE
+    "id" = $2 RETURNING id, name
 `
 
 type UpdateArduinoParams struct {
-	Name string `db:"name"`
-	ID   int32  `db:"id"`
+	Name pgtype.Text `db:"name"`
+	ID   int32       `db:"id"`
 }
 
 func (q *Queries) UpdateArduino(ctx context.Context, arg UpdateArduinoParams) (Arduino, error) {

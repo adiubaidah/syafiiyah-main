@@ -273,10 +273,11 @@ func TestUpdateSantri(t *testing.T) {
 
 	arg := UpdateSantriParams{
 		ID:         santri.ID,
-		Name:       random.RandomString(8),
+		Name:       pgtype.Text{String: random.RandomString(8), Valid: true},
+		Gender:     NullGender{Valid: false},
 		Nis:        pgtype.Text{String: random.RandomString(15), Valid: true},
-		IsActive:   false,
-		Generation: int32(random.RandomInt(2010, 2030)),
+		IsActive:   pgtype.Bool{Bool: random.RandomBool(), Valid: true},
+		Generation: pgtype.Int4{Int32: int32(random.RandomInt(2010, 2030)), Valid: true},
 		Photo:      pgtype.Text{String: random.RandomString(12), Valid: true},
 	}
 
@@ -284,10 +285,10 @@ func TestUpdateSantri(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedSantri)
 
-	require.Equal(t, arg.Name, updatedSantri.Name)
+	require.Equal(t, arg.Name.String, updatedSantri.Name)
 	require.Equal(t, arg.Nis.String, updatedSantri.Nis.String)
-	require.Equal(t, arg.IsActive, updatedSantri.IsActive.Bool)
-	require.Equal(t, arg.Generation, updatedSantri.Generation)
+	require.Equal(t, arg.IsActive.Bool, updatedSantri.IsActive.Bool)
+	require.Equal(t, arg.Generation.Int32, updatedSantri.Generation)
 	require.Equal(t, arg.Photo.String, updatedSantri.Photo.String)
 }
 

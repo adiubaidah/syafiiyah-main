@@ -54,7 +54,9 @@ func TestListSantriSchedule(t *testing.T) {
 		createRandomSantriSchedule(t)
 	}
 
-	santriSchedules, err := testStore.ListSantriSchedules(context.Background())
+	santriSchedules, err := testStore.ListSantriSchedules(context.Background(), pgtype.Time{
+		Valid: false,
+	})
 
 	t.Run("list santri schedule should not error", func(t *testing.T) {
 		require.NoError(t, err)
@@ -78,7 +80,7 @@ func TestUpdateSantriSchedule(t *testing.T) {
 	finishTime := startTime.Add(time.Hour * 1)
 	arg := UpdateSantriScheduleParams{
 		ID:            santriSchedule.ID,
-		Name:          random.RandomString(10),
+		Name:          pgtype.Text{String: random.RandomString(10), Valid: true},
 		Description:   pgtype.Text{Valid: false},
 		StartPresence: util.ConvertToPgxTime(startPresence),
 		StartTime:     util.ConvertToPgxTime(startTime),
@@ -89,7 +91,7 @@ func TestUpdateSantriSchedule(t *testing.T) {
 	require.NotEmpty(t, updatedSantriSchedule)
 
 	require.Equal(t, arg.ID, updatedSantriSchedule.ID)
-	require.Equal(t, arg.Name, updatedSantriSchedule.Name)
+	require.Equal(t, arg.Name.String, updatedSantriSchedule.Name)
 	require.Equal(t, arg.Description.String, updatedSantriSchedule.Description.String)
 	require.Equal(t, arg.StartPresence, updatedSantriSchedule.StartPresence)
 	require.Equal(t, arg.StartTime, updatedSantriSchedule.StartTime)

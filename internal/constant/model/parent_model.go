@@ -6,12 +6,12 @@ import (
 )
 
 type CreateParentRequest struct {
-	Name           string `form:"name" binding:"required"`
-	Address        string `form:"address" binding:"required"`
-	Gender         string `form:"gender" binding:"required,oneof=male female"`
-	WhatsappNumber string `form:"whatsapp_number" binding:"min=10,max=13"`
-	Photo          string `form:"-"`
-	UserID         int32  `form:"user_id"`
+	Name           string    `form:"name" binding:"required"`
+	Address        string    `form:"address" binding:"required"`
+	Gender         db.Gender `form:"gender" binding:"required,oneof=male female"`
+	WhatsappNumber string    `form:"whatsapp_number" binding:"min=10,max=13"`
+	Photo          string    `form:"-"`
+	UserID         int32     `form:"user_id"`
 }
 
 type ListParentRequest struct {
@@ -22,9 +22,7 @@ type ListParentRequest struct {
 	Order   string `form:"order" binding:"omitempty,parentorder"`
 }
 
-type UpdateParentRequest struct {
-	CreateParentRequest
-}
+type UpdateParentRequest = CreateParentRequest
 
 type ParentResponse struct {
 	ID             int32  `json:"id"`

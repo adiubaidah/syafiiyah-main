@@ -10,5 +10,7 @@ RUN go build -o main cmd/rest/main.go
 FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/main .
+# app.env must be copied to image, if you want to override it, you can use docker compose and write it in the environment section
 COPY app.env .
+EXPOSE 8080
 ENTRYPOINT [ "/app/main" ]

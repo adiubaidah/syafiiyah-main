@@ -215,10 +215,10 @@ const updateSantriPresence = `-- name: UpdateSantriPresence :one
 UPDATE
     "santri_presence"
 SET
-    "schedule_id" = $1,
-    "schedule_name" = $2,
-    "type" = $3::presence_type,
-    "santri_id" = $4,
+    "schedule_id" = COALESCE($1, schedule_id),
+    "schedule_name" = COALESCE($2, schedule_name),
+    "type" = COALESCE($3::presence_type, type),
+    "santri_id" = COALESCE($4, santri_id),
     "notes" = $5,
     "santri_permission_id" = $6
 WHERE
@@ -227,13 +227,13 @@ WHERE
 `
 
 type UpdateSantriPresenceParams struct {
-	ScheduleID         int32        `db:"schedule_id"`
-	ScheduleName       string       `db:"schedule_name"`
-	Type               PresenceType `db:"type"`
-	SantriID           int32        `db:"santri_id"`
-	Notes              pgtype.Text  `db:"notes"`
-	SantriPermissionID pgtype.Int4  `db:"santri_permission_id"`
-	ID                 pgtype.Int4  `db:"id"`
+	ScheduleID         pgtype.Int4      `db:"schedule_id"`
+	ScheduleName       pgtype.Text      `db:"schedule_name"`
+	Type               NullPresenceType `db:"type"`
+	SantriID           pgtype.Int4      `db:"santri_id"`
+	Notes              pgtype.Text      `db:"notes"`
+	SantriPermissionID pgtype.Int4      `db:"santri_permission_id"`
+	ID                 pgtype.Int4      `db:"id"`
 }
 
 func (q *Queries) UpdateSantriPresence(ctx context.Context, arg UpdateSantriPresenceParams) (SantriPresence, error) {

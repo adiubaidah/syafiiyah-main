@@ -242,9 +242,9 @@ func TestUpdateParent(t *testing.T) {
 
 	arg := UpdateParentParams{
 		ID:             parent1.ID,
-		Name:           newName,
-		Gender:         GenderMale,
-		Address:        newAddress,
+		Name:           pgtype.Text{String: newName, Valid: true},
+		Gender:         NullGender{Valid: false},
+		Address:        pgtype.Text{String: newAddress, Valid: true},
 		WhatsappNumber: pgtype.Text{String: newNoWa, Valid: true},
 		Photo:          pgtype.Text{String: newPhoto, Valid: true},
 	}

@@ -52,21 +52,21 @@ FROM
     LEFT JOIN santri_occupation ON "santri".occupation_id = santri_occupation.id
 WHERE
     (
-        sqlc.narg(q)::text IS NULL
-        OR "santri".name ILIKE '%' || sqlc.narg(q)::text || '%'
-        OR "santri".nis ILIKE '%' || sqlc.narg(q)::text || '%'
+        sqlc.narg(q) :: text IS NULL
+        OR "santri".name ILIKE '%' || sqlc.narg(q) :: text || '%'
+        OR "santri".nis ILIKE '%' || sqlc.narg(q) :: text || '%'
     )
     AND (
-        sqlc.narg(occupation_id)::integer IS NULL
+        sqlc.narg(occupation_id) :: integer IS NULL
         OR "santri".occupation_id = sqlc.narg(occupation_id)
     )
     AND (
-        sqlc.narg(generation)::integer IS NULL
+        sqlc.narg(generation) :: integer IS NULL
         OR "santri".generation = sqlc.narg(generation)
     )
     AND (
-        sqlc.narg(is_active)::boolean IS NULL
-        OR "santri".is_active = sqlc.narg(is_active)::boolean
+        sqlc.narg(is_active) :: boolean IS NULL
+        OR "santri".is_active = sqlc.narg(is_active) :: boolean
     );
 
 -- name: GetSantri :one
@@ -88,14 +88,14 @@ WHERE
 UPDATE
     "santri"
 SET
-    "nis" = @nis,
-    "name" = @name,
-"generation" = @generation,
-    "is_active" = @is_active :: boolean,
-    "gender" = @gender::gender,
+    "nis" = sqlc.narg(nis),
+    "name" = COALESCE(sqlc.narg(name), name),
+    "generation" = COALESCE(sqlc.narg(generation), generation),
+    "is_active" = COALESCE(sqlc.narg(is_active) :: boolean, is_active),
+    "gender" = COALESCE(sqlc.narg(gender) :: gender, gender),
     "photo" = COALESCE(sqlc.narg(photo), photo),
-    "occupation_id" = @occupation_id,
-    "parent_id" = sqlc.narg(parent_id) :: integer
+    "occupation_id"= sqlc.narg(occupation_id),
+    "parent_id" = sqlc.narg(parent_id)
 WHERE
     "id" = @id RETURNING *;
 

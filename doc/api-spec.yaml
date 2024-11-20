@@ -9,12 +9,12 @@ servers:
   - url: https://syafiiyah-api.adiiskandar.my.id
     description: Development Server
 paths:
-  /auth/sign-in:
+  /auth/login:
     post:
       tags:
         - Auth
-      summary: Sign In
-      description: Sign In will set cookie for user
+      summary: Login
+      description: Login will set cookie for user
       requestBody:
         required: true
         content:
@@ -37,7 +37,20 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/User"
+                        type: object
+                        properties:
+                          session_id: 
+                            type: string
+                          access_token:
+                            type: string
+                          access_token_expires_at:
+                            type: string
+                          refresh_token:
+                            type: string
+                          refresh_token_expires_at:
+                            type: string
+                          user:
+                            $ref: "#/components/schemas/User"
         "401":
           description: Unauthorized
           content:
@@ -93,12 +106,38 @@ paths:
                         type: object
                         properties:
                           id:
-                            type: integer
+                            type: string
                           username:
                             type: string
                           role:
                             $ref: "#/components/schemas/RoleEnum"
-  /reset-password:
+                        additionalProperties: 
+                          type: string
+  /auth/refresh-acess-token:
+    post:
+      tags:
+        - Auth
+      summary: Refresh token
+      description: Refresh token, it gonna set to the cookie for new access token
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        properties:
+                          access_token:
+                            type: string
+                          access_token_expires_at:
+                            type: string
+  /profile/reset-password:
     put:
       tags:
         - Profile
@@ -575,31 +614,19 @@ paths:
           schema:
             type: string
         - in: query
-          name: page
+          name: month
           schema:
             type: integer
           required: false
-          description: Page number
+          example: 3
+          description: Month by number 1 - 12
         - in: query
-          name: limit
+          name: year
           schema:
             type: integer
           required: false
-          description: Limit per page
-        - in: query
-          name: from
-          schema:
-            type: string
-          required: false
-          example: "2024-12-25"
-          description: Filter by from date
-        - in: query
-          name: to
-          schema:
-            type: string
-          required: false
-          example: "2024-12-27"
-          description: Filter by to date
+          example: 2024
+          description: Year
       responses:
         "200":
           description: OK
@@ -611,14 +638,9 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        type: object
-                        properties:
-                          items:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/Holiday"
-                          pagination:
-                            $ref: "#/components/schemas/Pagination"
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Holiday"
 
     post:
       tags:
@@ -2258,6 +2280,86 @@ paths:
                   code: 404
                   status: error
                   message: "RFID not found"
+  /arduino:
+    description: Endpoint for Arduino
+    get:
+      tags:
+        - Arduino
+      security:
+        - cookieAuth : []
+      summary: Get All Arduino
+      description: Only superadmin can access this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Arduino"
+
+    post:
+      tags:
+        - Arduino
+      security:
+        - cookieAuth: []
+      summary: Create Arduino
+      description: Only superadmin can manage this endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/NewArduino"
+                - properties:
+                    modes:
+                      type: array
+                      items: 
+                        $ref: "#/components/schemas/ArduinoModeEnum"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Arduino"
+  /arduino/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Arduino
+      summary: Delete Arduino By ID
+      security:
+        - cookieAuth: []
+      description: Only superadmin can manage this endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Response"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/Arduino"
+
 components:
   securitySchemes:
     cookieAuth:
@@ -2382,7 +2484,7 @@ components:
         name:
           type: string
           example: Kemerdekaan
-        days:
+        dates:
           type: array
           items:
             type: string
@@ -2618,6 +2720,44 @@ components:
             id:
               $ref: "#/components/schemas/Id"
         - $ref: "#/components/schemas/NewRFID"
+    ArduinoModeEnum:
+      type: string
+      enum:
+        - excuse
+        - presence
+        - ping
+        - create
+    NewArduino:
+      type: object
+      properties:
+        name:
+          type: string
+          uniqueItems: true
+        is_active:
+          type: boolean
+    Arduino:
+      allOf:
+        - properties:
+            id:
+              $ref: "#/components/schemas/Id"
+        - $ref: "#/components/schemas/NewArduino"
+        - properties:
+            modes:
+              type: array
+              items:
+                type: object
+                properties:
+                  mode:
+                    $ref: "#/components/schemas/ArduinoModeEnum"
+                  input_topic:
+                    type: string
+                  acknowledgment_topic:
+                    type: string
+                example:
+                  mode: "excuse"
+                  input_topic: "arduino1/input/excuse"
+                  acknowledgment_topic: "arduino1/acknowledgment/excuse"
+
     Pagination:
       type: object
       properties:

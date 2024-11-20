@@ -30,11 +30,13 @@ func createRandomEmployeeOccupation(t *testing.T) EmployeeOccupation {
 }
 
 func TestCreateEmployeeOccupation(t *testing.T) {
+	clearEmployeeTable(t)
 	clearEmployeeOccupationTable(t)
 	createRandomEmployeeOccupation(t)
 }
 
 func TestListEmployeeOccupation(t *testing.T) {
+	clearEmployeeTable(t)
 	clearEmployeeOccupationTable(t)
 	createRandomEmployeeOccupation(t)
 	createRandomEmployeeOccupation(t)
@@ -46,12 +48,13 @@ func TestListEmployeeOccupation(t *testing.T) {
 }
 
 func TestUpdateEmployeeOccupation(t *testing.T) {
+	clearEmployeeTable(t)
 	clearEmployeeOccupationTable(t)
 	employeeOccupation := createRandomEmployeeOccupation(t)
 
 	arg := UpdateEmployeeOccupationParams{
 		ID:          employeeOccupation.ID,
-		Name:        random.RandomString(8),
+		Name:        pgtype.Text{String: random.RandomString(8), Valid: true},
 		Description: pgtype.Text{String: random.RandomString(50), Valid: true},
 	}
 
@@ -59,11 +62,12 @@ func TestUpdateEmployeeOccupation(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, employeeOccupation)
 
-	require.Equal(t, arg.Name, employeeOccupation.Name)
+	require.Equal(t, arg.Name.String, employeeOccupation.Name)
 	require.Equal(t, arg.Description.String, employeeOccupation.Description.String)
 }
 
 func TestDeleteEmployeeOccupation(t *testing.T) {
+	clearEmployeeTable(t)
 	clearEmployeeOccupationTable(t)
 	employeeOccupation := createRandomEmployeeOccupation(t)
 	deletedEmployeeOccupation, err := testStore.DeleteEmployeeOccupation(context.Background(), employeeOccupation.ID)

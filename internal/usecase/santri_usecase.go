@@ -158,13 +158,13 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 	createdSantri, err := c.store.UpdateSantri(ctx, db.UpdateSantriParams{
 		ID:           santriId,
 		Nis:          pgtype.Text{String: request.Nis, Valid: true},
-		Name:         request.Name,
-		IsActive:     isActive,
-		Generation:   request.Generation,
+		Name:         pgtype.Text{String: request.Name, Valid: request.Name != ""},
+		IsActive:     pgtype.Bool{Bool: isActive, Valid: true},
+		Generation:   pgtype.Int4{Int32: request.Generation, Valid: request.Generation != 0},
 		Photo:        pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		ParentID:     pgtype.Int4{Int32: request.ParentID, Valid: request.ParentID != 0},
-		Gender:       request.Gender,
+		Gender:       db.NullGender{Gender: request.Gender, Valid: request.Gender != ""},
 	})
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {

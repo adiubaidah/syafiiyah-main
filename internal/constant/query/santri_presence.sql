@@ -60,10 +60,10 @@ LIMIT
 UPDATE
     "santri_presence"
 SET
-    "schedule_id" = @schedule_id,
-    "schedule_name" = @schedule_name,
-    "type" = @type::presence_type,
-    "santri_id" = @santri_id,
+    "schedule_id" = COALESCE(sqlc.narg(schedule_id), schedule_id),
+    "schedule_name" = COALESCE(sqlc.narg(schedule_name), schedule_name),
+    "type" = COALESCE(sqlc.narg(type)::presence_type, type),
+    "santri_id" = COALESCE(sqlc.narg(santri_id), santri_id),
     "notes" = sqlc.narg(notes),
     "santri_permission_id" = @santri_permission_id
 WHERE

@@ -1,6 +1,5 @@
 .vscode
 app.env
-Makefile
 ignore__*
 *.log
 main.exe

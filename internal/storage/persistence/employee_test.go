@@ -209,16 +209,15 @@ func TestUpdateEmployee(t *testing.T) {
 	employee1 := createRandomEmployee(t)
 
 	// Update parent details
-	newName := random.RandomString(8)
 	newPhoto := random.RandomString(12)
 
 	arg := UpdateEmployeeParams{
 		ID:           employee1.ID,
 		Nip:          pgtype.Text{String: random.RandomString(18), Valid: true},
-		Name:         newName,
-		Gender:       GenderMale,
+		Name:         pgtype.Text{String: random.RandomString(8), Valid: true},
+		Gender:       NullGender{Valid: false},
 		Photo:        pgtype.Text{String: newPhoto, Valid: true},
-		OccupationID: employee1.OccupationID,
+		OccupationID: pgtype.Int4{Int32: employee1.OccupationID, Valid: true},
 		UserID:       employee1.UserID,
 	}
 
@@ -227,7 +226,7 @@ func TestUpdateEmployee(t *testing.T) {
 	require.NotEmpty(t, employeeUpdated)
 
 	require.Equal(t, employee1.ID, employeeUpdated.ID)
-	require.Equal(t, newName, employeeUpdated.Name)
+	require.Equal(t, arg.Name.String, employeeUpdated.Name)
 	require.Equal(t, arg.Nip.String, employeeUpdated.Nip.String)
 	require.Equal(t, employee1.OccupationID, employeeUpdated.OccupationID)
 	require.Equal(t, employee1.Gender, employeeUpdated.Gender) // Gender should remain unchanged
