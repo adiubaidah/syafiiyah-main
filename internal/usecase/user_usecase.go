@@ -15,7 +15,7 @@ type UserUseCase interface {
 	CreateUser(ctx context.Context, request *model.CreateUserRequest) (model.UserResponse, error)
 	ListUsers(ctx context.Context, request *model.ListUserRequest) ([]model.UserComplete, error)
 	GetUser(ctx context.Context, userId int32, username string) (model.UserWithPassword, error)
-	CountUsers(ctx context.Context, request *model.ListUserRequest) (int32, error)
+	CountUsers(ctx context.Context, request *model.ListUserRequest) (int64, error)
 	UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (model.UserResponse, error)
 	DeleteUser(ctx context.Context, userId int32) (model.UserResponse, error)
 }
@@ -102,7 +102,7 @@ func (c *userService) GetUser(ctx context.Context, userId int32, username string
 	}, nil
 }
 
-func (c *userService) CountUsers(ctx context.Context, request *model.ListUserRequest) (int32, error) {
+func (c *userService) CountUsers(ctx context.Context, request *model.ListUserRequest) (int64, error) {
 	count, err := c.store.CountUsers(ctx, db.CountUsersParams{
 		Q:        pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasOwner: pgtype.Bool{Bool: request.HasOwner == 1, Valid: request.HasOwner != -1},
@@ -112,7 +112,7 @@ func (c *userService) CountUsers(ctx context.Context, request *model.ListUserReq
 		return 0, err
 	}
 
-	return int32(count), nil
+	return count, nil
 }
 
 func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (model.UserResponse, error) {

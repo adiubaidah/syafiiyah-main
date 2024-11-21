@@ -51,12 +51,12 @@ func Init() {
 	})
 	defer redisClient.Close()
 
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("santriorder", model.IsValidSantriOrder)
-		v.RegisterValidation("role", model.IsValidRole)
-		v.RegisterValidation("userorder", model.IsValidUserOrder)
-		v.RegisterValidation("parentorder", model.IsValidParentOrder)
-		v.RegisterValidation("validTime", model.IsValidTime)
+	if validateActor, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		validateActor.RegisterValidation("santriorder", model.IsValidSantriOrder)
+		validateActor.RegisterValidation("role", model.IsValidRole)
+		validateActor.RegisterValidation("userorder", model.IsValidUserOrder)
+		validateActor.RegisterValidation("parentorder", model.IsValidParentOrder)
+		validateActor.RegisterValidation("validTime", model.IsValidTime)
 	}
 	tokenMaker, err := token.NewJWTMaker(env.TokenSymmetricKey)
 	if err != nil {
@@ -92,9 +92,13 @@ func Init() {
 	santriHandler := handler.NewSantriHandler(&env, logger, santriUseCase)
 	santriRouting := routing.SantriRouting(santriHandler)
 
-	arduinoUseCase := usecase.NewArduinoUseCase(store)
-	mqttHandler := mqtt.NewMQTTHandler(arduinoUseCase, env.MQTTBroker)
-	deviceHandler := handler.NewArduinoHandler(logger, arduinoUseCase, mqttHandler)
+	smartCardUseCase := usecase.NewSmartCardUseCase(store)
+	smartCardHandler := handler.NewSmartCardHandler(logger, smartCardUseCase)
+	smartCardRouting := routing.SmartCardRouting(smartCardHandler)
+
+	deviceUseCase := usecase.NewArduinoUseCase(store)
+	mqttHandler := mqtt.NewMQTTHandler(logger, deviceUseCase, smartCardUseCase, env.MQTTBroker)
+	deviceHandler := handler.NewArduinoHandler(logger, deviceUseCase, mqttHandler)
 	deviceRouting := routing.DeviceRouting(deviceHandler)
 
 	var routerList []routers.Route
@@ -105,6 +109,7 @@ func Init() {
 	routerList = append(routerList, santriScheduleRouting...)
 	routerList = append(routerList, santriOccupationRouting...)
 	routerList = append(routerList, santriRouting...)
+	routerList = append(routerList, smartCardRouting...)
 	routerList = append(routerList, deviceRouting...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)

@@ -10,6 +10,7 @@ import (
 )
 
 func clearSantriTable(t *testing.T) {
+	clearSmartCardTable(t)
 	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "santri"`)
 	require.NoError(t, err)
 }

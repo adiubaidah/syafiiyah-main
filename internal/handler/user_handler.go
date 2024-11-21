@@ -79,7 +79,7 @@ func (h *userHandler) ListUserHandler(c *gin.Context) {
 
 	pagination := model.Pagination{
 		CurrentPage:  listUserRequest.Page,
-		TotalPages:   (count + listUserRequest.Limit - 1) / listUserRequest.Limit,
+		TotalPages:   int32((count + int64(listUserRequest.Limit) - 1) / int64(listUserRequest.Limit)),
 		TotalItems:   count,
 		ItemsPerPage: listUserRequest.Limit,
 	}

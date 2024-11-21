@@ -14,7 +14,7 @@ type ParentUseCase interface {
 	CreateParent(ctx context.Context, request *model.CreateParentRequest) (model.ParentResponse, error)
 	ListParents(ctx context.Context, request *model.ListParentRequest) ([]model.ParentCompleteResponse, error)
 	GetParent(ctx context.Context, parentId int32) (model.ParentResponse, error)
-	CountParents(ctx context.Context, request *model.ListParentRequest) (int32, error)
+	CountParents(ctx context.Context, request *model.ListParentRequest) (int64, error)
 	UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (model.ParentResponse, error)
 	DeleteParent(ctx context.Context, parentId int32) (model.ParentResponse, error)
 }
@@ -86,7 +86,7 @@ func (c *parentService) ListParents(ctx context.Context, request *model.ListPare
 	return responses, nil
 }
 
-func (c *parentService) CountParents(ctx context.Context, request *model.ListParentRequest) (int32, error) {
+func (c *parentService) CountParents(ctx context.Context, request *model.ListParentRequest) (int64, error) {
 	arg := db.CountParentsParams{
 		Q:       pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasUser: pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != -1},
@@ -96,7 +96,7 @@ func (c *parentService) CountParents(ctx context.Context, request *model.ListPar
 	if err != nil {
 		return 0, err
 	}
-	return int32(count), nil
+	return count, nil
 }
 
 func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (model.ParentResponse, error) {

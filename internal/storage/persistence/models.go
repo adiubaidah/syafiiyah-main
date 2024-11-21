@@ -496,17 +496,6 @@ type Parent struct {
 	UserID         pgtype.Int4 `db:"user_id"`
 }
 
-type Rfid struct {
-	ID        int32              `db:"id"`
-	Uid       string             `db:"uid"`
-	CreatedAt pgtype.Timestamptz `db:"created_at"`
-	IsActive  bool               `db:"is_active"`
-	// Rfid bisa milik santri
-	SantriID pgtype.Int4 `db:"santri_id"`
-	// Rfid bisa milik employee
-	EmployeeID pgtype.Int4 `db:"employee_id"`
-}
-
 type Santri struct {
 	ID     int32       `db:"id"`
 	Nis    pgtype.Text `db:"nis"`
@@ -560,6 +549,17 @@ type SantriSchedule struct {
 	StartTime pgtype.Time `db:"start_time"`
 	// Waktu berakhirnya kegiatan
 	FinishTime pgtype.Time `db:"finish_time"`
+}
+
+type SmartCard struct {
+	ID        int32              `db:"id"`
+	Uid       string             `db:"uid"`
+	CreatedAt pgtype.Timestamptz `db:"created_at"`
+	IsActive  bool               `db:"is_active"`
+	// Smart Card bisa milik santri
+	SantriID pgtype.Int4 `db:"santri_id"`
+	// Smart Card bisa milik employee
+	EmployeeID pgtype.Int4 `db:"employee_id"`
 }
 
 type User struct {

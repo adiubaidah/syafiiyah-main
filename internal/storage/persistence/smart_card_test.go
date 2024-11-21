@@ -9,41 +9,41 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func clearRfidTable(t *testing.T) {
-	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "rfid"`)
+func clearSmartCardTable(t *testing.T) {
+	_, err := sqlStore.db.Exec(context.Background(), `DELETE FROM "smart_card"`)
 	require.NoError(t, err)
 }
 
-func createRandomRfidWithSantri(t *testing.T) (Rfid, Santri) {
+func createRandomSmartCardWithSantri(t *testing.T) (SmartCard, Santri) {
 	santri := createRandomSantri(t)
-	arg := CreateRfidParams{
+	arg := CreateSmartCardParams{
 		Uid:      random.RandomString(12),
 		IsActive: random.RandomBool(),
 		SantriID: pgtype.Int4{Int32: santri.ID, Valid: true},
 	}
-	rfid, err := testStore.CreateRfid(context.Background(), arg)
+	smartCard, err := testStore.CreateSmartCard(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, rfid)
+	require.NotEmpty(t, smartCard)
 
-	require.Equal(t, arg.Uid, rfid.Uid)
-	require.Equal(t, arg.IsActive, rfid.IsActive)
-	require.Equal(t, arg.SantriID, rfid.SantriID)
-	require.Equal(t, arg.EmployeeID, rfid.EmployeeID)
+	require.Equal(t, arg.Uid, smartCard.Uid)
+	require.Equal(t, arg.IsActive, smartCard.IsActive)
+	require.Equal(t, arg.SantriID, smartCard.SantriID)
+	require.Equal(t, arg.EmployeeID, smartCard.EmployeeID)
 
-	require.NotZero(t, rfid.ID)
-	require.NotZero(t, rfid.CreatedAt)
+	require.NotZero(t, smartCard.ID)
+	require.NotZero(t, smartCard.CreatedAt)
 
-	return rfid, santri
+	return smartCard, santri
 }
 
-func createRandomRfidWithEmployee(t *testing.T) (Rfid, Employee) {
+func createRandomRfidWithEmployee(t *testing.T) (SmartCard, Employee) {
 	employee := createRandomEmployee(t)
-	arg := CreateRfidParams{
+	arg := CreateSmartCardParams{
 		Uid:        random.RandomString(12),
 		IsActive:   random.RandomBool(),
 		EmployeeID: pgtype.Int4{Int32: employee.ID, Valid: true},
 	}
-	rfid, err := testStore.CreateRfid(context.Background(), arg)
+	rfid, err := testStore.CreateSmartCard(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, rfid)
 
@@ -58,33 +58,33 @@ func createRandomRfidWithEmployee(t *testing.T) (Rfid, Employee) {
 	return rfid, employee
 }
 
-func TestCreateRfid(t *testing.T) {
-	clearRfidTable(t)
+func TestCreateSmartCard(t *testing.T) {
+	clearSmartCardTable(t)
 	clearSantriTable(t)
-	createRandomRfidWithSantri(t)
+	createRandomSmartCardWithSantri(t)
 }
 
-func TestListRfids(t *testing.T) {
-	clearRfidTable(t)
+func TestListSmartCards(t *testing.T) {
+	clearSmartCardTable(t)
 	clearSantriTable(t)
 	clearEmployeeTable(t)
 
-	randomSantriRfid, santri := createRandomRfidWithSantri(t)
+	randomSantriRfid, santri := createRandomSmartCardWithSantri(t)
 	randomEmployeeRfid, employee := createRandomRfidWithEmployee(t)
 
 	for i := 0; i < 10; i++ {
-		createRandomRfidWithSantri(t)
+		createRandomSmartCardWithSantri(t)
 		createRandomRfidWithEmployee(t)
 	}
 
 	t.Run("list all rfids should match santri", func(t *testing.T) {
-		arg := ListRfidParams{
+		arg := ListSmartCardsParams{
 			Q:            pgtype.Text{String: santri.Name[:3], Valid: true},
 			OffsetNumber: 0,
 			LimitNumber:  10,
 			IsSantri:     pgtype.Bool{Bool: true, Valid: true},
 		}
-		rfids, err := testStore.ListRfid(context.Background(), arg)
+		rfids, err := testStore.ListSmartCards(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, rfids)
 
@@ -102,13 +102,13 @@ func TestListRfids(t *testing.T) {
 	})
 
 	t.Run("list all rfids should match employee", func(t *testing.T) {
-		arg := ListRfidParams{
+		arg := ListSmartCardsParams{
 			Q:            pgtype.Text{String: employee.Name[:3], Valid: true},
 			OffsetNumber: 0,
 			LimitNumber:  10,
 			IsEmployee:   pgtype.Bool{Bool: true, Valid: true},
 		}
-		rfids, err := testStore.ListRfid(context.Background(), arg)
+		rfids, err := testStore.ListSmartCards(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, rfids)
 
@@ -127,21 +127,21 @@ func TestListRfids(t *testing.T) {
 
 }
 
-func TestUpdateRfid(t *testing.T) {
-	clearRfidTable(t)
+func TestUpdateSmartCard(t *testing.T) {
+	clearSmartCardTable(t)
 	clearSantriTable(t)
 	clearEmployeeTable(t)
 
-	rfid, _ := createRandomRfidWithSantri(t)
+	rfid, _ := createRandomSmartCardWithSantri(t)
 
-	arg := UpdateRfidParams{
+	arg := UpdateSmartCardParams{
 		ID:         rfid.ID,
 		Uid:        pgtype.Text{String: random.RandomString(12), Valid: true},
 		IsActive:   pgtype.Bool{Bool: random.RandomBool(), Valid: true},
 		SantriID:   pgtype.Int4{Int32: 0, Valid: false},
 		EmployeeID: pgtype.Int4{Int32: 0, Valid: false},
 	}
-	updatedRfid, err := testStore.UpdateRfid(context.Background(), arg)
+	updatedRfid, err := testStore.UpdateSmartCard(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedRfid)
 
@@ -152,14 +152,14 @@ func TestUpdateRfid(t *testing.T) {
 	require.Equal(t, arg.EmployeeID.Int32, updatedRfid.EmployeeID.Int32)
 }
 
-func TestDeleteRfid(t *testing.T) {
-	clearRfidTable(t)
+func TestDeleteSmartCard(t *testing.T) {
+	clearSmartCardTable(t)
 	clearSantriTable(t)
 	clearEmployeeTable(t)
 
-	rfid, _ := createRandomRfidWithSantri(t)
+	rfid, _ := createRandomSmartCardWithSantri(t)
 
-	deletedRfid, err := testStore.DeleteRfid(context.Background(), rfid.ID)
+	deletedRfid, err := testStore.DeleteSmartCard(context.Background(), rfid.ID)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, deletedRfid)

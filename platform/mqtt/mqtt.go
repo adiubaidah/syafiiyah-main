@@ -2,27 +2,37 @@ package mqtt
 
 import (
 	"context"
-	"log"
+	"encoding/json"
 	"sync"
 	"time"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 )
 
 type MQTTHandler struct {
-	Client         mqtt.Client
-	Topics         map[string]chan struct{}
-	Usecase        usecase.DeviceUseCase
-	mu             sync.Mutex
-	MessageHandler mqtt.MessageHandler
+	logger           *logrus.Logger
+	validator        *validator.Validate
+	Client           mqtt.Client
+	Topics           map[string]struct{}
+	DeviceUseCase    usecase.DeviceUseCase
+	SmartCardUseCase usecase.SmartCardUseCase
+	mu               sync.Mutex
+	MessageHandler   mqtt.MessageHandler
 }
 
-func NewMQTTHandler(usecase usecase.DeviceUseCase, brokerURL string) *MQTTHandler {
+func NewMQTTHandler(logger *logrus.Logger, deviceUseCase usecase.DeviceUseCase, smartCardUseCase usecase.SmartCardUseCase, brokerURL string) *MQTTHandler {
 	handler := &MQTTHandler{
-		Topics:  make(map[string]chan struct{}),
-		Usecase: usecase,
+		logger:           logger,
+		validator:        validator.New(),
+		Topics:           make(map[string]struct{}),
+		DeviceUseCase:    deviceUseCase,
+		SmartCardUseCase: smartCardUseCase,
 	}
 
 	handler.Init(brokerURL)
@@ -33,35 +43,87 @@ func NewMQTTHandler(usecase usecase.DeviceUseCase, brokerURL string) *MQTTHandle
 }
 
 func (h *MQTTHandler) Init(brokerURL string) {
-	log.Println("Initializing MQTT client...")
+	h.logger.Println("Initializing MQTT client...")
 	opts := mqtt.NewClientOptions().AddBroker(brokerURL)
-	opts.SetClientID("arduino-server")
+	opts.SetClientID("rfid-syafiiyah")
 	opts.SetDefaultPublishHandler(h.defaultMessageHandler())
 
 	client := mqtt.NewClient(opts)
 	token := client.Connect()
 	if !token.WaitTimeout(3 * time.Second) {
-		log.Fatalf("MQTT broker connection timeout: %v", token.Error())
+		h.logger.Fatalf("MQTT broker connection timeout: %v", token.Error())
 	}
 	if err := token.Error(); err != nil {
-		log.Fatalf("Error connecting to MQTT broker: %v", err)
+		h.logger.Fatalf("Error connecting to MQTT broker: %v", err)
 	}
 
 	h.Client = client
-	log.Println("Connected to MQTT broker")
+	h.logger.Println("Connected to MQTT broker")
 }
 
 func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
 	return func(client mqtt.Client, msg mqtt.Message) {
-		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+		h.logger.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+		if _, exists := h.Topics[msg.Topic()]; !exists {
+			h.logger.Warnf("Topic %s is not registered\n", msg.Topic())
+			return
+		}
+		deviceMode := util.GetDeviceMode(msg.Topic())
+		deviceName := util.GetDeviceName(msg.Topic())
+		acknowledgmentTopic := deviceName + "/acknowledgment/" + deviceMode
+
+		var request model.SmartCardRequest
+		err := json.Unmarshal(msg.Payload(), &request)
+		if err != nil {
+			h.logger.Errorf("Error unmarshaling payload: %v\n", err)
+
+			token := client.Publish(acknowledgmentTopic, 0, false, model.ResponseMessage{
+				Code:    400,
+				Status:  "error",
+				Message: err.Error(),
+			})
+			if token.Wait() && token.Error() != nil {
+				h.logger.Errorf("Error sending acknowledgment: %v\n", token.Error())
+			}
+
+			return
+		}
+
+		//validate request
+		if err := h.validator.Struct(request); err != nil {
+			h.logger.Errorf("Error validating request: %v\n", err)
+			token := client.Publish(acknowledgmentTopic, 0, false, model.ResponseMessage{
+				Code:    400,
+				Status:  "error",
+				Message: err.Error(),
+			})
+			if token.Wait() && token.Error() != nil {
+				h.logger.Errorf("Error sending acknowledgment: %v\n", token.Error())
+			}
+			return
+		}
+
+		switch db.DeviceModeType(deviceMode) {
+		case db.DeviceModeTypeRecord:
+			h.handleRecord(client, acknowledgmentTopic, &request)
+		case db.DeviceModeTypePresence:
+			h.handlePresence(client, acknowledgmentTopic, &request)
+		case db.DeviceModeTypePermission:
+			h.handlePermission(client, acknowledgmentTopic, &request)
+		case db.DeviceModeTypePing:
+			h.handlePing(client, acknowledgmentTopic)
+		default:
+			h.logger.Warnf("Unhandled topic: %s\n", msg.Topic())
+		}
+
 	}
 }
 
 func (h *MQTTHandler) RefreshTopics() {
-	log.Println("Fetching initial topics...")
-	arduinos, err := h.Usecase.ListDevices(context.Background())
+	h.logger.Println("Fetching initial topics...")
+	arduinos, err := h.DeviceUseCase.ListDevices(context.Background())
 	if err != nil {
-		log.Fatalf("Error fetching arduino topics: %v", err)
+		h.logger.Fatalf("Error fetching arduino topics: %v", err)
 	}
 
 	var newTopics []string
@@ -80,11 +142,10 @@ func (h *MQTTHandler) UpdateSubscriptions(newTopics []string) {
 	defer h.mu.Unlock()
 
 	// mandekno goroutine untuk topik seng ora diperlukno
-	for topic, stopChan := range h.Topics {
+	for topic, _ := range h.Topics {
 		if !util.Contains(newTopics, topic) {
-			log.Printf("Unsubscribing and stopping topic: %s\n", topic)
+			h.logger.Printf("Unsubscribing and stopping topic: %s\n", topic)
 			h.Client.Unsubscribe(topic)
-			close(stopChan)
 			delete(h.Topics, topic)
 		}
 	}
@@ -92,22 +153,9 @@ func (h *MQTTHandler) UpdateSubscriptions(newTopics []string) {
 	// Tambah topic anyar
 	for _, topic := range newTopics {
 		if _, exists := h.Topics[topic]; !exists {
-			log.Printf("Subscribing and starting topic: %s\n", topic)
+			h.logger.Printf("Subscribing and starting topic: %s\n", topic)
 			h.Client.Subscribe(topic, 0, h.defaultMessageHandler())
-			stopChan := make(chan struct{})
-			h.Topics[topic] = stopChan
-			go h.listenTopic(topic, stopChan)
-		}
-	}
-}
-
-func (h *MQTTHandler) listenTopic(topic string, stopChan chan struct{}) {
-	log.Printf("Listening on topic: %s\n", topic)
-	for {
-		select {
-		case <-stopChan:
-			log.Printf("Stopping listener for topic: %s\n", topic)
-			return
+			h.Topics[topic] = struct{}{}
 		}
 	}
 }

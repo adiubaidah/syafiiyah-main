@@ -2157,7 +2157,7 @@ paths:
                   code: 404
                   status: error
                   message: "Parent not found"
-  /rfid:
+  /smart-card:
     get:
       tags:
         - RFID
@@ -2211,7 +2211,7 @@ paths:
                             type: array
                             items:
                               allOf:
-                                - $ref: "#/components/schemas/RFID"
+                                - $ref: "#/components/schemas/SmartCard"
                                 - properties:
                                     details:
                                       oneOf:
@@ -2219,7 +2219,7 @@ paths:
                                         - $ref: "#/components/schemas/Employee"
                           pagination:
                               $ref: "#/components/schemas/Pagination"
-  /rfid/{id}:
+  /smart-card/{id}:
     parameters:
       - in: path
         name: Id
@@ -2248,7 +2248,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RFID"
+                $ref: "#/components/schemas/SmartCard"
     delete:
       tags:
         - RFID
@@ -2267,7 +2267,7 @@ paths:
                   - $ref: "#/components/schemas/Response"
                   - properties:
                       data:
-                        $ref: "#/components/schemas/RFID"
+                        $ref: "#/components/schemas/SmartCard"
         "404":
           description: Not Found
           content:
@@ -2730,15 +2730,12 @@ components:
             id:
               $ref: "#/components/schemas/Id"
         - $ref: "#/components/schemas/NewEmployee"
-    NewRFID:
+    NewSmartCard:
       type: object
       properties:
         uid:
           type: string
           uniqueItems: true
-        created_at:
-          type: string
-          description: Date when RFID created
         role:
           type: string
           enum:
@@ -2746,12 +2743,19 @@ components:
             - santri
         is_active: 
           type: boolean
-    RFID:
+    SmartCard:
       allOf:
         - properties:
             id:
               $ref: "#/components/schemas/Id"
-        - $ref: "#/components/schemas/NewRFID"
+        - $ref: "#/components/schemas/NewSmartCard"
+        - properties:
+            created_at:
+              type: string
+              description: Date when RFID created
+            updated_at:
+              type: string
+              description: Date when RFID updated
     DeviceModeEnum:
       type: string
       enum:

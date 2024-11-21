@@ -128,7 +128,7 @@ func (h *parentHandler) ListParentHandler(c *gin.Context) {
 
 	pagination := model.Pagination{
 		CurrentPage:  listParentRequest.Page,
-		TotalPages:   (count + listParentRequest.Limit - 1) / listParentRequest.Limit,
+		TotalPages:   int32((count + int64(listParentRequest.Limit) - 1) / int64(listParentRequest.Limit)),
 		TotalItems:   count,
 		ItemsPerPage: listParentRequest.Limit,
 	}

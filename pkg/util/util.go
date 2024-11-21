@@ -1,5 +1,7 @@
 package util
 
+import "strings"
+
 func Contains[T comparable](slice []T, item T) bool {
 	for _, v := range slice {
 		if v == item {
@@ -19,4 +21,11 @@ func ToSnakeCase(s string) string {
 		result += string(c)
 	}
 	return result
+}
+func GetDeviceName(topic string) string {
+	return strings.Split(topic, "/")[0]
+}
+
+func GetDeviceMode(topic string) string {
+	return strings.Split(topic, "/")[2]
 }

@@ -14,7 +14,7 @@ import (
 type SantriUseCase interface {
 	CreateSantri(ctx context.Context, request *model.CreateSantriRequest) (model.SantriResponse, error)
 	ListSantri(ctx context.Context, request *model.ListSantriRequest) ([]model.SantriCompleteResponse, error)
-	CountSantri(ctx context.Context, request *model.ListSantriRequest) (int32, error)
+	CountSantri(ctx context.Context, request *model.ListSantriRequest) (int64, error)
 	GetSantri(ctx context.Context, santriId int32) (model.SantriCompleteResponse, error)
 	UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId int32) (model.SantriResponse, error)
 	DeleteSantri(ctx context.Context, santriId int32) (model.SantriResponse, error)
@@ -108,7 +108,7 @@ func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantr
 	return result, nil
 }
 
-func (c *santriService) CountSantri(ctx context.Context, request *model.ListSantriRequest) (int32, error) {
+func (c *santriService) CountSantri(ctx context.Context, request *model.ListSantriRequest) (int64, error) {
 
 	arg := db.CountSantriParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
@@ -121,7 +121,7 @@ func (c *santriService) CountSantri(ctx context.Context, request *model.ListSant
 	if err != nil {
 		return 0, err
 	}
-	return int32(count), err
+	return count, err
 }
 
 func (c *santriService) GetSantri(ctx context.Context, santriId int32) (model.SantriCompleteResponse, error) {

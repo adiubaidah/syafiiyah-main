@@ -1,0 +1,1 @@
+DROP IF EXISTS CONSTRAINT "check_santri_or_employee";

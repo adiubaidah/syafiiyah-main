@@ -119,7 +119,7 @@ func (h *santriHandler) ListSantriHandler(c *gin.Context) {
 
 	pagination := model.Pagination{
 		CurrentPage:  listSantriRequest.Page,
-		TotalPages:   (count + listSantriRequest.Limit - 1) / listSantriRequest.Limit,
+		TotalPages:   (int32(count) + listSantriRequest.Limit - 1) / listSantriRequest.Limit,
 		TotalItems:   count,
 		ItemsPerPage: listSantriRequest.Limit,
 	}
