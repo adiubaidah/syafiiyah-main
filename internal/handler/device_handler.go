@@ -23,7 +23,7 @@ type deviceHandler struct {
 	mqttHandler *mqtt.MQTTHandler
 }
 
-func NewArduinoHandler(logger *logrus.Logger, usecase usecase.DeviceUseCase, mqttHandler *mqtt.MQTTHandler) DeviceHandler {
+func NewDeviceHandler(logger *logrus.Logger, usecase usecase.DeviceUseCase, mqttHandler *mqtt.MQTTHandler) DeviceHandler {
 	return &deviceHandler{
 		logger:      logger,
 		usecase:     usecase,
@@ -73,7 +73,7 @@ func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {
 		return
 	}
 
-	arduino, err := h.usecase.UpdateArduino(c, &request, int32(arduinoId))
+	arduino, err := h.usecase.UpdateDevice(c, &request, int32(arduinoId))
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
@@ -91,7 +91,7 @@ func (h *deviceHandler) DeleteDeviceHandler(c *gin.Context) {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
-	arduino, err := h.usecase.DeleteArduino(c, int32(arduinoId))
+	arduino, err := h.usecase.DeleteDevice(c, int32(arduinoId))
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return

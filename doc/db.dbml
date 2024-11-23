@@ -11,6 +11,7 @@ enum role_type {
   "admin"
   "employee"
   "parent"
+  "santri"
 }
 
 Table user {

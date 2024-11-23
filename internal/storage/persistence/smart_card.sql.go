@@ -133,7 +133,7 @@ FROM
     LEFT JOIN "santri" ON "smart_card"."santri_id" = "santri"."id"
     LEFT JOIN "employee" ON "smart_card"."employee_id" = "employee"."id"
 WHERE
-    "smart_card"."id" = $1
+    "smart_card"."uid" = $1
 `
 
 type GetSmartCardRow struct {
@@ -147,8 +147,8 @@ type GetSmartCardRow struct {
 	EmployeeName pgtype.Text        `db:"employee_name"`
 }
 
-func (q *Queries) GetSmartCard(ctx context.Context, id int32) (GetSmartCardRow, error) {
-	row := q.db.QueryRow(ctx, getSmartCard, id)
+func (q *Queries) GetSmartCard(ctx context.Context, uid string) (GetSmartCardRow, error) {
+	row := q.db.QueryRow(ctx, getSmartCard, uid)
 	var i GetSmartCardRow
 	err := row.Scan(
 		&i.ID,

@@ -2,6 +2,7 @@ package initiator
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
@@ -12,6 +13,7 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
+	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/mqtt"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin/binding"
@@ -22,6 +24,10 @@ import (
 )
 
 func Init() {
+
+	//set timezone to utc
+	os.Setenv("TZ", "UTC")
+
 	logger := logrus.New()
 	env, err := config.LoadConfig(".")
 	if err != nil {
@@ -96,9 +102,9 @@ func Init() {
 	smartCardHandler := handler.NewSmartCardHandler(logger, smartCardUseCase)
 	smartCardRouting := routing.SmartCardRouting(smartCardHandler)
 
-	deviceUseCase := usecase.NewArduinoUseCase(store)
+	deviceUseCase := usecase.NewDeviceUseCase(store)
 	mqttHandler := mqtt.NewMQTTHandler(logger, deviceUseCase, smartCardUseCase, env.MQTTBroker)
-	deviceHandler := handler.NewArduinoHandler(logger, deviceUseCase, mqttHandler)
+	deviceHandler := handler.NewDeviceHandler(logger, deviceUseCase, mqttHandler)
 	deviceRouting := routing.DeviceRouting(deviceHandler)
 
 	var routerList []routers.Route
@@ -113,6 +119,8 @@ func Init() {
 	routerList = append(routerList, deviceRouting...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)
+	scheduleCron := cron.NewScheduleCron(logger, santriScheduleUseCase)
+	scheduleCron.Start()
 	server.Serve()
 
 }

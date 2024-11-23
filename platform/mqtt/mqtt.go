@@ -10,6 +10,7 @@ import (
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
@@ -24,6 +25,7 @@ type MQTTHandler struct {
 	SmartCardUseCase usecase.SmartCardUseCase
 	mu               sync.Mutex
 	MessageHandler   mqtt.MessageHandler
+	schedule         cron.ScheduleCron
 }
 
 func NewMQTTHandler(logger *logrus.Logger, deviceUseCase usecase.DeviceUseCase, smartCardUseCase usecase.SmartCardUseCase, brokerURL string) *MQTTHandler {

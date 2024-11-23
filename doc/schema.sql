@@ -1,12 +1,13 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-11-21T16:31:01.009Z
+-- Generated at: 2024-11-23T04:18:12.040Z
 
 CREATE TYPE "role_type" AS ENUM (
   'superadmin',
   'admin',
   'employee',
-  'parent'
+  'parent',
+  'santri'
 );
 
 CREATE TYPE "gender_type" AS ENUM (

@@ -64,7 +64,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	accessToken, payload, err := h.tokenMaker.CreateToken(user.Username, user.Role, h.config.AccessTokenDuration)
+	accessToken, payload, err := h.tokenMaker.CreateToken(user.Username, string(user.Role), h.config.AccessTokenDuration)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -72,7 +72,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	refreshToken, refreshPayload, err := h.tokenMaker.CreateToken(user.Username, user.Role, h.config.RefreshTokenDuration)
+	refreshToken, refreshPayload, err := h.tokenMaker.CreateToken(user.Username, string(user.Role), h.config.RefreshTokenDuration)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Internal server error"})

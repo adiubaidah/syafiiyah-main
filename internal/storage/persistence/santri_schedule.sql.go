@@ -107,6 +107,32 @@ func (q *Queries) GetLastSantriSchedule(ctx context.Context) (SantriSchedule, er
 	return i, err
 }
 
+const getSantriSchedule = `-- name: GetSantriSchedule :one
+
+SELECT
+    id, name, description, start_presence, start_time, finish_time
+FROM
+    "santri_schedule"
+WHERE
+    $1::time BETWEEN start_presence AND finish_time
+LIMIT
+    1
+`
+
+func (q *Queries) GetSantriSchedule(ctx context.Context, time pgtype.Time) (SantriSchedule, error) {
+	row := q.db.QueryRow(ctx, getSantriSchedule, time)
+	var i SantriSchedule
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.StartPresence,
+		&i.StartTime,
+		&i.FinishTime,
+	)
+	return i, err
+}
+
 const listSantriSchedules = `-- name: ListSantriSchedules :many
 SELECT
     id, name, description, start_presence, start_time, finish_time

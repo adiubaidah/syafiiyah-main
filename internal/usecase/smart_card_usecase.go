@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
@@ -12,6 +13,7 @@ import (
 type SmartCardUseCase interface {
 	CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (model.SmartCard, error)
 	ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) ([]model.SmartCardComplete, error)
+	GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (model.SmartCardComplete, error)
 	CountSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (int64, error)
 	UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (model.SmartCardComplete, error)
 	DeleteSmartCard(ctx context.Context, id int32) (model.SmartCard, error)
@@ -35,7 +37,7 @@ func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardR
 
 	if err != nil {
 		if exception.DatabaseErrorCode(err) == exception.ErrCodeUniqueViolation {
-			return model.SmartCard{}, exception.NewUniqueViolationError("", err)
+			return model.SmartCard{}, exception.NewUniqueViolationError("Smart Card already exists", err)
 		}
 		return model.SmartCard{}, err
 	}
@@ -86,7 +88,7 @@ func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCa
 				CreatedAt: smartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),
 				IsActive:  smartCard.IsActive,
 			},
-			OwnerRole: ownerRole,
+			OwnerRole: db.RoleType(ownerRole),
 			Details: model.SmartCardDetails{
 				ID:   detailsId,
 				Name: detailsName,
@@ -112,12 +114,54 @@ func (c *service) CountSmartCards(ctx context.Context, request *model.ListSmartC
 	return count, nil
 }
 
+func (c *service) GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (model.SmartCardComplete, error) {
+	smartCard, err := c.store.GetSmartCard(ctx, request.Uid)
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.SmartCardComplete{}, exception.NewNotFoundError("Smart Card not found")
+		}
+		return model.SmartCardComplete{}, err
+	}
+
+	var ownerRole string
+	var ownerId int32
+	var ownerName string
+
+	if smartCard.SantriID.Valid {
+		ownerRole = "santri"
+		ownerId = smartCard.SantriID.Int32
+		ownerName = smartCard.SantriName.String
+	} else if smartCard.EmployeeID.Valid {
+		ownerId = smartCard.EmployeeID.Int32
+		ownerName = smartCard.EmployeeName.String
+
+	} else {
+		ownerRole = ""
+		ownerId = 0
+		ownerName = ""
+	}
+
+	return model.SmartCardComplete{
+		SmartCard: model.SmartCard{
+			ID:        smartCard.ID,
+			Uid:       smartCard.Uid,
+			CreatedAt: smartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),
+			IsActive:  smartCard.IsActive,
+		},
+		OwnerRole: db.RoleType(ownerRole),
+		Details: model.SmartCardDetails{
+			ID:   ownerId,
+			Name: ownerName,
+		},
+	}, nil
+}
+
 func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (model.SmartCardComplete, error) {
 	var ownerRole string
 	var detailsId int32
 	var detailsName string
 
-	if request.OwnerRole == "santri" {
+	if request.OwnerRole == db.RoleTypeSantri {
 		santri, err := c.store.GetSantri(ctx, request.OwnerID)
 		if err != nil {
 			return model.SmartCardComplete{}, err
@@ -125,7 +169,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 		detailsId = santri.ID
 		detailsName = santri.Name
 		ownerRole = "santri"
-	} else if request.OwnerRole == "employee" {
+	} else {
 		employee, err := c.store.GetEmployee(ctx, request.OwnerID)
 		if err != nil {
 			return model.SmartCardComplete{}, err
@@ -133,8 +177,6 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 		detailsId = employee.ID
 		detailsName = employee.Name
 		ownerRole = "employee"
-	} else {
-		return model.SmartCardComplete{}, exception.NewValidationError("invalid owner role")
 	}
 
 	updatedSmartCard, err := c.store.UpdateSmartCard(ctx, db.UpdateSmartCardParams{
@@ -155,7 +197,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 			CreatedAt: updatedSmartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),
 			IsActive:  updatedSmartCard.IsActive,
 		},
-		OwnerRole: string(ownerRole),
+		OwnerRole: db.RoleType(ownerRole),
 		Details: model.SmartCardDetails{
 			ID:   detailsId,
 			Name: detailsName,

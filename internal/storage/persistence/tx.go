@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (store *SQLStore) CreateArduinoWithModes(ctx context.Context, arduinoName string, modeParams []CreateDeviceModesParams) (Device, error) {
+func (store *SQLStore) CreateDeviceWithModes(ctx context.Context, arduinoName string, modeParams []CreateDeviceModesParams) (Device, error) {
 	var createdDevice Device
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -28,7 +28,7 @@ func (store *SQLStore) CreateArduinoWithModes(ctx context.Context, arduinoName s
 	return createdDevice, err
 }
 
-func (store *SQLStore) UpdateArduinoWithModes(ctx context.Context, deviceID int32,
+func (store *SQLStore) UpdateDeviceWithModes(ctx context.Context, deviceID int32,
 	name string,
 	modeParams []CreateDeviceModesParams) (Device, error) {
 	var updatedArduino Device

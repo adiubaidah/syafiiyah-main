@@ -234,6 +234,7 @@ const (
 	RoleTypeAdmin      RoleType = "admin"
 	RoleTypeEmployee   RoleType = "employee"
 	RoleTypeParent     RoleType = "parent"
+	RoleTypeSantri     RoleType = "santri"
 )
 
 func (e *RoleType) Scan(src interface{}) error {

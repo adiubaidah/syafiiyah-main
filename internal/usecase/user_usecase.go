@@ -47,7 +47,7 @@ func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserR
 	return model.UserResponse{
 		ID:       createdUser.ID,
 		Username: createdUser.Username.String,
-		Role:     string(createdUser.Role.RoleType),
+		Role:     createdUser.Role.RoleType,
 	}, nil
 
 }
@@ -97,7 +97,7 @@ func (c *userService) GetUser(ctx context.Context, userId int32, username string
 	return model.UserWithPassword{
 		ID:       user.ID,
 		Username: user.Username.String,
-		Role:     string(user.Role.RoleType),
+		Role:     user.Role.RoleType,
 		Password: user.Password.String,
 	}, nil
 }
@@ -142,7 +142,7 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 	return model.UserResponse{
 		ID:       updatedUser.ID,
 		Username: updatedUser.Username.String,
-		Role:     string(updatedUser.Role.RoleType),
+		Role:     updatedUser.Role.RoleType,
 	}, nil
 }
 
@@ -160,6 +160,6 @@ func (c *userService) DeleteUser(ctx context.Context, userId int32) (model.UserR
 	return model.UserResponse{
 		ID:       userDeleted.ID,
 		Username: userDeleted.Username.String,
-		Role:     string(userDeleted.Role.RoleType),
+		Role:     userDeleted.Role.RoleType,
 	}, nil
 }

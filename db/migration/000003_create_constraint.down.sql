@@ -1,1 +1,1 @@
-DROP IF EXISTS CONSTRAINT "check_santri_or_employee";
+ALTER TABLE "smart_card" DROP CONSTRAINT IF EXISTS "check_santri_or_employee";

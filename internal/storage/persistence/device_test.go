@@ -40,7 +40,7 @@ func TestCreateArduinoWithModes(t *testing.T) {
 	nameRandom := random.RandomString(10)
 	modeParams := createRandomArduinoModesParams(nameRandom)
 
-	arduino, err := sqlStore.CreateArduinoWithModes(context.Background(), nameRandom, modeParams)
+	arduino, err := sqlStore.CreateDeviceWithModes(context.Background(), nameRandom, modeParams)
 	require.NoError(t, err)
 	require.NotEmpty(t, arduino)
 	require.NotZero(t, arduino.ID)

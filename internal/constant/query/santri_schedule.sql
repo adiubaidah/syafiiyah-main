@@ -42,6 +42,16 @@ WHERE
         FROM
             "santri_schedule"
     );
+-- name: GetSantriSchedule :one
+
+SELECT
+    *
+FROM
+    "santri_schedule"
+WHERE
+    @time::time BETWEEN start_presence AND finish_time
+LIMIT
+    1;
 
 -- name: UpdateSantriSchedule :one
 UPDATE

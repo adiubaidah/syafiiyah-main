@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
@@ -16,6 +17,7 @@ import (
 type SantriScheduleUseCase interface {
 	CreateSantriSchedule(ctx context.Context, request *model.CreateSantriScheduleRequest) (model.SantriScheduleResponse, error)
 	ListSantriSchedule(ctx context.Context) ([]model.SantriScheduleResponse, error)
+	GetSantriSchedule(ctx context.Context, time time.Time) (model.SantriScheduleResponse, error)
 	UpdateSantriSchedule(ctx context.Context, request *model.UpdateSantriScheduleRequest, santriScheduleId int32) (model.SantriScheduleResponse, error)
 	DeleteSantriSchedule(ctx context.Context, santriScheduleId int32) (model.SantriScheduleResponse, error)
 }
@@ -121,6 +123,24 @@ func (c *santriScheduleService) ListSantriSchedule(ctx context.Context) ([]model
 	}
 
 	return response, nil
+}
+
+func (c *santriScheduleService) GetSantriSchedule(ctx context.Context, time time.Time) (model.SantriScheduleResponse, error) {
+	schedule, err := c.store.GetSantriSchedule(ctx, util.ConvertToPgxTime(time))
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return model.SantriScheduleResponse{}, exception.NewNotFoundError("Santri Schedule not found")
+		}
+		return model.SantriScheduleResponse{}, err
+	}
+	return model.SantriScheduleResponse{
+		ID:            schedule.ID,
+		Name:          schedule.Name,
+		Description:   schedule.Description.String,
+		StartPresence: util.ConvertToTime(schedule.StartPresence),
+		StartTime:     util.ConvertToTime(schedule.StartTime),
+		FinishTime:    util.ConvertToTime(schedule.FinishTime),
+	}, nil
 }
 
 func (c *santriScheduleService) UpdateSantriSchedule(ctx context.Context, request *model.UpdateSantriScheduleRequest, santriScheduleId int32) (model.SantriScheduleResponse, error) {

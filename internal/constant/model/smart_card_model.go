@@ -1,5 +1,9 @@
 package model
 
+import (
+	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+)
+
 type SmartCardRequest struct {
 	Uid string `json:"uid" validate:"required"`
 }
@@ -12,9 +16,9 @@ type ListSmartCardRequest struct {
 }
 
 type UpdateSmartCardRequest struct {
-	IsActive  bool   `json:"is_active"`
-	OwnerRole string `json:"owner_role" binding:"omitempty,oneof=employee santri"`
-	OwnerID   int32  `json:"owner_id"`
+	IsActive  bool        `json:"is_active"`
+	OwnerRole db.RoleType `json:"owner_role" binding:"omitempty,role"`
+	OwnerID   int32       `json:"owner_id"`
 }
 
 type SmartCard struct {
@@ -31,7 +35,7 @@ type ListSmartCardResponse struct {
 
 type SmartCardComplete struct {
 	SmartCard
-	OwnerRole string           `json:"owned_by"`
+	OwnerRole db.RoleType      `json:"owned_role"`
 	Details   SmartCardDetails `json:"details"`
 }
 

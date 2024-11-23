@@ -205,6 +205,22 @@ func TestListEmployeePagination(t *testing.T) {
 	}
 }
 
+func TestGetEmployee(t *testing.T) {
+	employee1 := createRandomEmployee(t)
+
+	employee2, err := testStore.GetEmployee(context.Background(), employee1.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, employee2)
+
+	require.Equal(t, employee1.ID, employee2.ID)
+	require.Equal(t, employee1.Nip.String, employee2.Nip.String)
+	require.Equal(t, employee1.Name, employee2.Name)
+	require.Equal(t, employee1.Gender, employee2.Gender)
+	require.Equal(t, employee1.Photo.String, employee2.Photo.String)
+	require.Equal(t, employee1.OccupationID, employee2.OccupationID)
+	require.Equal(t, employee1.UserID, employee2.UserID)
+}
+
 func TestUpdateEmployee(t *testing.T) {
 	employee1 := createRandomEmployee(t)
 

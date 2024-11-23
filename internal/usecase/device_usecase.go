@@ -14,15 +14,15 @@ import (
 type DeviceUseCase interface {
 	CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (model.DeviceResponse, error)
 	ListDevices(ctx context.Context) ([]model.DeviceWithModesResponse, error)
-	UpdateArduino(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (model.DeviceResponse, error)
-	DeleteArduino(ctx context.Context, deviceId int32) (model.DeviceResponse, error)
+	UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (model.DeviceResponse, error)
+	DeleteDevice(ctx context.Context, deviceId int32) (model.DeviceResponse, error)
 }
 
 type deviceService struct {
 	store db.Store
 }
 
-func NewArduinoUseCase(store db.Store) DeviceUseCase {
+func NewDeviceUseCase(store db.Store) DeviceUseCase {
 	return &deviceService{store: store}
 }
 
@@ -38,7 +38,7 @@ func (c *deviceService) CreateDevice(ctx context.Context, request *model.CreateD
 		})
 	}
 
-	device, err := sqlStore.CreateArduinoWithModes(ctx, request.Name, modeParams)
+	device, err := sqlStore.CreateDeviceWithModes(ctx, request.Name, modeParams)
 	if err != nil {
 		return model.DeviceResponse{}, err
 	}
@@ -83,7 +83,7 @@ func (c *deviceService) ListDevices(ctx context.Context) ([]model.DeviceWithMode
 	return arduinoResponses, nil
 }
 
-func (c *deviceService) UpdateArduino(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (model.DeviceResponse, error) {
+func (c *deviceService) UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (model.DeviceResponse, error) {
 	sqlStore := c.store.(*db.SQLStore)
 	modeParams := make([]db.CreateDeviceModesParams, 0)
 
@@ -95,7 +95,7 @@ func (c *deviceService) UpdateArduino(ctx context.Context, request *model.Create
 		})
 	}
 
-	device, err := sqlStore.UpdateArduinoWithModes(ctx, deviceId, request.Name, modeParams)
+	device, err := sqlStore.UpdateDeviceWithModes(ctx, deviceId, request.Name, modeParams)
 	if err != nil {
 		return model.DeviceResponse{}, err
 	}
@@ -106,7 +106,7 @@ func (c *deviceService) UpdateArduino(ctx context.Context, request *model.Create
 	}, nil
 }
 
-func (c *deviceService) DeleteArduino(ctx context.Context, deviceId int32) (model.DeviceResponse, error) {
+func (c *deviceService) DeleteDevice(ctx context.Context, deviceId int32) (model.DeviceResponse, error) {
 	device, err := c.store.DeleteDevice(ctx, deviceId)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {

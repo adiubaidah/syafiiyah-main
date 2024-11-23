@@ -104,7 +104,7 @@ FROM
     LEFT JOIN "santri" ON "smart_card"."santri_id" = "santri"."id"
     LEFT JOIN "employee" ON "smart_card"."employee_id" = "employee"."id"
 WHERE
-    "smart_card"."id" = @id;
+    "smart_card"."uid" = @uid;
 
 -- name: DeleteSmartCard :one
 DELETE FROM
