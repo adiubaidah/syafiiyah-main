@@ -31,7 +31,7 @@ VALUES
         $5,
         $6 :: presence_created_by_type,
         $7
-    ) RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
+    ) RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, created_date
 `
 
 type CreateSantriPresenceParams struct {
@@ -65,6 +65,7 @@ func (q *Queries) CreateSantriPresence(ctx context.Context, arg CreateSantriPres
 		&i.CreatedBy,
 		&i.Notes,
 		&i.SantriPermissionID,
+		&i.CreatedDate,
 	)
 	return i, err
 }
@@ -74,7 +75,7 @@ DELETE FROM
     "santri_presence"
 WHERE
     "id" = $1
-RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
+RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, created_date
 `
 
 func (q *Queries) DeleteSantriPresence(ctx context.Context, id pgtype.Int4) (SantriPresence, error) {
@@ -90,13 +91,15 @@ func (q *Queries) DeleteSantriPresence(ctx context.Context, id pgtype.Int4) (San
 		&i.CreatedBy,
 		&i.Notes,
 		&i.SantriPermissionID,
+		&i.CreatedDate,
 	)
 	return i, err
 }
 
 const listSantriPresences = `-- name: ListSantriPresences :many
 SELECT
-    santri_presence.id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, santri.id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
+    santri_presence.id, santri_presence.schedule_id, santri_presence.schedule_name, santri_presence.type, santri_presence.santri_id, santri_presence.created_at, santri_presence.created_by, santri_presence.notes, santri_presence.santri_permission_id, santri_presence.created_date,
+    "santri"."name" AS "santri_name"
 FROM
     "santri_presence"
     INNER JOIN "santri" ON "santri_presence"."santri_id" = "santri"."id"
@@ -152,15 +155,8 @@ type ListSantriPresencesRow struct {
 	CreatedBy          PresenceCreatedByType `db:"created_by"`
 	Notes              pgtype.Text           `db:"notes"`
 	SantriPermissionID pgtype.Int4           `db:"santri_permission_id"`
-	ID_2               int32                 `db:"id_2"`
-	Nis                pgtype.Text           `db:"nis"`
-	Name               string                `db:"name"`
-	Gender             GenderType            `db:"gender"`
-	Generation         int32                 `db:"generation"`
-	IsActive           pgtype.Bool           `db:"is_active"`
-	Photo              pgtype.Text           `db:"photo"`
-	OccupationID       pgtype.Int4           `db:"occupation_id"`
-	ParentID           pgtype.Int4           `db:"parent_id"`
+	CreatedDate        pgtype.Date           `db:"created_date"`
+	SantriName         string                `db:"santri_name"`
 }
 
 func (q *Queries) ListSantriPresences(ctx context.Context, arg ListSantriPresencesParams) ([]ListSantriPresencesRow, error) {
@@ -191,15 +187,8 @@ func (q *Queries) ListSantriPresences(ctx context.Context, arg ListSantriPresenc
 			&i.CreatedBy,
 			&i.Notes,
 			&i.SantriPermissionID,
-			&i.ID_2,
-			&i.Nis,
-			&i.Name,
-			&i.Gender,
-			&i.Generation,
-			&i.IsActive,
-			&i.Photo,
-			&i.OccupationID,
-			&i.ParentID,
+			&i.CreatedDate,
+			&i.SantriName,
 		); err != nil {
 			return nil, err
 		}
@@ -223,7 +212,7 @@ SET
     "santri_permission_id" = $6
 WHERE
     "id" = $7
-    RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
+    RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, created_date
 `
 
 type UpdateSantriPresenceParams struct {
@@ -257,6 +246,7 @@ func (q *Queries) UpdateSantriPresence(ctx context.Context, arg UpdateSantriPres
 		&i.CreatedBy,
 		&i.Notes,
 		&i.SantriPermissionID,
+		&i.CreatedDate,
 	)
 	return i, err
 }

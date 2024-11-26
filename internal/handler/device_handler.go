@@ -50,13 +50,13 @@ func (h *deviceHandler) CreateDeviceHandler(c *gin.Context) {
 }
 
 func (h *deviceHandler) ListDevicesHandler(c *gin.Context) {
-	arduinos, err := h.usecase.ListDevices(c)
+	result, err := h.usecase.ListDevices(c)
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	c.JSON(200, model.ResponseData[[]model.DeviceWithModesResponse]{Code: 200, Status: "success", Data: arduinos})
+	c.JSON(200, model.ResponseData[[]model.DeviceWithModesResponse]{Code: 200, Status: "success", Data: result})
 }
 
 func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {

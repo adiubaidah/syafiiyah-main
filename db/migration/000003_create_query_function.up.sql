@@ -229,3 +229,11 @@ BEGIN
     USING q, has_user, limit_number, offset_number;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Card query function
+CREATE TYPE card_owner AS ENUM (
+    'santri',
+    'employee',
+    'all',
+    'none'
+);

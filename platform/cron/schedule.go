@@ -44,7 +44,7 @@ func (s *ScheduleCron) Stop() {
 }
 
 func (s *ScheduleCron) run() {
-	ticker := time.NewTicker(15 * time.Second)
+	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 
 	for {
@@ -52,7 +52,6 @@ func (s *ScheduleCron) run() {
 		case <-ticker.C:
 			// Get active schedule
 			activeSchedule, err := s.santriScheduleUseCase.GetSantriSchedule(context.Background(), time.Now())
-			s.logger.Println(time.Now())
 			if err != nil {
 				s.logger.Errorf("failed to get active schedule: %v", err)
 				if errors.Is(err, exception.ErrNotFound) {
@@ -60,6 +59,7 @@ func (s *ScheduleCron) run() {
 				}
 			} else {
 				s.ActiveScheduleSantri = activeSchedule
+				s.logger.Println("Active schedule: ", s.ActiveScheduleSantri)
 			}
 		case <-s.stopChan:
 			return

@@ -12,8 +12,8 @@ VALUES
 -- name: ListSmartCards :many
 SELECT
     "smart_card".*,
-    "santri"."name" as "santri_name",
-    "employee"."name" as "employee_name"
+    "santri"."name" AS "santri_name",
+    "employee"."name" AS "employee_name"
 FROM
     smart_card
     LEFT JOIN "santri" ON "smart_card"."santri_id" = "santri"."id"
@@ -30,31 +30,27 @@ WHERE
         OR "smart_card"."is_active" = sqlc.narg(is_active)
     )
     AND (
-        (
-            sqlc.narg(is_santri)::boolean IS NULL
-            OR sqlc.narg(is_santri) = FALSE
-        )
-        AND "smart_card"."santri_id" IS NULL
-        OR sqlc.narg(is_santri) = TRUE
-    )
-    AND (
-        (
-            sqlc.narg(is_employee)::boolean IS NULL
-            OR sqlc.narg(is_employee) = FALSE
-        )
-        AND "smart_card"."employee_id" IS NULL
-        OR sqlc.narg(is_employee) = TRUE
+        CASE
+            WHEN sqlc.narg(card_owner)::card_owner = 'santri' THEN "smart_card"."santri_id" IS NOT NULL
+            WHEN sqlc.narg(card_owner)::card_owner = 'employee' THEN "smart_card"."employee_id" IS NOT NULL
+            WHEN sqlc.narg(card_owner)::card_owner = 'all' THEN "smart_card"."santri_id" IS NOT NULL OR "smart_card"."employee_id" IS NOT NULL
+            WHEN sqlc.narg(card_owner)::card_owner = 'none' THEN "smart_card"."santri_id" IS NULL AND "smart_card"."employee_id" IS NULL
+            ELSE TRUE
+        END
     )
 ORDER BY
     "smart_card"."id" ASC
 LIMIT
     @limit_number OFFSET @offset_number;
 
+
 -- name: CountSmartCards :one
 SELECT
     COUNT(*) as "count"
 FROM
     smart_card
+    LEFT JOIN "santri" ON "smart_card"."santri_id" = "santri"."id"
+    LEFT JOIN "employee" ON "smart_card"."employee_id" = "employee"."id"
 WHERE
     (
         sqlc.narg(q) :: text IS NULL
@@ -67,20 +63,13 @@ WHERE
         OR "smart_card"."is_active" = sqlc.narg(is_active)
     )
     AND (
-        (
-            sqlc.narg(is_santri)::boolean IS NULL
-            OR sqlc.narg(is_santri) = FALSE
-        )
-        AND "smart_card"."santri_id" IS NULL
-        OR sqlc.narg(is_santri) = TRUE
-    )
-    AND (
-        (
-            sqlc.narg(is_employee)::boolean IS NULL
-            OR sqlc.narg(is_employee) = FALSE
-        )
-        AND "smart_card"."employee_id" IS NULL
-        OR sqlc.narg(is_employee) = TRUE
+        CASE
+            WHEN sqlc.narg(card_owner)::card_owner = 'santri' THEN "smart_card"."santri_id" IS NOT NULL
+            WHEN sqlc.narg(card_owner)::card_owner = 'employee' THEN "smart_card"."employee_id" IS NOT NULL
+            WHEN sqlc.narg(card_owner)::card_owner = 'all' THEN "smart_card"."santri_id" IS NOT NULL OR "smart_card"."employee_id" IS NOT NULL
+            WHEN sqlc.narg(card_owner)::card_owner = 'none' THEN "smart_card"."santri_id" IS NULL AND "smart_card"."employee_id" IS NULL
+            ELSE TRUE
+        END
     );
 
 -- name: UpdateSmartCard :one

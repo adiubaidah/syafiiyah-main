@@ -11,6 +11,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CardOwner string
+
+const (
+	CardOwnerSantri   CardOwner = "santri"
+	CardOwnerEmployee CardOwner = "employee"
+	CardOwnerAll      CardOwner = "all"
+	CardOwnerNone     CardOwner = "none"
+)
+
+func (e *CardOwner) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CardOwner(s)
+	case string:
+		*e = CardOwner(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CardOwner: %T", src)
+	}
+	return nil
+}
+
+type NullCardOwner struct {
+	CardOwner CardOwner
+	Valid     bool // Valid is true if CardOwner is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCardOwner) Scan(value interface{}) error {
+	if value == nil {
+		ns.CardOwner, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CardOwner.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCardOwner) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CardOwner), nil
+}
+
 type DeviceModeType string
 
 const (
@@ -539,6 +583,7 @@ type SantriPresence struct {
 	Notes        pgtype.Text           `db:"notes"`
 	// Jika izin ditengah kegiatan maka akan diisi
 	SantriPermissionID pgtype.Int4 `db:"santri_permission_id"`
+	CreatedDate        pgtype.Date `db:"created_date"`
 }
 
 type SantriSchedule struct {

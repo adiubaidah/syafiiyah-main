@@ -1404,11 +1404,7 @@ paths:
                           items:
                             type: array
                             items:
-                              allOf:
-                                - $ref: "#/components/schemas/SantriPresence"
-                                - properties:
-                                    santri:
-                                      $ref: "#/components/schemas/Santri"
+                              $ref: "#/components/schemas/SantriPresence"
                           pagination:
                             $ref: "#/components/schemas/Pagination"
     post:
@@ -1428,30 +1424,6 @@ paths:
                       $ref: "#/components/schemas/PresenceEnum"
                     santri_id:
                       $ref: "#/components/schemas/Id"
-                    notes:
-                      nullable: true
-            examples:
-              from-admin:
-                value:
-                  type: "presence"
-                  santri_id: 1
-                  schedule_id: 1
-                  schedule_name: Pengajian Subuh
-                  notes: "Presence because error of RFID"
-              from-bulk-admin:
-                description: Admin can create presence in bulk
-                value:
-                  type: sick
-                  santri_id: 1
-                  notes: "Sakit"
-              from-santri-permission:
-                value:
-                  type: permission
-                  santri_id: 1
-                  schedule_id: 1
-                  schedule_name: Pengajian Subuh
-                  created_at: "2024-11-22T13:37:00Z"
-                  santri_permission_id: 1
       responses:
         "200":
           description: OK
@@ -2160,8 +2132,8 @@ paths:
   /smart-card:
     get:
       tags:
-        - RFID
-      summary: Get All RFID
+        - Smart Card
+      summary: Get All Smart Card
       security:
         - cookieAuth: []
       parameters:
@@ -2182,7 +2154,7 @@ paths:
           schema:
             type: string
           required: false
-          description: Search RFID by uid or name
+          description: Search Smart Card by uid or name
           example: "1234567890"
         - in: query
           name: role
@@ -2210,13 +2182,8 @@ paths:
                           items:
                             type: array
                             items:
-                              allOf:
-                                - $ref: "#/components/schemas/SmartCard"
-                                - properties:
-                                    details:
-                                      oneOf:
-                                        - $ref: "#/components/schemas/Santri"
-                                        - $ref: "#/components/schemas/Employee"
+                              $ref: "#/components/schemas/SmartCard"
+
                           pagination:
                               $ref: "#/components/schemas/Pagination"
   /smart-card/{id}:
@@ -2229,8 +2196,8 @@ paths:
 
     put:
       tags:
-        - RFID
-      summary: Update RFID by ID
+        - Smart Card
+      summary: Update Smart Card by ID
       description: Only Admin and Superadmin can manage this endpoint
       security:
         - cookieAuth: []
@@ -2239,6 +2206,7 @@ paths:
           application/json:
             schema:
               type: object
+
               properties:
                 is_active:
                   type: boolean
@@ -2251,8 +2219,8 @@ paths:
                 $ref: "#/components/schemas/SmartCard"
     delete:
       tags:
-        - RFID
-      summary: Delete RFID by Id
+        - Smart Card
+      summary: Delete Smart Card by Id
       description: Only Admin and Superadmin can manage this endpoint
       security:
         - cookieAuth: []
@@ -2279,7 +2247,7 @@ paths:
                 example:
                   code: 404
                   status: error
-                  message: "RFID not found"
+                  message: "Smart Card not found"
   /device:
     description: Only superadmin can access this endpoint
     get:
@@ -2411,6 +2379,13 @@ components:
       enum:
         - male
         - female
+    IdAndName:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        name: 
+          type: string
     PresenceEnum:
       type: string
       enum:
@@ -2637,21 +2612,13 @@ components:
         schedule_id:
           type: integer
           nullable: false
-        schedule_name:
-          type: string
         type:
           $ref: "#/components/schemas/PresenceEnum"
         santri_id:
           type: integer
           nullable: false
-        created_at:
-          type: string
-          example: "2024-11-22T13:37:00Z"
         notes:
           type: string
-          nullable: true
-        santri_permission_id:
-          type: integer
           nullable: true
     SantriPresence:
       allOf:
@@ -2659,6 +2626,22 @@ components:
             id:
               $ref: "#/components/schemas/Id"
         - $ref: "#/components/schemas/NewSantriPresence"
+        - properties:
+            created_at:
+              type: string
+              example: "2024-11-22T13:37:00Z"
+            created_by:
+              enum:
+                - admin
+                - system
+                - tap
+            santri_permission_id:
+              type: integer
+              nullable: true
+            schedule:
+              $ref: "#/components/schemas/IdAndName"
+            santri:
+              $ref: "#/components/schemas/IdAndName"
     NewEmployeeOccupation:
       type: object
       properties:
@@ -2736,11 +2719,6 @@ components:
         uid:
           type: string
           uniqueItems: true
-        role:
-          type: string
-          enum:
-            - employee
-            - santri
         is_active: 
           type: boolean
     SmartCard:
@@ -2752,10 +2730,17 @@ components:
         - properties:
             created_at:
               type: string
-              description: Date when RFID created
+              description: Date when Smart Card created
             updated_at:
               type: string
-              description: Date when RFID updated
+              description: Date when Smart Card updated
+            owner:
+              type: object
+              allOf:
+                - $ref: "#/components/schemas/IdAndName"
+                - properties:
+                    role:
+                      $ref: "#/components/schemas/RoleEnum"
     DeviceModeEnum:
       type: string
       enum:

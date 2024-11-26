@@ -87,7 +87,7 @@ func (h *parentHandler) CreateParentHandler(c *gin.Context) {
 	c.JSON(201, model.ResponseData[model.ParentResponse]{
 		Code:   201,
 		Status: "success",
-		Data:   result,
+		Data:   *result,
 	})
 }
 
@@ -112,11 +112,11 @@ func (h *parentHandler) ListParentHandler(c *gin.Context) {
 	}
 
 	//format all image from filename to url
-	for i, parent := range result {
+	for i, parent := range *result {
 		if parent.Photo == "" {
 			continue
 		}
-		result[i].Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, parent.Photo)
+		(*result)[i].Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, parent.Photo)
 	}
 
 	count, err := h.usecase.CountParents(c, &listParentRequest)
@@ -137,7 +137,7 @@ func (h *parentHandler) ListParentHandler(c *gin.Context) {
 		Code:   200,
 		Status: "success",
 		Data: model.ListParentResponse{
-			Items:      result,
+			Items:      *result,
 			Pagination: pagination,
 		},
 	})
@@ -219,7 +219,7 @@ func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: result})
+	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: *result})
 
 }
 
@@ -248,7 +248,7 @@ func (h *parentHandler) GetParentHandler(c *gin.Context) {
 		result.Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, result.Photo)
 	}
 
-	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: result})
+	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: *result})
 }
 
 func (h *parentHandler) DeleteParentHandler(c *gin.Context) {
@@ -276,5 +276,5 @@ func (h *parentHandler) DeleteParentHandler(c *gin.Context) {
 		util.DeleteFile(filepath.Join(config.PathPhoto, deletedParent.Photo))
 	}
 
-	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: deletedParent})
+	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: *deletedParent})
 }

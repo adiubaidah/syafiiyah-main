@@ -47,7 +47,7 @@ func (h *santriOccupationHandler) CreateSantriOccupationHandler(c *gin.Context) 
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusCreated, Status: "Created", Data: result})
+	c.JSON(http.StatusCreated, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusCreated, Status: "Created", Data: *result})
 }
 
 func (h *santriOccupationHandler) ListSantriOccupationHandler(c *gin.Context) {
@@ -57,7 +57,7 @@ func (h *santriOccupationHandler) ListSantriOccupationHandler(c *gin.Context) {
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.ResponseData[[]model.SantriOccupationWithCountResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+	c.JSON(http.StatusOK, model.ResponseData[[]model.SantriOccupationWithCountResponse]{Code: http.StatusOK, Status: "OK", Data: *result})
 }
 
 func (h *santriOccupationHandler) UpdateSantriOccupationHandler(c *gin.Context) {
@@ -90,7 +90,7 @@ func (h *santriOccupationHandler) UpdateSantriOccupationHandler(c *gin.Context) 
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+	c.JSON(http.StatusOK, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusOK, Status: "OK", Data: *result})
 }
 
 func (h *santriOccupationHandler) DeleteSantriOccupationHandler(c *gin.Context) {
@@ -118,5 +118,5 @@ func (h *santriOccupationHandler) DeleteSantriOccupationHandler(c *gin.Context) 
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+	c.JSON(http.StatusOK, model.ResponseData[model.SantriOccupationResponse]{Code: http.StatusOK, Status: "OK", Data: *result})
 }

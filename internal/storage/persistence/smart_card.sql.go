@@ -16,6 +16,8 @@ SELECT
     COUNT(*) as "count"
 FROM
     smart_card
+    LEFT JOIN "santri" ON "smart_card"."santri_id" = "santri"."id"
+    LEFT JOIN "employee" ON "smart_card"."employee_id" = "employee"."id"
 WHERE
     (
         $1 :: text IS NULL
@@ -28,37 +30,24 @@ WHERE
         OR "smart_card"."is_active" = $2
     )
     AND (
-        (
-            $3::boolean IS NULL
-            OR $3 = FALSE
-        )
-        AND "smart_card"."santri_id" IS NULL
-        OR $3 = TRUE
-    )
-    AND (
-        (
-            $4::boolean IS NULL
-            OR $4 = FALSE
-        )
-        AND "smart_card"."employee_id" IS NULL
-        OR $4 = TRUE
+        CASE
+            WHEN $3::card_owner = 'santri' THEN "smart_card"."santri_id" IS NOT NULL
+            WHEN $3::card_owner = 'employee' THEN "smart_card"."employee_id" IS NOT NULL
+            WHEN $3::card_owner = 'all' THEN "smart_card"."santri_id" IS NOT NULL OR "smart_card"."employee_id" IS NOT NULL
+            WHEN $3::card_owner = 'none' THEN "smart_card"."santri_id" IS NULL AND "smart_card"."employee_id" IS NULL
+            ELSE TRUE
+        END
     )
 `
 
 type CountSmartCardsParams struct {
-	Q          pgtype.Text `db:"q"`
-	IsActive   pgtype.Bool `db:"is_active"`
-	IsSantri   pgtype.Bool `db:"is_santri"`
-	IsEmployee pgtype.Bool `db:"is_employee"`
+	Q         pgtype.Text   `db:"q"`
+	IsActive  pgtype.Bool   `db:"is_active"`
+	CardOwner NullCardOwner `db:"card_owner"`
 }
 
 func (q *Queries) CountSmartCards(ctx context.Context, arg CountSmartCardsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countSmartCards,
-		arg.Q,
-		arg.IsActive,
-		arg.IsSantri,
-		arg.IsEmployee,
-	)
+	row := q.db.QueryRow(ctx, countSmartCards, arg.Q, arg.IsActive, arg.CardOwner)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -166,8 +155,8 @@ func (q *Queries) GetSmartCard(ctx context.Context, uid string) (GetSmartCardRow
 const listSmartCards = `-- name: ListSmartCards :many
 SELECT
     smart_card.id, smart_card.uid, smart_card.created_at, smart_card.is_active, smart_card.santri_id, smart_card.employee_id,
-    "santri"."name" as "santri_name",
-    "employee"."name" as "employee_name"
+    "santri"."name" AS "santri_name",
+    "employee"."name" AS "employee_name"
 FROM
     smart_card
     LEFT JOIN "santri" ON "smart_card"."santri_id" = "santri"."id"
@@ -184,34 +173,26 @@ WHERE
         OR "smart_card"."is_active" = $2
     )
     AND (
-        (
-            $3::boolean IS NULL
-            OR $3 = FALSE
-        )
-        AND "smart_card"."santri_id" IS NULL
-        OR $3 = TRUE
-    )
-    AND (
-        (
-            $4::boolean IS NULL
-            OR $4 = FALSE
-        )
-        AND "smart_card"."employee_id" IS NULL
-        OR $4 = TRUE
+        CASE
+            WHEN $3::card_owner = 'santri' THEN "smart_card"."santri_id" IS NOT NULL
+            WHEN $3::card_owner = 'employee' THEN "smart_card"."employee_id" IS NOT NULL
+            WHEN $3::card_owner = 'all' THEN "smart_card"."santri_id" IS NOT NULL OR "smart_card"."employee_id" IS NOT NULL
+            WHEN $3::card_owner = 'none' THEN "smart_card"."santri_id" IS NULL AND "smart_card"."employee_id" IS NULL
+            ELSE TRUE
+        END
     )
 ORDER BY
     "smart_card"."id" ASC
 LIMIT
-    $6 OFFSET $5
+    $5 OFFSET $4
 `
 
 type ListSmartCardsParams struct {
-	Q            pgtype.Text `db:"q"`
-	IsActive     pgtype.Bool `db:"is_active"`
-	IsSantri     pgtype.Bool `db:"is_santri"`
-	IsEmployee   pgtype.Bool `db:"is_employee"`
-	OffsetNumber int32       `db:"offset_number"`
-	LimitNumber  int32       `db:"limit_number"`
+	Q            pgtype.Text   `db:"q"`
+	IsActive     pgtype.Bool   `db:"is_active"`
+	CardOwner    NullCardOwner `db:"card_owner"`
+	OffsetNumber int32         `db:"offset_number"`
+	LimitNumber  int32         `db:"limit_number"`
 }
 
 type ListSmartCardsRow struct {
@@ -229,8 +210,7 @@ func (q *Queries) ListSmartCards(ctx context.Context, arg ListSmartCardsParams) 
 	rows, err := q.db.Query(ctx, listSmartCards,
 		arg.Q,
 		arg.IsActive,
-		arg.IsSantri,
-		arg.IsEmployee,
+		arg.CardOwner,
 		arg.OffsetNumber,
 		arg.LimitNumber,
 	)

@@ -1,1 +1,0 @@
-ALTER TABLE "smart_card" DROP CONSTRAINT IF EXISTS "check_santri_or_employee";

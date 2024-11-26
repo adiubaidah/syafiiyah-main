@@ -82,7 +82,7 @@ func TestListSmartCards(t *testing.T) {
 			Q:            pgtype.Text{String: santri.Name[:3], Valid: true},
 			OffsetNumber: 0,
 			LimitNumber:  10,
-			IsSantri:     pgtype.Bool{Bool: true, Valid: true},
+			CardOwner:    NullCardOwner{CardOwner: CardOwnerSantri, Valid: true},
 		}
 		rfids, err := testStore.ListSmartCards(context.Background(), arg)
 		require.NoError(t, err)
@@ -106,7 +106,7 @@ func TestListSmartCards(t *testing.T) {
 			Q:            pgtype.Text{String: employee.Name[:3], Valid: true},
 			OffsetNumber: 0,
 			LimitNumber:  10,
-			IsEmployee:   pgtype.Bool{Bool: true, Valid: true},
+			CardOwner:    NullCardOwner{CardOwner: CardOwnerEmployee, Valid: true},
 		}
 		rfids, err := testStore.ListSmartCards(context.Background(), arg)
 		require.NoError(t, err)

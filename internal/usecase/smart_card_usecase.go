@@ -11,12 +11,12 @@ import (
 )
 
 type SmartCardUseCase interface {
-	CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (model.SmartCard, error)
-	ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) ([]model.SmartCardComplete, error)
-	GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (model.SmartCardComplete, error)
+	CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCard, error)
+	ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (*[]model.SmartCardComplete, error)
+	GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCardComplete, error)
 	CountSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (int64, error)
-	UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (model.SmartCardComplete, error)
-	DeleteSmartCard(ctx context.Context, id int32) (model.SmartCard, error)
+	UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (*model.SmartCardComplete, error)
+	DeleteSmartCard(ctx context.Context, id int32) (*model.SmartCard, error)
 }
 
 type service struct {
@@ -27,7 +27,7 @@ func NewSmartCardUseCase(store db.Store) SmartCardUseCase {
 	return &service{store: store}
 }
 
-func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (model.SmartCard, error) {
+func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCard, error) {
 	createdSmartCard, err := c.store.CreateSmartCard(ctx, db.CreateSmartCardParams{
 		Uid:        request.Uid,
 		IsActive:   true,
@@ -37,12 +37,12 @@ func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardR
 
 	if err != nil {
 		if exception.DatabaseErrorCode(err) == exception.ErrCodeUniqueViolation {
-			return model.SmartCard{}, exception.NewUniqueViolationError("Smart Card already exists", err)
+			return nil, exception.NewUniqueViolationError("Smart Card already exists", err)
 		}
-		return model.SmartCard{}, err
+		return nil, err
 	}
 
-	return model.SmartCard{
+	return &model.SmartCard{
 		ID:        createdSmartCard.ID,
 		Uid:       createdSmartCard.Uid,
 		CreatedAt: createdSmartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),
@@ -50,12 +50,11 @@ func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardR
 	}, nil
 }
 
-func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) ([]model.SmartCardComplete, error) {
+func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (*[]model.SmartCardComplete, error) {
 	listSmartCard, err := c.store.ListSmartCards(ctx, db.ListSmartCardsParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		IsActive:     pgtype.Bool{Bool: true, Valid: true},
-		IsSantri:     pgtype.Bool{Bool: request.OwnerRole == "santri", Valid: request.OwnerRole != ""},
-		IsEmployee:   pgtype.Bool{Bool: request.OwnerRole == "employee", Valid: request.OwnerRole != ""},
+		CardOwner:    db.NullCardOwner{CardOwner: request.CardOwner, Valid: request.CardOwner != ""},
 		OffsetNumber: request.Limit * (request.Page - 1),
 		LimitNumber:  request.Limit,
 	})
@@ -88,23 +87,22 @@ func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCa
 				CreatedAt: smartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),
 				IsActive:  smartCard.IsActive,
 			},
-			OwnerRole: db.RoleType(ownerRole),
-			Details: model.SmartCardDetails{
+			Owner: model.OwenerDetails{
 				ID:   detailsId,
+				Role: db.RoleType(ownerRole),
 				Name: detailsName,
 			},
 		})
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 func (c *service) CountSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (int64, error) {
 	count, err := c.store.CountSmartCards(ctx, db.CountSmartCardsParams{
-		Q:          pgtype.Text{String: request.Q, Valid: request.Q != ""},
-		IsActive:   pgtype.Bool{Bool: true, Valid: true},
-		IsSantri:   pgtype.Bool{Bool: request.OwnerRole == "santri", Valid: request.OwnerRole != ""},
-		IsEmployee: pgtype.Bool{Bool: request.OwnerRole == "employee", Valid: request.OwnerRole != ""},
+		Q:         pgtype.Text{String: request.Q, Valid: request.Q != ""},
+		IsActive:  pgtype.Bool{Bool: true, Valid: true},
+		CardOwner: db.NullCardOwner{CardOwner: request.CardOwner, Valid: request.CardOwner != ""},
 	})
 
 	if err != nil {
@@ -114,13 +112,13 @@ func (c *service) CountSmartCards(ctx context.Context, request *model.ListSmartC
 	return count, nil
 }
 
-func (c *service) GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (model.SmartCardComplete, error) {
+func (c *service) GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCardComplete, error) {
 	smartCard, err := c.store.GetSmartCard(ctx, request.Uid)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
-			return model.SmartCardComplete{}, exception.NewNotFoundError("Smart Card not found")
+			return nil, exception.NewNotFoundError("Smart Card not found")
 		}
-		return model.SmartCardComplete{}, err
+		return nil, err
 	}
 
 	var ownerRole string
@@ -141,22 +139,22 @@ func (c *service) GetSmartCard(ctx context.Context, request *model.SmartCardRequ
 		ownerName = ""
 	}
 
-	return model.SmartCardComplete{
+	return &model.SmartCardComplete{
 		SmartCard: model.SmartCard{
 			ID:        smartCard.ID,
 			Uid:       smartCard.Uid,
 			CreatedAt: smartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),
 			IsActive:  smartCard.IsActive,
 		},
-		OwnerRole: db.RoleType(ownerRole),
-		Details: model.SmartCardDetails{
+		Owner: model.OwenerDetails{
 			ID:   ownerId,
+			Role: db.RoleType(ownerRole),
 			Name: ownerName,
 		},
 	}, nil
 }
 
-func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (model.SmartCardComplete, error) {
+func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (*model.SmartCardComplete, error) {
 	var ownerRole string
 	var detailsId int32
 	var detailsName string
@@ -164,7 +162,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 	if request.OwnerRole == db.RoleTypeSantri {
 		santri, err := c.store.GetSantri(ctx, request.OwnerID)
 		if err != nil {
-			return model.SmartCardComplete{}, err
+			return nil, err
 		}
 		detailsId = santri.ID
 		detailsName = santri.Name
@@ -172,7 +170,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 	} else {
 		employee, err := c.store.GetEmployee(ctx, request.OwnerID)
 		if err != nil {
-			return model.SmartCardComplete{}, err
+			return nil, err
 		}
 		detailsId = employee.ID
 		detailsName = employee.Name
@@ -187,31 +185,31 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 	})
 
 	if err != nil {
-		return model.SmartCardComplete{}, err
+		return nil, err
 	}
 
-	return model.SmartCardComplete{
+	return &model.SmartCardComplete{
 		SmartCard: model.SmartCard{
 			ID:        updatedSmartCard.ID,
 			Uid:       updatedSmartCard.Uid,
 			CreatedAt: updatedSmartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),
 			IsActive:  updatedSmartCard.IsActive,
 		},
-		OwnerRole: db.RoleType(ownerRole),
-		Details: model.SmartCardDetails{
+		Owner: model.OwenerDetails{
 			ID:   detailsId,
+			Role: db.RoleType(ownerRole),
 			Name: detailsName,
 		},
 	}, nil
 }
 
-func (c *service) DeleteSmartCard(ctx context.Context, id int32) (model.SmartCard, error) {
+func (c *service) DeleteSmartCard(ctx context.Context, id int32) (*model.SmartCard, error) {
 	deletedSmartCard, err := c.store.DeleteSmartCard(ctx, id)
 	if err != nil {
-		return model.SmartCard{}, err
+		return nil, err
 	}
 
-	return model.SmartCard{
+	return &model.SmartCard{
 		ID:        deletedSmartCard.ID,
 		Uid:       deletedSmartCard.Uid,
 		CreatedAt: deletedSmartCard.CreatedAt.Time.Format("2006-01-02 15:04:05"),

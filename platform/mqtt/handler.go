@@ -3,14 +3,17 @@ package mqtt
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 func (h *MQTTHandler) handleRecord(client mqtt.Client, acknowledgmentTopic string, request *model.SmartCardRequest) {
-	recordedSmartCard, err := h.SmartCardUseCase.CreateSmartCard(context.Background(), request)
+	recordedSmartCard, err := h.smartCardUseCase.CreateSmartCard(context.Background(), request)
 	if err != nil {
 		h.logger.Errorf("Error creating smart card: %v\n", err)
 	}
@@ -36,7 +39,7 @@ func (h *MQTTHandler) handleRecord(client mqtt.Client, acknowledgmentTopic strin
 		response = model.ResponseData[model.SmartCard]{
 			Code:   200,
 			Status: "success",
-			Data:   recordedSmartCard,
+			Data:   *recordedSmartCard,
 		}
 	}
 
@@ -55,7 +58,11 @@ func (h *MQTTHandler) handleRecord(client mqtt.Client, acknowledgmentTopic strin
 
 func (h *MQTTHandler) handlePresence(client mqtt.Client, acknowledgmentTopic string, request *model.SmartCardRequest) {
 
-	getSmartCard, err := h.SmartCardUseCase.GetSmartCard(context.Background(), &model.SmartCardRequest{Uid: request.Uid})
+	CURRENT_TIME_PRESENCE := time.Now()
+
+	h.logger.Println("Current time: ", CURRENT_TIME_PRESENCE)
+
+	getSmartCard, err := h.smartCardUseCase.GetSmartCard(context.Background(), &model.SmartCardRequest{Uid: request.Uid})
 	if err != nil {
 		h.logger.Errorf("Error getting smart card: %v\n", err)
 
@@ -76,7 +83,7 @@ func (h *MQTTHandler) handlePresence(client mqtt.Client, acknowledgmentTopic str
 		return
 	}
 
-	if getSmartCard.OwnerRole == "" {
+	if getSmartCard.Owner.Role == "" {
 		h.logger.Warn("Smart card owner role is not set")
 
 		response := model.ResponseMessage{
@@ -88,20 +95,64 @@ func (h *MQTTHandler) handlePresence(client mqtt.Client, acknowledgmentTopic str
 		return
 	} else {
 
-	}
+		if getSmartCard.Owner.Role == db.RoleTypeSantri {
+			// Check if the smart card is registered as a santri
+			_, err := h.santriUseCase.GetSantri(context.Background(), getSmartCard.Owner.ID)
+			if err != nil {
+				h.logger.Errorf("Error getting santri: %v\n", err)
 
-	h.logger.Infof("%s %s is present", getSmartCard.OwnerRole, getSmartCard.Details.Name)
+				response := createErrorResponse(err)
+				h.publishResponse(client, acknowledgmentTopic, response)
+				return
+			}
 
-	response := model.ResponseData[model.UserResponse]{
-		Code:   200,
-		Status: "success",
-		Data: model.UserResponse{
-			ID:       getSmartCard.Details.ID,
-			Username: getSmartCard.Details.Name,
-			Role:     getSmartCard.OwnerRole,
-		},
+			// check santri late or not according active santri schedule
+			santriStartPresence, err := util.ParseTimeWithCurrentDate(h.schedule.ActiveScheduleSantri.StartPresence)
+			if err != nil {
+				h.logger.Errorf("Error parsing time: %v\n", err)
+			}
+			santriStartTime, _ := util.ParseTimeWithCurrentDate(h.schedule.ActiveScheduleSantri.StartTime)
+			// santriFinishTime, _ := util.ParseTime(h.schedule.ActiveScheduleSantri.FinishTime)
+
+			arg := &model.CreateSantriPresenceRequest{
+				ScheduleID:   h.schedule.ActiveScheduleSantri.ID,
+				ScheduleName: h.schedule.ActiveScheduleSantri.Name,
+				SantriID:     getSmartCard.Owner.ID,
+				CreatedBy:    db.PresenceCreatedByTypeTap,
+				CreatedAt:    CURRENT_TIME_PRESENCE.String(),
+			}
+			if CURRENT_TIME_PRESENCE.After(santriStartPresence) && CURRENT_TIME_PRESENCE.Before(santriStartTime) {
+				arg.Type = db.PresenceTypePresent
+			} else if CURRENT_TIME_PRESENCE.After(santriStartTime) {
+				arg.Type = db.PresenceTypeLate
+			}
+			presence, err := h.santriPresenceUseCase.CreateSantriPresence(context.Background(), arg)
+			if err != nil {
+				h.logger.Errorf("Error creating santri presence: %v\n", err)
+
+				response := createErrorResponse(err)
+				h.publishResponse(client, acknowledgmentTopic, response)
+				return
+			}
+
+			response := model.ResponseData[model.SantriPresenceResponse]{
+				Code:   200,
+				Status: "success",
+				Data:   *presence,
+			}
+			h.publishResponse(client, acknowledgmentTopic, response)
+		} else {
+			h.logger.Warnf("Unknown owner role: %s", getSmartCard.Owner.Role)
+
+			response := model.ResponseMessage{
+				Code:    403,
+				Status:  "error",
+				Message: "Owner tidak dikenal",
+			}
+			h.publishResponse(client, acknowledgmentTopic, response)
+			return
+		}
 	}
-	h.publishResponse(client, acknowledgmentTopic, response)
 }
 
 func createErrorResponse(err error) model.ResponseMessage {

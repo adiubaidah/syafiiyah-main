@@ -75,7 +75,7 @@ func (h *santriHandler) CreateSantriHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(201, model.ResponseData[model.SantriResponse]{Code: 201, Status: "Created", Data: result})
+	c.JSON(201, model.ResponseData[model.SantriResponse]{Code: 201, Status: "Created", Data: *result})
 }
 
 func (h *santriHandler) ListSantriHandler(c *gin.Context) {
@@ -103,11 +103,11 @@ func (h *santriHandler) ListSantriHandler(c *gin.Context) {
 	}
 
 	//format all image from filename to url
-	for i, santri := range result {
-		if santri.Photo == "" {
+	for i := range *result {
+		if (*result)[i].Photo == "" {
 			continue
 		}
-		result[i].Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, santri.Photo)
+		(*result)[i].Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, (*result)[i].Photo)
 	}
 
 	count, err := h.usecase.CountSantri(c, &listSantriRequest)
@@ -128,7 +128,7 @@ func (h *santriHandler) ListSantriHandler(c *gin.Context) {
 		Code:   200,
 		Status: "OK",
 		Data: model.ListSantriResponse{
-			Items:      result,
+			Items:      *result,
 			Pagination: pagination,
 		},
 	})
@@ -150,7 +150,7 @@ func (h *santriHandler) GetSantriHandler(c *gin.Context) {
 		return
 	}
 	result.Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, result.Photo)
-	c.JSON(200, model.ResponseData[model.SantriCompleteResponse]{Code: 200, Status: "OK", Data: result})
+	c.JSON(200, model.ResponseData[model.SantriCompleteResponse]{Code: 200, Status: "OK", Data: *result})
 }
 
 func (h *santriHandler) UpdateSantriHandler(c *gin.Context) {
@@ -211,7 +211,7 @@ func (h *santriHandler) UpdateSantriHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(201, model.ResponseData[model.SantriResponse]{Code: 201, Status: "Created", Data: result})
+	c.JSON(201, model.ResponseData[model.SantriResponse]{Code: 201, Status: "Created", Data: *result})
 }
 
 func (h *santriHandler) DeleteSantriHandler(c *gin.Context) {
@@ -239,5 +239,5 @@ func (h *santriHandler) DeleteSantriHandler(c *gin.Context) {
 		util.DeleteFile(filepath.Join(config.PathPhoto, deletedSantri.Photo))
 	}
 
-	c.JSON(200, model.ResponseData[model.SantriResponse]{Code: 200, Status: "OK", Data: deletedSantri})
+	c.JSON(200, model.ResponseData[model.SantriResponse]{Code: 200, Status: "OK", Data: *deletedSantri})
 }

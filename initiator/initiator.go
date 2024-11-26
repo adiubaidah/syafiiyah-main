@@ -2,7 +2,6 @@ package initiator
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
@@ -24,9 +23,6 @@ import (
 )
 
 func Init() {
-
-	//set timezone to utc
-	os.Setenv("TZ", "UTC")
 
 	logger := logrus.New()
 	env, err := config.LoadConfig(".")
@@ -63,6 +59,7 @@ func Init() {
 		validateActor.RegisterValidation("userorder", model.IsValidUserOrder)
 		validateActor.RegisterValidation("parentorder", model.IsValidParentOrder)
 		validateActor.RegisterValidation("validTime", model.IsValidTime)
+		validateActor.RegisterValidation("presencetype", model.IsValidPresenceType)
 	}
 	tokenMaker, err := token.NewJWTMaker(env.TokenSymmetricKey)
 	if err != nil {
@@ -98,12 +95,26 @@ func Init() {
 	santriHandler := handler.NewSantriHandler(&env, logger, santriUseCase)
 	santriRouting := routing.SantriRouting(santriHandler)
 
+	santriPresenceUseCase := usecase.NewSantriPresenceUseCase(store)
+	santriPresenceHandler := handler.NewSantriPresenceHandler(logger, santriPresenceUseCase)
+	santriPresenceRouting := routing.SantriPresenceRouting(santriPresenceHandler)
+
 	smartCardUseCase := usecase.NewSmartCardUseCase(store)
 	smartCardHandler := handler.NewSmartCardHandler(logger, smartCardUseCase)
 	smartCardRouting := routing.SmartCardRouting(smartCardHandler)
 
 	deviceUseCase := usecase.NewDeviceUseCase(store)
-	mqttHandler := mqtt.NewMQTTHandler(logger, deviceUseCase, smartCardUseCase, env.MQTTBroker)
+	scheduleCron := cron.NewScheduleCron(logger, santriScheduleUseCase)
+	mqttHandler := mqtt.NewMQTTHandler(&mqtt.MQTTHandlerConfig{
+		Logger:                logger,
+		DeviceUseCase:         deviceUseCase,
+		Schedule:              scheduleCron,
+		SmartCardUseCase:      smartCardUseCase,
+		SantriUseCase:         santriUseCase,
+		SantriPresenceUseCase: santriPresenceUseCase,
+		BrokerURL:             env.MQTTBroker,
+		// IsDevelopment: env.Gi,
+	})
 	deviceHandler := handler.NewDeviceHandler(logger, deviceUseCase, mqttHandler)
 	deviceRouting := routing.DeviceRouting(deviceHandler)
 
@@ -115,11 +126,11 @@ func Init() {
 	routerList = append(routerList, santriScheduleRouting...)
 	routerList = append(routerList, santriOccupationRouting...)
 	routerList = append(routerList, santriRouting...)
+	routerList = append(routerList, santriPresenceRouting...)
 	routerList = append(routerList, smartCardRouting...)
 	routerList = append(routerList, deviceRouting...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)
-	scheduleCron := cron.NewScheduleCron(logger, santriScheduleUseCase)
 	scheduleCron.Start()
 	server.Serve()
 

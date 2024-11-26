@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -40,14 +41,23 @@ func (h *smartCardHandler) ListSmartCardsHandler(c *gin.Context) {
 		request.Page = 1
 	}
 
+	if request.CardOwner == "" {
+		request.CardOwner = db.CardOwnerAll
+	}
+
 	result, err := h.usecase.ListSmartCards(c, &request)
 	if err != nil {
-		h.logger.Error(err)
+		h.logger.Error("error lur", err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
 
 	count, err := h.usecase.CountSmartCards(c, &request)
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
+		return
+	}
 
 	pagination := model.Pagination{
 		CurrentPage:  request.Page,
@@ -60,7 +70,7 @@ func (h *smartCardHandler) ListSmartCardsHandler(c *gin.Context) {
 		Code:   200,
 		Status: "success",
 		Data: model.ListSmartCardResponse{
-			Items:      result,
+			Items:      *result,
 			Pagination: pagination,
 		},
 	})
@@ -89,7 +99,7 @@ func (h *smartCardHandler) UpdateSmartCardHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.SmartCardComplete]{Code: 200, Status: "success", Data: result})
+	c.JSON(200, model.ResponseData[model.SmartCardComplete]{Code: 200, Status: "success", Data: *result})
 }
 
 func (h *smartCardHandler) DeleteSmartCardHandler(c *gin.Context) {
@@ -108,5 +118,5 @@ func (h *smartCardHandler) DeleteSmartCardHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.SmartCard]{Code: 200, Status: "success", Data: deletedSmartCard})
+	c.JSON(200, model.ResponseData[model.SmartCard]{Code: 200, Status: "success", Data: *deletedSmartCard})
 }

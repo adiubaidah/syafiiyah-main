@@ -22,7 +22,8 @@ VALUES
 
 -- name: ListSantriPresences :many
 SELECT
-    *
+    "santri_presence".*,
+    "santri"."name" AS "santri_name"
 FROM
     "santri_presence"
     INNER JOIN "santri" ON "santri_presence"."santri_id" = "santri"."id"

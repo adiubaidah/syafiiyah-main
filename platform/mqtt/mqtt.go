@@ -17,28 +17,42 @@ import (
 )
 
 type MQTTHandler struct {
-	logger           *logrus.Logger
-	validator        *validator.Validate
-	Client           mqtt.Client
-	Topics           map[string]struct{}
-	DeviceUseCase    usecase.DeviceUseCase
-	SmartCardUseCase usecase.SmartCardUseCase
-	mu               sync.Mutex
-	MessageHandler   mqtt.MessageHandler
-	schedule         cron.ScheduleCron
+	logger                *logrus.Logger
+	validator             *validator.Validate
+	Client                mqtt.Client
+	Topics                map[string]struct{}
+	deviceUseCase         usecase.DeviceUseCase
+	smartCardUseCase      usecase.SmartCardUseCase
+	santriUseCase         usecase.SantriUseCase
+	santriPresenceUseCase usecase.SantriPresenceUseCase
+	mu                    sync.Mutex
+	MessageHandler        mqtt.MessageHandler
+	schedule              *cron.ScheduleCron
 }
 
-func NewMQTTHandler(logger *logrus.Logger, deviceUseCase usecase.DeviceUseCase, smartCardUseCase usecase.SmartCardUseCase, brokerURL string) *MQTTHandler {
+type MQTTHandlerConfig struct {
+	Logger                *logrus.Logger
+	Schedule              *cron.ScheduleCron
+	DeviceUseCase         usecase.DeviceUseCase
+	SmartCardUseCase      usecase.SmartCardUseCase
+	SantriUseCase         usecase.SantriUseCase
+	SantriPresenceUseCase usecase.SantriPresenceUseCase
+	BrokerURL             string
+	IsDevelopment         bool
+}
+
+func NewMQTTHandler(config *MQTTHandlerConfig) *MQTTHandler {
 	handler := &MQTTHandler{
-		logger:           logger,
-		validator:        validator.New(),
-		Topics:           make(map[string]struct{}),
-		DeviceUseCase:    deviceUseCase,
-		SmartCardUseCase: smartCardUseCase,
+		logger:                config.Logger,
+		validator:             validator.New(),
+		Topics:                make(map[string]struct{}),
+		deviceUseCase:         config.DeviceUseCase,
+		smartCardUseCase:      config.SmartCardUseCase,
+		santriUseCase:         config.SantriUseCase,
+		santriPresenceUseCase: config.SantriPresenceUseCase,
+		schedule:              config.Schedule,
 	}
-
-	handler.Init(brokerURL)
-
+	handler.Init(config.BrokerURL)
 	handler.RefreshTopics()
 
 	return handler
@@ -123,7 +137,7 @@ func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
 
 func (h *MQTTHandler) RefreshTopics() {
 	h.logger.Println("Fetching initial topics...")
-	arduinos, err := h.DeviceUseCase.ListDevices(context.Background())
+	arduinos, err := h.deviceUseCase.ListDevices(context.Background())
 	if err != nil {
 		h.logger.Fatalf("Error fetching arduino topics: %v", err)
 	}

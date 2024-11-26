@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+
 	time.Local = time.UTC
 	initiator.Init()
 }
