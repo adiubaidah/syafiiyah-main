@@ -13,7 +13,7 @@ import (
 
 type ScheduleCron struct {
 	logger                *logrus.Logger
-	ActiveScheduleSantri  model.SantriScheduleResponse
+	ActiveScheduleSantri  *model.SantriScheduleResponse
 	santriScheduleUseCase usecase.SantriScheduleUseCase
 	stopChan              chan struct{}
 	isRunning             bool
@@ -44,6 +44,13 @@ func (s *ScheduleCron) Stop() {
 }
 
 func (s *ScheduleCron) run() {
+
+	// Wait until the next minute
+	now := time.Now()
+	nextMinute := now.Truncate(time.Minute).Add(time.Minute)
+	timeUntilNextMinute := time.Until(nextMinute)
+	time.Sleep(timeUntilNextMinute)
+
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 
@@ -55,14 +62,28 @@ func (s *ScheduleCron) run() {
 			if err != nil {
 				s.logger.Errorf("failed to get active schedule: %v", err)
 				if errors.Is(err, exception.ErrNotFound) {
-					s.ActiveScheduleSantri = model.SantriScheduleResponse{}
+					s.ActiveScheduleSantri = nil
 				}
-			} else {
-				s.ActiveScheduleSantri = activeSchedule
-				s.logger.Println("Active schedule: ", s.ActiveScheduleSantri)
 			}
+			previousSchedule := s.ActiveScheduleSantri
+
+			if !schedulesAreEqual(previousSchedule, activeSchedule) {
+				s.logger.Infof("active schedule has changed: %v", activeSchedule)
+				s.ActiveScheduleSantri = activeSchedule
+			}
+
 		case <-s.stopChan:
 			return
 		}
 	}
+}
+
+func schedulesAreEqual(a, b *model.SantriScheduleResponse) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return a.ID == b.ID && a.StartPresence == b.StartPresence
 }

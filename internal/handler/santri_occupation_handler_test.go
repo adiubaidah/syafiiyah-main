@@ -32,7 +32,7 @@ func TestCreateSantriOccupationHandler(t *testing.T) {
 	t.Run("Success - Valid Input", func(t *testing.T) {
 		// Mock response from usecase
 		mockUsecase.On("CreateSantriOccupation", mock.Anything, mock.AnythingOfType("*model.CreateSantriOccupationRequest")).
-			Return(model.SantriOccupationResponse{
+			Return(&model.SantriOccupationResponse{
 				ID:          1,
 				Name:        "Pendidik",
 				Description: "Mengajar santri",
@@ -118,7 +118,7 @@ func TestListSantriOccupationHandler(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		// Mock response from usecase
 		mockUsecase.On("ListSantriOccupations", mock.Anything).
-			Return([]model.SantriOccupationWithCountResponse{
+			Return(&[]model.SantriOccupationWithCountResponse{
 				{
 					SantriOccupationResponse: model.SantriOccupationResponse{
 						ID:          1,
@@ -149,18 +149,71 @@ func TestListSantriOccupationHandler(t *testing.T) {
 		// Assertions
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var response model.ResponseData[[]model.SantriOccupationWithCountResponse]
+		var response model.ResponseData[*[]model.SantriOccupationWithCountResponse]
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 		assert.Equal(t, "OK", response.Status)
-		assert.Len(t, response.Data, 2)
-		assert.Equal(t, int32(1), response.Data[0].ID)
-		assert.Equal(t, "Pendidik", response.Data[0].Name)
-		assert.Equal(t, "Mengajar santri", response.Data[0].Description)
-		assert.Equal(t, int32(5), response.Data[0].Count)
-		assert.Equal(t, int32(2), response.Data[1].ID)
-		assert.Equal(t, "Pengasuh", response.Data[1].Name)
-		assert.Equal(t, "Mengasuh santri", response.Data[1].Description)
-		assert.Equal(t, int32(3), response.Data[1].Count)
+		assert.Len(t, (*response.Data), 2)
+		assert.Equal(t, int32(1), (*response.Data)[0].ID)
+		assert.Equal(t, "Pendidik", (*response.Data)[0].Name)
+		assert.Equal(t, "Mengajar santri", (*response.Data)[0].Description)
+		assert.Equal(t, int32(5), (*response.Data)[0].Count)
+		assert.Equal(t, int32(2), (*response.Data)[1].ID)
+		assert.Equal(t, "Pengasuh", (*response.Data)[1].Name)
+		assert.Equal(t, "Mengasuh santri", (*response.Data)[1].Description)
+		assert.Equal(t, int32(3), (*response.Data)[1].Count)
+	})
+}
+
+func TestUpdateSantriOccupationHandler(t *testing.T) {
+	// Mock usecase
+	mockUsecase := new(mocks.SantriOccuapationUsecase)
+
+	logger := logrus.New()
+	h := NewSantriOccupationHandler(logger, mockUsecase)
+
+	// Initialize Gin router
+	router := gin.Default()
+	router.PUT("/santri-occupation/:id", h.UpdateSantriOccupationHandler)
+
+	t.Run("Success - Valid Input", func(t *testing.T) {
+		// Mock response from usecase
+		mockUsecase.On("UpdateSantriOccupation", mock.Anything, mock.AnythingOfType("*model.UpdateSantriOccupationRequest"), int32(1)).
+			Return(&model.SantriOccupationResponse{
+				ID:          1,
+				Name:        "Pendidik",
+				Description: "Mengajar santri",
+			}, nil)
+
+		// Define input
+		requestBody := model.UpdateSantriOccupationRequest{
+			Name:        "Pendidik",
+			Description: "Mengajar santri",
+		}
+
+		// Convert to JSON
+		bodyBytes, _ := json.Marshal(requestBody)
+
+		// Create HTTP request
+		req, _ := http.NewRequest("PUT", "/santri-occupation/1", bytes.NewBuffer(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		// Mock HTTP response
+		w := httptest.NewRecorder()
+
+		// Perform request
+		router.ServeHTTP(w, req)
+
+		// Assertions
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response model.ResponseData[model.SantriOccupationResponse]
+
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, "OK", response.Status)
+		assert.Equal(t, int32(1), response.Data.ID)
+		assert.Equal(t, "Pendidik", response.Data.Name)
+		assert.Equal(t, "Mengajar santri", response.Data.Description)
 	})
 }

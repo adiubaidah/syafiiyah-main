@@ -119,7 +119,6 @@ func (h *MQTTHandler) handlePresence(client mqtt.Client, acknowledgmentTopic str
 				ScheduleName: h.schedule.ActiveScheduleSantri.Name,
 				SantriID:     getSmartCard.Owner.ID,
 				CreatedBy:    db.PresenceCreatedByTypeTap,
-				CreatedAt:    CURRENT_TIME_PRESENCE.String(),
 			}
 			if CURRENT_TIME_PRESENCE.After(santriStartPresence) && CURRENT_TIME_PRESENCE.Before(santriStartTime) {
 				arg.Type = db.PresenceTypePresent

@@ -571,7 +571,7 @@ type SantriPermission struct {
 }
 
 type SantriPresence struct {
-	ID pgtype.Int4 `db:"id"`
+	ID int32 `db:"id"`
 	// Karena bisa saja activitynya dihapus
 	ScheduleID int32 `db:"schedule_id"`
 	// menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history

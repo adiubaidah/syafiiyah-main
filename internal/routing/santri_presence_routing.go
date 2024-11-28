@@ -16,5 +16,23 @@ func SantriPresenceRouting(handler handler.SantriPresenceHandler) []routers.Rout
 			Handle:      handler.CreateSantriPresenceHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodGet,
+			Path:        "/santri-presence",
+			Handle:      handler.ListSantriPresencesHandler,
+			MiddleWares: []gin.HandlerFunc{},
+		},
+		{
+			Method:      http.MethodPut,
+			Path:        "/santri-presence/:id",
+			Handle:      handler.UpdateSantriPresenceHandler,
+			MiddleWares: []gin.HandlerFunc{},
+		},
+		{
+			Method:      http.MethodDelete,
+			Path:        "/santri-presence/:id",
+			Handle:      handler.DeleteSantriPresenceHandler,
+			MiddleWares: []gin.HandlerFunc{},
+		},
 	}
 }

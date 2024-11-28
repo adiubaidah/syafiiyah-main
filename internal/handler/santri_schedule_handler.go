@@ -52,7 +52,7 @@ func (h *santriScheduleHandler) CreateSantriScheduleHandler(c *gin.Context) {
 		}
 
 	}
-	c.JSON(http.StatusCreated, model.ResponseData[model.SantriScheduleResponse]{Code: http.StatusCreated, Status: "Created", Data: result})
+	c.JSON(http.StatusCreated, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusCreated, Status: "Created", Data: result})
 }
 
 func (h *santriScheduleHandler) ListSantriScheduleHandler(c *gin.Context) {
@@ -62,7 +62,7 @@ func (h *santriScheduleHandler) ListSantriScheduleHandler(c *gin.Context) {
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.ResponseData[[]model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+	c.JSON(http.StatusOK, model.ResponseData[*[]model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
 }
 
 func (h *santriScheduleHandler) UpdateSantriScheduleHandler(c *gin.Context) {
@@ -91,7 +91,7 @@ func (h *santriScheduleHandler) UpdateSantriScheduleHandler(c *gin.Context) {
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.ResponseData[model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+	c.JSON(http.StatusOK, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
 }
 
 func (h *santriScheduleHandler) DeleteSantriScheduleHandler(c *gin.Context) {
@@ -112,5 +112,5 @@ func (h *santriScheduleHandler) DeleteSantriScheduleHandler(c *gin.Context) {
 			return
 		}
 	}
-	c.JSON(http.StatusOK, model.ResponseData[model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+	c.JSON(http.StatusOK, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
 }

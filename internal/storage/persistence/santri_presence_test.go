@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/random"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -132,6 +133,26 @@ func TestListSantriPresence(t *testing.T) {
 		}
 	})
 
+}
+
+func TestListAbsentSantriPresence(t *testing.T) {
+	clearSantriScheduleTable(t)
+	clearSantriPresenceTable(t)
+	clearSantriTable(t)
+
+	santri := createRandomSantri(t)
+	schedule := createRandomSantriSchedule(t)
+	scheduleTime := time.Unix(0, schedule.StartPresence.Microseconds*int64(time.Microsecond))
+
+	listAbsent, err := testStore.ListAbsentSantri(context.Background(), ListAbsentSantriParams{
+		Date: pgtype.Date{Time: scheduleTime, Valid: true},
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, listAbsent)
+
+	require.Equal(t, listAbsent[0].ID, santri.ID)
+	require.Equal(t, listAbsent[0].Name, santri.Name)
 }
 
 func TestUpdateSantriPresence(t *testing.T) {

@@ -8,10 +8,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+// ParseTime parses a time string in "HH:MM:SS" format and returns a time.Time object with the current date.
 func ParseTime(timeString string) (time.Time, error) {
-	if timeString == "" {
-		return time.Time{}, errors.New("time string is empty")
-	}
 	return time.Parse("15:04:05", timeString)
 }
 
@@ -36,10 +34,12 @@ func ParseTimeWithCurrentDate(timeString string) (time.Time, error) {
 	return fullTime, nil
 }
 
+// ParseDate parses a date string in "YYYY-MM-DD" format and returns a time.Time object.
 func ParseDate(dateString string) (time.Time, error) {
 	return time.Parse("2006-01-02", dateString)
 }
 
+// ConvertToPgxTime converts a time.Time object to pgtype.Time with microseconds precision.
 func ConvertToPgxTime(parsedTime time.Time) pgtype.Time {
 
 	microseconds := int64(parsedTime.Hour()*3600+parsedTime.Minute()*60+parsedTime.Second()) * 1e6
