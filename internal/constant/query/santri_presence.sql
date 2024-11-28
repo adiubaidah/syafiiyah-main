@@ -20,6 +20,30 @@ VALUES
         @santri_permission_id
     ) RETURNING *;
 
+-- name: CreateSantriPresences :copyfrom
+INSERT INTO
+    "santri_presence" (
+        "schedule_id",
+        "schedule_name",
+        "type",
+        "santri_id",
+        "notes",
+        "created_at",
+        "created_by",
+        "santri_permission_id"
+    )
+VALUES
+    (
+        @schedule_id,
+        @schedule_name,
+        @type::presence_type,
+        @santri_id,
+        @notes,
+        @created_at,
+        @created_by :: presence_created_by_type,
+        @santri_permission_id
+    );
+
 -- name: ListSantriPresences :many
 SELECT
     "santri_presence".*,

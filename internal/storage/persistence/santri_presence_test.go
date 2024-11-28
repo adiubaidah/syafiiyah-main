@@ -50,6 +50,41 @@ func TestCreateSantriPresence(t *testing.T) {
 	createRandomSantriPresence(t)
 }
 
+func TestCreateSantriPresenceBulk(t *testing.T) {
+	clearSantriPermissionTable(t)
+	clearSantriPresenceTable(t)
+	clearSantriTable(t)
+
+	schedules := make([]SantriSchedule, 0)
+
+	for i := 0; i < 5; i++ {
+		schedule := createRandomSantriSchedule(t)
+		schedules = append(schedules, schedule)
+	}
+
+	santri := createRandomSantri(t)
+	args := make([]CreateSantriPresencesParams, 0)
+
+	for i := 0; i < 5; i++ {
+
+		arg := CreateSantriPresencesParams{
+			ScheduleID:   schedules[i].ID,
+			ScheduleName: schedules[i].Name,
+			Type:         PresenceTypeAlpha,
+			SantriID:     santri.ID,
+			Notes:        pgtype.Text{Valid: false},
+			CreatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
+			CreatedBy:    PresenceCreatedByTypeSystem,
+		}
+
+		args = append(args, arg)
+	}
+
+	affected, err := testStore.CreateSantriPresences(context.Background(), args)
+	require.NoError(t, err)
+	require.Equal(t, int64(5), affected)
+}
+
 func TestListSantriPresence(t *testing.T) {
 	clearSantriPresenceTable(t)
 	santriPresence := createRandomSantriPresence(t)

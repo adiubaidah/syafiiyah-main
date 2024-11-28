@@ -46,7 +46,7 @@ func (h *deviceHandler) CreateDeviceHandler(c *gin.Context) {
 
 	h.mqttHandler.RefreshTopics()
 
-	c.JSON(200, model.ResponseData[model.DeviceResponse]{Code: 200, Status: "success", Data: device})
+	c.JSON(200, model.ResponseData[*model.DeviceResponse]{Code: 200, Status: "success", Data: device})
 }
 
 func (h *deviceHandler) ListDevicesHandler(c *gin.Context) {
@@ -56,7 +56,7 @@ func (h *deviceHandler) ListDevicesHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[[]model.DeviceWithModesResponse]{Code: 200, Status: "success", Data: result})
+	c.JSON(200, model.ResponseData[*[]model.DeviceWithModesResponse]{Code: 200, Status: "success", Data: result})
 }
 
 func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {
@@ -73,7 +73,7 @@ func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {
 		return
 	}
 
-	arduino, err := h.usecase.UpdateDevice(c, &request, int32(arduinoId))
+	device, err := h.usecase.UpdateDevice(c, &request, int32(arduinoId))
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
@@ -81,7 +81,7 @@ func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {
 
 	h.mqttHandler.RefreshTopics()
 
-	c.JSON(200, model.ResponseData[model.DeviceResponse]{Code: 200, Status: "success", Data: arduino})
+	c.JSON(200, model.ResponseData[*model.DeviceResponse]{Code: 200, Status: "success", Data: device})
 }
 
 func (h *deviceHandler) DeleteDeviceHandler(c *gin.Context) {
@@ -91,7 +91,7 @@ func (h *deviceHandler) DeleteDeviceHandler(c *gin.Context) {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
-	arduino, err := h.usecase.DeleteDevice(c, int32(arduinoId))
+	device, err := h.usecase.DeleteDevice(c, int32(arduinoId))
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
@@ -99,5 +99,5 @@ func (h *deviceHandler) DeleteDeviceHandler(c *gin.Context) {
 
 	h.mqttHandler.RefreshTopics()
 
-	c.JSON(200, model.ResponseData[model.DeviceResponse]{Code: 200, Status: "success", Data: arduino})
+	c.JSON(200, model.ResponseData[*model.DeviceResponse]{Code: 200, Status: "success", Data: device})
 }

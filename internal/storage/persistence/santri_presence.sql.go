@@ -126,6 +126,17 @@ func (q *Queries) CreateSantriPresence(ctx context.Context, arg CreateSantriPres
 	return i, err
 }
 
+type CreateSantriPresencesParams struct {
+	ScheduleID         int32                 `db:"schedule_id"`
+	ScheduleName       string                `db:"schedule_name"`
+	Type               PresenceType          `db:"type"`
+	SantriID           int32                 `db:"santri_id"`
+	Notes              pgtype.Text           `db:"notes"`
+	CreatedAt          pgtype.Timestamptz    `db:"created_at"`
+	CreatedBy          PresenceCreatedByType `db:"created_by"`
+	SantriPermissionID pgtype.Int4           `db:"santri_permission_id"`
+}
+
 const deleteSantriPresence = `-- name: DeleteSantriPresence :one
 DELETE FROM
     "santri_presence"

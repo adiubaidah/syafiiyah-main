@@ -12,10 +12,10 @@ import (
 )
 
 type DeviceUseCase interface {
-	CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (model.DeviceResponse, error)
-	ListDevices(ctx context.Context) ([]model.DeviceWithModesResponse, error)
-	UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (model.DeviceResponse, error)
-	DeleteDevice(ctx context.Context, deviceId int32) (model.DeviceResponse, error)
+	CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (*model.DeviceResponse, error)
+	ListDevices(ctx context.Context) (*[]model.DeviceWithModesResponse, error)
+	UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (*model.DeviceResponse, error)
+	DeleteDevice(ctx context.Context, deviceId int32) (*model.DeviceResponse, error)
 }
 
 type deviceService struct {
@@ -26,7 +26,7 @@ func NewDeviceUseCase(store db.Store) DeviceUseCase {
 	return &deviceService{store: store}
 }
 
-func (c *deviceService) CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (model.DeviceResponse, error) {
+func (c *deviceService) CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (*model.DeviceResponse, error) {
 	sqlStore := c.store.(*db.SQLStore)
 	modeParams := make([]db.CreateDeviceModesParams, 0)
 
@@ -40,16 +40,16 @@ func (c *deviceService) CreateDevice(ctx context.Context, request *model.CreateD
 
 	device, err := sqlStore.CreateDeviceWithModes(ctx, request.Name, modeParams)
 	if err != nil {
-		return model.DeviceResponse{}, err
+		return nil, err
 	}
 
-	return model.DeviceResponse{
+	return &model.DeviceResponse{
 		ID:   device.ID,
 		Name: device.Name,
 	}, nil
 }
 
-func (c *deviceService) ListDevices(ctx context.Context) ([]model.DeviceWithModesResponse, error) {
+func (c *deviceService) ListDevices(ctx context.Context) (*[]model.DeviceWithModesResponse, error) {
 	devices, err := c.store.ListDevices(ctx)
 	if err != nil {
 		return nil, err
@@ -75,15 +75,15 @@ func (c *deviceService) ListDevices(ctx context.Context) ([]model.DeviceWithMode
 			deviceMap[device.ID].Modes = append(deviceMap[device.ID].Modes, mode)
 		}
 	}
-	var arduinoResponses []model.DeviceWithModesResponse
+	var responses []model.DeviceWithModesResponse
 	for _, device := range deviceMap {
-		arduinoResponses = append(arduinoResponses, *device)
+		responses = append(responses, *device)
 	}
 
-	return arduinoResponses, nil
+	return &responses, nil
 }
 
-func (c *deviceService) UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (model.DeviceResponse, error) {
+func (c *deviceService) UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (*model.DeviceResponse, error) {
 	sqlStore := c.store.(*db.SQLStore)
 	modeParams := make([]db.CreateDeviceModesParams, 0)
 
@@ -97,25 +97,25 @@ func (c *deviceService) UpdateDevice(ctx context.Context, request *model.CreateD
 
 	device, err := sqlStore.UpdateDeviceWithModes(ctx, deviceId, request.Name, modeParams)
 	if err != nil {
-		return model.DeviceResponse{}, err
+		return nil, err
 	}
 
-	return model.DeviceResponse{
+	return &model.DeviceResponse{
 		ID:   device.ID,
 		Name: device.Name,
 	}, nil
 }
 
-func (c *deviceService) DeleteDevice(ctx context.Context, deviceId int32) (model.DeviceResponse, error) {
+func (c *deviceService) DeleteDevice(ctx context.Context, deviceId int32) (*model.DeviceResponse, error) {
 	device, err := c.store.DeleteDevice(ctx, deviceId)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
-			return model.DeviceResponse{}, exception.NewNotFoundError("Arduino not found")
+			return nil, exception.NewNotFoundError("Device not found")
 		}
-		return model.DeviceResponse{}, err
+		return nil, err
 	}
 
-	return model.DeviceResponse{
+	return &model.DeviceResponse{
 		ID:   device.ID,
 		Name: device.Name,
 	}, nil

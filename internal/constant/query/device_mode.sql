@@ -9,7 +9,7 @@ INSERT INTO
     )
 VALUES
     (
-        @mode :: arduino_mode_type,
+        @mode :: device_mode_type,
         @input_topic,
         @acknowledgement_topic,
         @device_id

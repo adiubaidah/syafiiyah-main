@@ -27,6 +27,7 @@ type Querier interface {
 	CreateSantriOccupation(ctx context.Context, arg CreateSantriOccupationParams) (SantriOccupation, error)
 	CreateSantriPermission(ctx context.Context, arg CreateSantriPermissionParams) (SantriPermission, error)
 	CreateSantriPresence(ctx context.Context, arg CreateSantriPresenceParams) (SantriPresence, error)
+	CreateSantriPresences(ctx context.Context, arg []CreateSantriPresencesParams) (int64, error)
 	CreateSantriSchedule(ctx context.Context, arg CreateSantriScheduleParams) (SantriSchedule, error)
 	CreateSmartCard(ctx context.Context, arg CreateSmartCardParams) (SmartCard, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)

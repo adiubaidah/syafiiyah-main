@@ -137,14 +137,14 @@ func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
 
 func (h *MQTTHandler) RefreshTopics() {
 	h.logger.Println("Fetching initial topics...")
-	arduinos, err := h.deviceUseCase.ListDevices(context.Background())
+	device, err := h.deviceUseCase.ListDevices(context.Background())
 	if err != nil {
-		h.logger.Fatalf("Error fetching arduino topics: %v", err)
+		h.logger.Fatalf("Error fetching device topics: %v", err)
 	}
 
 	var newTopics []string
-	for _, arduino := range arduinos {
-		for _, mode := range arduino.Modes {
+	for _, device := range *device {
+		for _, mode := range device.Modes {
 			newTopics = append(newTopics, mode.InputTopic)
 		}
 	}

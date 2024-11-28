@@ -88,7 +88,7 @@ func (h *userHandler) ListUserHandler(c *gin.Context) {
 		Code:   200,
 		Status: "success",
 		Data: model.ListUserResponse{
-			Items:      result,
+			Items:      *result,
 			Pagination: pagination,
 		},
 	})
@@ -146,7 +146,7 @@ func (h *userHandler) UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.UserResponse]{Code: 200, Status: "success", Data: result})
+	c.JSON(200, model.ResponseData[*model.UserResponse]{Code: 200, Status: "success", Data: result})
 }
 
 func (h *userHandler) DeleteUserHandler(c *gin.Context) {
@@ -170,5 +170,5 @@ func (h *userHandler) DeleteUserHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.UserResponse]{Code: 200, Status: "success", Data: deletedUser})
+	c.JSON(200, model.ResponseData[*model.UserResponse]{Code: 200, Status: "success", Data: deletedUser})
 }

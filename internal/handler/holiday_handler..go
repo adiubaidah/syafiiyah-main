@@ -47,7 +47,7 @@ func (h *holidayHandler) CreateHolidayHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(201, model.ResponseData[model.HolidayResponse]{Code: 201, Status: "success", Data: holiday})
+	c.JSON(201, model.ResponseData[*model.HolidayResponse]{Code: 201, Status: "success", Data: holiday})
 }
 
 func (h *holidayHandler) ListHolidaysHandler(c *gin.Context) {
@@ -63,7 +63,7 @@ func (h *holidayHandler) ListHolidaysHandler(c *gin.Context) {
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Internal server error"})
 	}
 
-	c.JSON(200, model.ResponseData[[]model.HolidayResponse]{Code: 200, Status: "success", Data: holidays})
+	c.JSON(200, model.ResponseData[*[]model.HolidayResponse]{Code: 200, Status: "success", Data: holidays})
 }
 
 func (h *holidayHandler) UpdateHolidayHandler(c *gin.Context) {
@@ -93,7 +93,7 @@ func (h *holidayHandler) UpdateHolidayHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.HolidayResponse]{Code: 200, Status: "success", Data: updatedHoliday})
+	c.JSON(200, model.ResponseData[*model.HolidayResponse]{Code: 200, Status: "success", Data: updatedHoliday})
 }
 
 func (h *holidayHandler) DeleteHolidayHandler(c *gin.Context) {
@@ -116,5 +116,5 @@ func (h *holidayHandler) DeleteHolidayHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.ResponseData[model.HolidayResponse]{Code: 200, Status: "sucess", Data: deletedHoliday})
+	c.JSON(200, model.ResponseData[*model.HolidayResponse]{Code: 200, Status: "sucess", Data: deletedHoliday})
 }
