@@ -141,7 +141,7 @@ FROM
 WHERE
 (   
     $1::time IS NULL OR 
-    $1::time BETWEEN start_presence AND finish_time
+    $1::time >= start_presence AND $1::time < finish_time
 )   
 ORDER BY
     "start_time"

@@ -3,41 +3,41 @@ package routing
 import (
 	"net/http"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/handler"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
 
-func ParentRouting(handler handler.ParentHandler) []routers.Route {
+func UserRouter(handler handler.UserHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/parent",
-			Handle:      handler.CreateParentHandler,
+			Path:        "/user",
+			Handle:      handler.CreateUserHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/parent",
-			Handle:      handler.ListParentHandler,
+			Path:        "/user",
+			Handle:      handler.ListUserHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/parent/:id",
-			Handle:      handler.GetParentHandler,
+			Path:        "/user/:id",
+			Handle:      handler.GetUserHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodPut,
-			Path:        "/parent/:id",
-			Handle:      handler.UpdateParentHandler,
+			Path:        "/user/:id",
+			Handle:      handler.UpdateUserHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodDelete,
-			Path:        "/parent/:id",
-			Handle:      handler.DeleteParentHandler,
+			Path:        "/user/:id",
+			Handle:      handler.DeleteUserHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 	}

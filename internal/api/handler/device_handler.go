@@ -20,10 +20,10 @@ type DeviceHandler interface {
 type deviceHandler struct {
 	logger      *logrus.Logger
 	usecase     usecase.DeviceUseCase
-	mqttHandler *mqtt.MQTTHandler
+	mqttHandler *mqtt.MQTTBroker
 }
 
-func NewDeviceHandler(logger *logrus.Logger, usecase usecase.DeviceUseCase, mqttHandler *mqtt.MQTTHandler) DeviceHandler {
+func NewDeviceHandler(logger *logrus.Logger, usecase usecase.DeviceUseCase, mqttHandler *mqtt.MQTTBroker) DeviceHandler {
 	return &deviceHandler{
 		logger:      logger,
 		usecase:     usecase,

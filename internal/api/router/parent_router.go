@@ -3,41 +3,41 @@ package routing
 import (
 	"net/http"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/handler"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
 
-func SantriRouting(handler handler.SantriHandler) []routers.Route {
+func ParentRouter(handler handler.ParentHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/santri",
-			Handle:      handler.CreateSantriHandler,
+			Path:        "/parent",
+			Handle:      handler.CreateParentHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/santri",
-			Handle:      handler.ListSantriHandler,
+			Path:        "/parent",
+			Handle:      handler.ListParentHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/santri/:id",
-			Handle:      handler.GetSantriHandler,
+			Path:        "/parent/:id",
+			Handle:      handler.GetParentHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodPut,
-			Path:        "/santri/:id",
-			Handle:      handler.UpdateSantriHandler,
+			Path:        "/parent/:id",
+			Handle:      handler.UpdateParentHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodDelete,
-			Path:        "/santri/:id",
-			Handle:      handler.DeleteSantriHandler,
+			Path:        "/parent/:id",
+			Handle:      handler.DeleteParentHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 	}

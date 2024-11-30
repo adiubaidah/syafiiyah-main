@@ -3,35 +3,35 @@ package routing
 import (
 	"net/http"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/handler"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
 
-func DeviceRouting(handler handler.DeviceHandler) []routers.Route {
+func HolidayRouter(handler handler.HolidayHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/device",
-			Handle:      handler.CreateDeviceHandler,
+			Path:        "/holiday",
+			Handle:      handler.CreateHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/device",
-			Handle:      handler.ListDevicesHandler,
+			Path:        "/holiday",
+			Handle:      handler.ListHolidaysHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodPut,
-			Path:        "/device/:id",
-			Handle:      handler.UpdateDeviceHandler,
+			Path:        "/holiday/:id",
+			Handle:      handler.UpdateHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodDelete,
-			Path:        "/device/:id",
-			Handle:      handler.DeleteDeviceHandler,
+			Path:        "/holiday/:id",
+			Handle:      handler.DeleteHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 	}

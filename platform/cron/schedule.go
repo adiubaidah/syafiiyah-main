@@ -70,6 +70,12 @@ func (s *ScheduleCron) run() {
 			if !schedulesAreEqual(previousSchedule, activeSchedule) {
 				s.logger.Infof("active schedule has changed: %v", activeSchedule)
 				s.ActiveScheduleSantri = activeSchedule
+
+				// Notify schedule change
+				if previousSchedule != nil {
+
+				}
+
 			}
 
 		case <-s.stopChan:

@@ -17,7 +17,7 @@ type ListSmartCardRequest struct {
 
 type UpdateSmartCardRequest struct {
 	IsActive  bool        `json:"is_active"`
-	OwnerRole db.RoleType `json:"owner_role" binding:"omitempty,role"`
+	OwnerRole db.RoleType `json:"owner_role" binding:"omitempty,oneof"`
 	OwnerID   int32       `json:"owner_id"`
 }
 

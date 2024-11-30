@@ -3,12 +3,12 @@ package routing
 import (
 	"net/http"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/handler"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
 
-func SantriScheduleRouting(handler handler.SantriScheduleHandler) []routers.Route {
+func SantriScheduleRouter(handler handler.SantriScheduleHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,

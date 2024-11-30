@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
+	router "github.com/adiubaidah/rfid-syafiiyah/internal/api/router"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/handler"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/routing"
+	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/storage/cache"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
@@ -70,65 +71,64 @@ func Init() {
 
 	userUseCase := usecase.NewUserUseCase(store)
 	userHandler := handler.NewUserHandler(logger, userUseCase)
-	userRouting := routing.UserRouting(userHandler)
+	useRouter := router.UserRouter(userHandler)
 
 	authHandler := handler.NewAuthHandler(userUseCase, cacheClient, &env, logger, tokenMaker)
-	authRouting := routing.AuthRouting(authHandler)
+	authRouter := router.AuthRouter(authHandler)
 
 	holidayUseCase := usecase.NewHolidayUseCase(store)
 	holidayHandler := handler.NewHolidayHandler(logger, holidayUseCase)
-	holidayRouting := routing.HolidayRouting(holidayHandler)
+	holidayRouter := router.HolidayRouter(holidayHandler)
 
 	parentUseCase := usecase.NewParentUseCase(store)
 	parentHandler := handler.NewParentHandler(&env, logger, parentUseCase, userUseCase)
-	parentRouting := routing.ParentRouting(parentHandler)
+	parentRouter := router.ParentRouter(parentHandler)
 
 	santriScheduleUseCase := usecase.NewSantriScheduleUseCase(store)
 	santriScheduleHandler := handler.NewSantriScheduleHandler(logger, santriScheduleUseCase)
-	santriScheduleRouting := routing.SantriScheduleRouting(santriScheduleHandler)
+	santriScheduleRouter := router.SantriScheduleRouter(santriScheduleHandler)
 
 	santriOccupationUseCase := usecase.NewSantriOccupationUseCase(store)
 	santriOccupationHandler := handler.NewSantriOccupationHandler(logger, santriOccupationUseCase)
-	santriOccupationRouting := routing.SantriOccupationRouting(santriOccupationHandler)
+	santriOccupationRouter := router.SantriOccupationRouter(santriOccupationHandler)
 
 	santriUseCase := usecase.NewSantriUseCase(store)
 	santriHandler := handler.NewSantriHandler(&env, logger, santriUseCase)
-	santriRouting := routing.SantriRouting(santriHandler)
+	santriRouter := router.SantriRouter(santriHandler)
 
 	santriPresenceUseCase := usecase.NewSantriPresenceUseCase(store)
 	santriPresenceHandler := handler.NewSantriPresenceHandler(logger, santriPresenceUseCase)
-	santriPresenceRouting := routing.SantriPresenceRouting(santriPresenceHandler)
+	santriPresenceRouter := router.SantriPresenceRouter(santriPresenceHandler)
 
 	smartCardUseCase := usecase.NewSmartCardUseCase(store)
 	smartCardHandler := handler.NewSmartCardHandler(logger, smartCardUseCase)
-	smartCardRouting := routing.SmartCardRouting(smartCardHandler)
+	smartCardRouter := router.SmartCardRouter(smartCardHandler)
 
 	deviceUseCase := usecase.NewDeviceUseCase(store)
 	scheduleCron := cron.NewScheduleCron(logger, santriScheduleUseCase)
-	mqttHandler := mqtt.NewMQTTHandler(&mqtt.MQTTHandlerConfig{
-		Logger:                logger,
-		DeviceUseCase:         deviceUseCase,
-		Schedule:              scheduleCron,
-		SmartCardUseCase:      smartCardUseCase,
-		SantriUseCase:         santriUseCase,
-		SantriPresenceUseCase: santriPresenceUseCase,
-		BrokerURL:             env.MQTTBroker,
-		// IsDevelopment: env.Gi,
+
+	mqttSantriHandler := mqttHandler.NewSantriMQTTHandler(logger, scheduleCron, santriUseCase, santriPresenceUseCase)
+	mqttBroker := mqtt.NewMQTTBroker(&mqtt.MQTTBrokerConfig{
+		Logger:           logger,
+		DeviceUseCase:    deviceUseCase,
+		SmartCardUseCase: smartCardUseCase,
+		BrokerURL:        env.MQTTBroker,
+		SantriHandler:    mqttSantriHandler,
 	})
-	deviceHandler := handler.NewDeviceHandler(logger, deviceUseCase, mqttHandler)
-	deviceRouting := routing.DeviceRouting(deviceHandler)
+	deviceHandler := handler.NewDeviceHandler(logger, deviceUseCase, mqttBroker)
+	deviceRouter := router.DeviceRouter(deviceHandler)
 
 	var routerList []routers.Route
-	routerList = append(routerList, authRouting...)
-	routerList = append(routerList, userRouting...)
-	routerList = append(routerList, holidayRouting...)
-	routerList = append(routerList, parentRouting...)
-	routerList = append(routerList, santriScheduleRouting...)
-	routerList = append(routerList, santriOccupationRouting...)
-	routerList = append(routerList, santriRouting...)
-	routerList = append(routerList, santriPresenceRouting...)
-	routerList = append(routerList, smartCardRouting...)
-	routerList = append(routerList, deviceRouting...)
+	routerList = append(routerList, authRouter...)
+	routerList = append(routerList, useRouter...)
+	routerList = append(routerList, holidayRouter...)
+	routerList = append(routerList, parentRouter...)
+	routerList = append(routerList, santriScheduleRouter...)
+	routerList = append(routerList, santriOccupationRouter...)
+	routerList = append(routerList, santriRouter...)
+	routerList = append(routerList, santriPresenceRouter...)
+	routerList = append(routerList, smartCardRouter...)
+	routerList = append(routerList, deviceRouter...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)
 	scheduleCron.Start()

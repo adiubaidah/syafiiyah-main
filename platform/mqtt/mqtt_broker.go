@@ -7,50 +7,44 @@ import (
 	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
-	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 )
 
-type MQTTHandler struct {
-	logger                *logrus.Logger
-	validator             *validator.Validate
-	Client                mqtt.Client
-	Topics                map[string]struct{}
-	deviceUseCase         usecase.DeviceUseCase
-	smartCardUseCase      usecase.SmartCardUseCase
-	santriUseCase         usecase.SantriUseCase
-	santriPresenceUseCase usecase.SantriPresenceUseCase
-	mu                    sync.Mutex
-	MessageHandler        mqtt.MessageHandler
-	schedule              *cron.ScheduleCron
+type MQTTBroker struct {
+	logger           *logrus.Logger
+	validator        *validator.Validate
+	Client           mqtt.Client
+	Topics           map[string]struct{}
+	deviceUseCase    usecase.DeviceUseCase
+	smartCardUseCase usecase.SmartCardUseCase
+	SantriHandler    *mqttHandler.SantriMQTTHandler
+	mu               sync.Mutex
+	MessageHandler   mqtt.MessageHandler
 }
 
-type MQTTHandlerConfig struct {
-	Logger                *logrus.Logger
-	Schedule              *cron.ScheduleCron
-	DeviceUseCase         usecase.DeviceUseCase
-	SmartCardUseCase      usecase.SmartCardUseCase
-	SantriUseCase         usecase.SantriUseCase
-	SantriPresenceUseCase usecase.SantriPresenceUseCase
-	BrokerURL             string
-	IsDevelopment         bool
+type MQTTBrokerConfig struct {
+	Logger           *logrus.Logger
+	DeviceUseCase    usecase.DeviceUseCase
+	SmartCardUseCase usecase.SmartCardUseCase
+	SantriHandler    *mqttHandler.SantriMQTTHandler
+	BrokerURL        string
+	IsDevelopment    bool
 }
 
-func NewMQTTHandler(config *MQTTHandlerConfig) *MQTTHandler {
-	handler := &MQTTHandler{
-		logger:                config.Logger,
-		validator:             validator.New(),
-		Topics:                make(map[string]struct{}),
-		deviceUseCase:         config.DeviceUseCase,
-		smartCardUseCase:      config.SmartCardUseCase,
-		santriUseCase:         config.SantriUseCase,
-		santriPresenceUseCase: config.SantriPresenceUseCase,
-		schedule:              config.Schedule,
+func NewMQTTBroker(config *MQTTBrokerConfig) *MQTTBroker {
+	handler := &MQTTBroker{
+		logger:           config.Logger,
+		validator:        validator.New(),
+		Topics:           make(map[string]struct{}),
+		deviceUseCase:    config.DeviceUseCase,
+		smartCardUseCase: config.SmartCardUseCase,
+		SantriHandler:    config.SantriHandler,
 	}
 	handler.Init(config.BrokerURL)
 	handler.RefreshTopics()
@@ -58,7 +52,7 @@ func NewMQTTHandler(config *MQTTHandlerConfig) *MQTTHandler {
 	return handler
 }
 
-func (h *MQTTHandler) Init(brokerURL string) {
+func (h *MQTTBroker) Init(brokerURL string) {
 	h.logger.Println("Initializing MQTT client...")
 	opts := mqtt.NewClientOptions().AddBroker(brokerURL)
 	opts.SetClientID("rfid-syafiiyah")
@@ -77,7 +71,7 @@ func (h *MQTTHandler) Init(brokerURL string) {
 	h.logger.Println("Connected to MQTT broker")
 }
 
-func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
+func (h *MQTTBroker) defaultMessageHandler() mqtt.MessageHandler {
 	return func(client mqtt.Client, msg mqtt.Message) {
 		h.logger.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 		if _, exists := h.Topics[msg.Topic()]; !exists {
@@ -121,13 +115,13 @@ func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
 
 		switch db.DeviceModeType(deviceMode) {
 		case db.DeviceModeTypeRecord:
-			h.handleRecord(client, acknowledgmentTopic, &request)
+			h.handleRecord(acknowledgmentTopic, &request)
 		case db.DeviceModeTypePresence:
-			h.handlePresence(client, acknowledgmentTopic, &request)
+			h.handlePresence(acknowledgmentTopic, &request)
 		case db.DeviceModeTypePermission:
-			h.handlePermission(client, acknowledgmentTopic, &request)
+			h.handlePermission(acknowledgmentTopic, &request)
 		case db.DeviceModeTypePing:
-			h.handlePing(client, acknowledgmentTopic)
+			h.handlePing(acknowledgmentTopic)
 		default:
 			h.logger.Warnf("Unhandled topic: %s\n", msg.Topic())
 		}
@@ -135,7 +129,7 @@ func (h *MQTTHandler) defaultMessageHandler() mqtt.MessageHandler {
 	}
 }
 
-func (h *MQTTHandler) RefreshTopics() {
+func (h *MQTTBroker) RefreshTopics() {
 	h.logger.Println("Fetching initial topics...")
 	device, err := h.deviceUseCase.ListDevices(context.Background())
 	if err != nil {
@@ -153,7 +147,7 @@ func (h *MQTTHandler) RefreshTopics() {
 	h.UpdateSubscriptions(newTopics)
 }
 
-func (h *MQTTHandler) UpdateSubscriptions(newTopics []string) {
+func (h *MQTTBroker) UpdateSubscriptions(newTopics []string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
