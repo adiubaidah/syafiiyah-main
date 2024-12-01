@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/api/middleware"
 	router "github.com/adiubaidah/rfid-syafiiyah/internal/api/router"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
@@ -70,20 +71,21 @@ func Init() {
 
 	cacheClient := cache.NewClient(redisClient)
 
+	middle := middleware.NewMiddleware(logger, tokenMaker)
 	userUseCase := usecase.NewUserUseCase(store)
 	userHandler := handler.NewUserHandler(logger, userUseCase)
 	useRouter := router.UserRouter(userHandler)
 
 	authHandler := handler.NewAuthHandler(userUseCase, cacheClient, &env, logger, tokenMaker)
-	authRouter := router.AuthRouter(authHandler)
+	authRouter := router.AuthRouter(middle, authHandler)
 
 	holidayUseCase := usecase.NewHolidayUseCase(store)
 	holidayHandler := handler.NewHolidayHandler(logger, holidayUseCase)
-	holidayRouter := router.HolidayRouter(holidayHandler)
+	holidayRouter := router.HolidayRouter(middle, holidayHandler)
 
 	parentUseCase := usecase.NewParentUseCase(store)
 	parentHandler := handler.NewParentHandler(&env, logger, parentUseCase, userUseCase)
-	parentRouter := router.ParentRouter(parentHandler)
+	parentRouter := router.ParentRouter(middle, parentHandler)
 
 	santriScheduleUseCase := usecase.NewSantriScheduleUseCase(store)
 	santriScheduleHandler := handler.NewSantriScheduleHandler(logger, santriScheduleUseCase)
@@ -91,15 +93,19 @@ func Init() {
 
 	santriOccupationUseCase := usecase.NewSantriOccupationUseCase(store)
 	santriOccupationHandler := handler.NewSantriOccupationHandler(logger, santriOccupationUseCase)
-	santriOccupationRouter := router.SantriOccupationRouter(santriOccupationHandler)
+	santriOccupationRouter := router.SantriOccupationRouter(middle, santriOccupationHandler)
 
 	santriUseCase := usecase.NewSantriUseCase(store)
 	santriHandler := handler.NewSantriHandler(&env, logger, santriUseCase)
-	santriRouter := router.SantriRouter(santriHandler)
+	santriRouter := router.SantriRouter(middle, santriHandler)
 
 	santriPresenceUseCase := usecase.NewSantriPresenceUseCase(store)
 	santriPresenceHandler := handler.NewSantriPresenceHandler(logger, santriPresenceUseCase)
 	santriPresenceRouter := router.SantriPresenceRouter(santriPresenceHandler)
+
+	employyeOccupationUseCase := usecase.NewEmployeeOccupationUseCase(store)
+	employeeOccupationHandler := handler.NewEmployeeOccupationHandler(logger, employyeOccupationUseCase)
+	employeeOccupationRouter := router.EmployeeOccupationRouter(middle, employeeOccupationHandler)
 
 	smartCardUseCase := usecase.NewSmartCardUseCase(store)
 	smartCardHandler := handler.NewSmartCardHandler(logger, smartCardUseCase)
@@ -129,6 +135,7 @@ func Init() {
 	routerList = append(routerList, santriOccupationRouter...)
 	routerList = append(routerList, santriRouter...)
 	routerList = append(routerList, santriPresenceRouter...)
+	routerList = append(routerList, employeeOccupationRouter...)
 	routerList = append(routerList, smartCardRouter...)
 	routerList = append(routerList, deviceRouter...)
 

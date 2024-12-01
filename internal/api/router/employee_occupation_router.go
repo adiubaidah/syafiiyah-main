@@ -10,12 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler) []routers.Route {
+func EmployeeOccupationRouter(middle middleware.Middleware, handler handler.EmployeeOccupationHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method: http.MethodPost,
-			Path:   "/holiday",
-			Handle: handler.CreateHolidayHandler,
+			Path:   "/employee-occupation",
+			Handle: handler.CreateEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
 				middle.RequireRoles(db.RoleTypeSuperadmin),
@@ -23,8 +23,8 @@ func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler)
 		},
 		{
 			Method: http.MethodGet,
-			Path:   "/holiday",
-			Handle: handler.ListHolidaysHandler,
+			Path:   "/employee-occupation",
+			Handle: handler.ListEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
 				middle.RequireRoles(db.RoleTypeSuperadmin),
@@ -32,8 +32,8 @@ func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler)
 		},
 		{
 			Method: http.MethodPut,
-			Path:   "/holiday/:id",
-			Handle: handler.UpdateHolidayHandler,
+			Path:   "/employee-occupation/:id",
+			Handle: handler.UpdateEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
 				middle.RequireRoles(db.RoleTypeSuperadmin),
@@ -41,8 +41,8 @@ func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler)
 		},
 		{
 			Method: http.MethodDelete,
-			Path:   "/holiday/:id",
-			Handle: handler.DeleteHolidayHandler,
+			Path:   "/employee-occupation/:id",
+			Handle: handler.DeleteEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
 				middle.RequireRoles(db.RoleTypeSuperadmin),

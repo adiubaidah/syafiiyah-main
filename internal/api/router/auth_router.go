@@ -4,11 +4,12 @@ import (
 	"net/http"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/api/middleware"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthRouter(handler handler.AuthHandler) []routers.Route {
+func AuthRouter(middle middleware.Middleware, handler handler.AuthHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
