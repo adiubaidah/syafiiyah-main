@@ -163,7 +163,7 @@ func (q *Queries) DeleteSantriPresence(ctx context.Context, id int32) (SantriPre
 	return i, err
 }
 
-const listAbsentSantri = `-- name: ListAbsentSantri :many
+const listMissingSantriPresences = `-- name: ListMissingSantriPresences :many
 SELECT 
     "santri"."id", "santri"."name"
 FROM
@@ -181,25 +181,25 @@ WHERE
     )
 `
 
-type ListAbsentSantriParams struct {
+type ListMissingSantriPresencesParams struct {
 	Date       pgtype.Date `db:"date"`
 	ScheduleID pgtype.Int4 `db:"schedule_id"`
 }
 
-type ListAbsentSantriRow struct {
+type ListMissingSantriPresencesRow struct {
 	ID   int32  `db:"id"`
 	Name string `db:"name"`
 }
 
-func (q *Queries) ListAbsentSantri(ctx context.Context, arg ListAbsentSantriParams) ([]ListAbsentSantriRow, error) {
-	rows, err := q.db.Query(ctx, listAbsentSantri, arg.Date, arg.ScheduleID)
+func (q *Queries) ListMissingSantriPresences(ctx context.Context, arg ListMissingSantriPresencesParams) ([]ListMissingSantriPresencesRow, error) {
+	rows, err := q.db.Query(ctx, listMissingSantriPresences, arg.Date, arg.ScheduleID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListAbsentSantriRow{}
+	items := []ListMissingSantriPresencesRow{}
 	for rows.Next() {
-		var i ListAbsentSantriRow
+		var i ListMissingSantriPresencesRow
 		if err := rows.Scan(&i.ID, &i.Name); err != nil {
 			return nil, err
 		}

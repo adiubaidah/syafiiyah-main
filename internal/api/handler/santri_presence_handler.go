@@ -76,6 +76,7 @@ func (h *santriPresenceHandler) ListSantriPresencesHandler(c *gin.Context) {
 	}
 
 	result, err := h.usecase.ListSantriPresences(context.Background(), &listSantriPresenceRequest)
+	h.logger.Println("result", result)
 	if err != nil {
 		h.logger.Error(err)
 

@@ -3,6 +3,7 @@ package exception
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -34,6 +35,10 @@ func DatabaseErrorCode(err error) string {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		return pgErr.Code
+	}
+
+	if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+		return "23505" // Kode error unique violation
 	}
 	return ""
 }

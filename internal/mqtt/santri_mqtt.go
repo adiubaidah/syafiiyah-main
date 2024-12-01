@@ -62,7 +62,7 @@ func (h *SantriMQTTHandler) Presence(uid string, santriID int32) (*model.SantriP
 	if err != nil {
 		h.logger.Errorf("Error creating santri presence: %v\n", err)
 		if exception.DatabaseErrorCode(err) == exception.ErrCodeUniqueViolation {
-			return nil, exception.NewUniqueViolationError("err", err)
+			return nil, exception.NewUniqueViolationError("santri already presence today", err)
 		}
 	}
 

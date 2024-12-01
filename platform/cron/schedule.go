@@ -8,6 +8,7 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/worker"
 	"github.com/sirupsen/logrus"
 )
 
@@ -15,13 +16,15 @@ type ScheduleCron struct {
 	logger                *logrus.Logger
 	ActiveScheduleSantri  *model.SantriScheduleResponse
 	santriScheduleUseCase usecase.SantriScheduleUseCase
+	santriPresenceWorker  worker.SantriPresenceWorker
 	stopChan              chan struct{}
 	isRunning             bool
 }
 
-func NewScheduleCron(logger *logrus.Logger, santriScheduleUseCase usecase.SantriScheduleUseCase) *ScheduleCron {
+func NewScheduleCron(logger *logrus.Logger, santriScheduleUseCase usecase.SantriScheduleUseCase, santriPresenceWorker worker.SantriPresenceWorker) *ScheduleCron {
 	return &ScheduleCron{
 		santriScheduleUseCase: santriScheduleUseCase,
+		santriPresenceWorker:  santriPresenceWorker,
 		logger:                logger,
 	}
 }
@@ -50,6 +53,7 @@ func (s *ScheduleCron) run() {
 	nextMinute := now.Truncate(time.Minute).Add(time.Minute)
 	timeUntilNextMinute := time.Until(nextMinute)
 	time.Sleep(timeUntilNextMinute)
+	s.execute()
 
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
@@ -57,29 +61,28 @@ func (s *ScheduleCron) run() {
 	for {
 		select {
 		case <-ticker.C:
-			// Get active schedule
-			activeSchedule, err := s.santriScheduleUseCase.GetSantriSchedule(context.Background(), time.Now())
-			if err != nil {
-				s.logger.Errorf("failed to get active schedule: %v", err)
-				if errors.Is(err, exception.ErrNotFound) {
-					s.ActiveScheduleSantri = nil
-				}
-			}
-			previousSchedule := s.ActiveScheduleSantri
-
-			if !schedulesAreEqual(previousSchedule, activeSchedule) {
-				s.logger.Infof("active schedule has changed: %v", activeSchedule)
-				s.ActiveScheduleSantri = activeSchedule
-
-				// Notify schedule change
-				if previousSchedule != nil {
-
-				}
-
-			}
-
+			s.execute()
 		case <-s.stopChan:
 			return
+		}
+	}
+}
+
+func (s *ScheduleCron) execute() {
+	activeSchedule, err := s.santriScheduleUseCase.GetSantriSchedule(context.Background(), time.Now())
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			s.ActiveScheduleSantri = nil
+		}
+	}
+	previousSchedule := s.ActiveScheduleSantri
+
+	if !schedulesAreEqual(previousSchedule, activeSchedule) {
+		s.logger.Infof("active schedule has changed: %v", activeSchedule)
+		s.ActiveScheduleSantri = activeSchedule
+
+		if previousSchedule != nil {
+			go s.santriPresenceWorker.CreateAlphaForMissingPresence(previousSchedule.ID)
 		}
 	}
 }

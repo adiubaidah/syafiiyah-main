@@ -114,7 +114,7 @@ WHERE
         OR DATE("created_at") <= sqlc.narg(to_date) :: date
     );
 
--- name: ListAbsentSantri :many
+-- name: ListMissingSantriPresences :many
 SELECT 
     "santri"."id", "santri"."name"
 FROM

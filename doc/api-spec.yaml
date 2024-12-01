@@ -1424,6 +1424,9 @@ paths:
                       $ref: "#/components/schemas/PresenceEnum"
                     santri_id:
                       $ref: "#/components/schemas/Id"
+                    schedule_id:
+                      items:
+                        $ref: "#/components/schemas/Id"
       responses:
         "200":
           description: OK

@@ -170,7 +170,7 @@ func TestListSantriPresence(t *testing.T) {
 
 }
 
-func TestListAbsentSantriPresence(t *testing.T) {
+func TestListMissingSantriPresence(t *testing.T) {
 	clearSantriScheduleTable(t)
 	clearSantriPresenceTable(t)
 	clearSantriTable(t)
@@ -179,7 +179,7 @@ func TestListAbsentSantriPresence(t *testing.T) {
 	schedule := createRandomSantriSchedule(t)
 	scheduleTime := time.Unix(0, schedule.StartPresence.Microseconds*int64(time.Microsecond))
 
-	listAbsent, err := testStore.ListAbsentSantri(context.Background(), ListAbsentSantriParams{
+	listAbsent, err := testStore.ListMissingSantriPresences(context.Background(), ListMissingSantriPresencesParams{
 		Date: pgtype.Date{Time: scheduleTime, Valid: true},
 	})
 

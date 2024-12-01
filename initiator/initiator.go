@@ -11,6 +11,7 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/internal/storage/cache"
 	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
+	"github.com/adiubaidah/rfid-syafiiyah/internal/worker"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
@@ -105,7 +106,8 @@ func Init() {
 	smartCardRouter := router.SmartCardRouter(smartCardHandler)
 
 	deviceUseCase := usecase.NewDeviceUseCase(store)
-	scheduleCron := cron.NewScheduleCron(logger, santriScheduleUseCase)
+	santriPresenceWorker := worker.NewSantriPresenceWorker(logger, santriPresenceUseCase)
+	scheduleCron := cron.NewScheduleCron(logger, santriScheduleUseCase, santriPresenceWorker)
 
 	mqttSantriHandler := mqttHandler.NewSantriMQTTHandler(logger, scheduleCron, santriUseCase, santriPresenceUseCase)
 	mqttBroker := mqtt.NewMQTTBroker(&mqtt.MQTTBrokerConfig{
