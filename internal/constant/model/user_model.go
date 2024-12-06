@@ -11,7 +11,7 @@ type CreateUserRequest struct {
 	Password string      `json:"password" binding:"required"`
 }
 
-type UserResponse struct {
+type User struct {
 	ID       int32       `json:"id"`
 	Username string      `json:"username"`
 	Role     db.RoleType `json:"role"`

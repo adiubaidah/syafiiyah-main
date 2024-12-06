@@ -12,12 +12,12 @@ import (
 )
 
 type UserUseCase interface {
-	CreateUser(ctx context.Context, request *model.CreateUserRequest) (*model.UserResponse, error)
+	CreateUser(ctx context.Context, request *model.CreateUserRequest) (*model.User, error)
 	ListUsers(ctx context.Context, request *model.ListUserRequest) (*[]model.UserComplete, error)
 	GetUser(ctx context.Context, userId int32, username string) (*model.UserWithPassword, error)
 	CountUsers(ctx context.Context, request *model.ListUserRequest) (int64, error)
-	UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (*model.UserResponse, error)
-	DeleteUser(ctx context.Context, userId int32) (*model.UserResponse, error)
+	UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (*model.User, error)
+	DeleteUser(ctx context.Context, userId int32) (*model.User, error)
 }
 
 type userService struct {
@@ -28,7 +28,7 @@ func NewUserUseCase(store db.Store) UserUseCase {
 	return &userService{store: store}
 }
 
-func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserRequest) (*model.UserResponse, error) {
+func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserRequest) (*model.User, error) {
 	hashedPassword, err := util.HashPassword(request.Password)
 
 	if err != nil {
@@ -44,7 +44,7 @@ func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserR
 		return nil, err
 	}
 
-	return &model.UserResponse{
+	return &model.User{
 		ID:       createdUser.ID,
 		Username: createdUser.Username.String,
 		Role:     createdUser.Role.RoleType,
@@ -92,6 +92,8 @@ func (c *userService) GetUser(ctx context.Context, userId int32, username string
 		if errors.Is(err, exception.ErrNotFound) {
 			return nil, exception.NewNotFoundError("User not found")
 		}
+
+		return nil, err
 	}
 
 	return &model.UserWithPassword{
@@ -115,7 +117,7 @@ func (c *userService) CountUsers(ctx context.Context, request *model.ListUserReq
 	return count, nil
 }
 
-func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (*model.UserResponse, error) {
+func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (*model.User, error) {
 
 	var newPassword string
 	if request.Password != "" {
@@ -139,14 +141,14 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 		return nil, err
 	}
 
-	return &model.UserResponse{
+	return &model.User{
 		ID:       updatedUser.ID,
 		Username: updatedUser.Username.String,
 		Role:     updatedUser.Role.RoleType,
 	}, nil
 }
 
-func (c *userService) DeleteUser(ctx context.Context, userId int32) (*model.UserResponse, error) {
+func (c *userService) DeleteUser(ctx context.Context, userId int32) (*model.User, error) {
 	userDeleted, err := c.store.DeleteUser(ctx, userId)
 	if err != nil {
 
@@ -157,7 +159,7 @@ func (c *userService) DeleteUser(ctx context.Context, userId int32) (*model.User
 		return nil, err
 	}
 
-	return &model.UserResponse{
+	return &model.User{
 		ID:       userDeleted.ID,
 		Username: userDeleted.Username.String,
 		Role:     userDeleted.Role.RoleType,

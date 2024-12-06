@@ -235,3 +235,81 @@ func (q *Queries) ListParents(ctx context.Context, arg ListParentParams) ([]List
 	}
 	return items, nil
 }
+
+type ListEmployeesParams struct {
+	Q            pgtype.Text         `db:"q"`
+	OccupationID pgtype.Int4         `db:"occupation_id"`
+	HasUser      pgtype.Bool         `db:"has_user"`
+	LimitNumber  int32               `db:"limit_number"`
+	OffsetNumber int32               `db:"offset_number"`
+	OrderBy      NullEmployeeOrderBy `db:"order_by"`
+}
+
+const listEmployee = `-- name: ListEmployee :many
+SELECT
+	"list_employee"."id",
+	"list_employee"."nip",
+	"list_employee"."name",
+	"list_employee"."gender",
+	"list_employee"."photo",
+	"list_employee"."occupation_id",
+	"list_employee"."occupation_name",
+	"list_employee"."user_id",
+	"list_employee"."username"
+FROM list_employee(
+	$1,
+	$2,
+	$3,
+	$4,
+	$5,
+	$6
+)`
+
+type ListEmployeesRow struct {
+	ID             int32       `db:"id"`
+	Nip            pgtype.Text `db:"nip"`
+	Name           string      `db:"name"`
+	Gender         GenderType  `db:"gender"`
+	Photo          pgtype.Text `db:"photo"`
+	OccupationID   int32       `db:"occupation_id"`
+	OccupationName string      `db:"occupation_name"`
+	UserID         pgtype.Int4 `db:"user_id"`
+	Username       pgtype.Text `db:"username"`
+}
+
+func (q *Queries) ListEmployees(ctx context.Context, arg ListEmployeesParams) ([]ListEmployeesRow, error) {
+	rows, err := q.db.Query(ctx, listEmployee,
+		arg.Q,
+		arg.OccupationID,
+		arg.HasUser,
+		arg.LimitNumber,
+		arg.OffsetNumber,
+		arg.OrderBy,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListEmployeesRow{}
+	for rows.Next() {
+		var i ListEmployeesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Nip,
+			&i.Name,
+			&i.Gender,
+			&i.Photo,
+			&i.OccupationID,
+			&i.OccupationName,
+			&i.UserID,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

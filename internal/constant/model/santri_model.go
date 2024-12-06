@@ -42,7 +42,7 @@ type SantriCompleteResponse struct {
 
 type ListSantriRequest struct {
 	Q            string `form:"q"`
-	Order        string `form:"order" binding:"omitempty,santriorder"`
+	Order        string `form:"order" binding:"omitempty,santri-order"`
 	Limit        int32  `form:"limit" binding:"omitempty,gte=1"`
 	Page         int32  `form:"page" binding:"omitempty,gte=1"`
 	Generation   int32  `form:"generation"`

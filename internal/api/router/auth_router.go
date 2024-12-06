@@ -18,10 +18,12 @@ func AuthRouter(middle middleware.Middleware, handler handler.AuthHandler) []rou
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
-			Method:      http.MethodPost,
-			Path:        "/auth/is-auth",
-			Handle:      handler.IsAuthHandler,
-			MiddleWares: []gin.HandlerFunc{},
+			Method: http.MethodPost,
+			Path:   "/auth/is-auth",
+			Handle: handler.IsAuthHandler,
+			MiddleWares: []gin.HandlerFunc{
+				middle.Auth(),
+			},
 		},
 		{
 			Method:      http.MethodPost,

@@ -99,6 +99,48 @@ func (ns NullDeviceModeType) Value() (driver.Value, error) {
 	return string(ns.DeviceModeType), nil
 }
 
+type EmployeeOrderBy string
+
+const (
+	EmployeeOrderByAscName  EmployeeOrderBy = "asc:name"
+	EmployeeOrderByDescName EmployeeOrderBy = "desc:name"
+)
+
+func (e *EmployeeOrderBy) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = EmployeeOrderBy(s)
+	case string:
+		*e = EmployeeOrderBy(s)
+	default:
+		return fmt.Errorf("unsupported scan type for EmployeeOrderBy: %T", src)
+	}
+	return nil
+}
+
+type NullEmployeeOrderBy struct {
+	EmployeeOrderBy EmployeeOrderBy
+	Valid           bool // Valid is true if EmployeeOrderBy is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEmployeeOrderBy) Scan(value interface{}) error {
+	if value == nil {
+		ns.EmployeeOrderBy, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.EmployeeOrderBy.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEmployeeOrderBy) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.EmployeeOrderBy), nil
+}
+
 type GenderType string
 
 const (

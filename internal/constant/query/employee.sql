@@ -1,33 +1,3 @@
--- name: ListEmployeesAsc :many
-SELECT
-    "employee".*,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
-FROM
-    "employee"
-    LEFT JOIN "user" ON "employee"."user_id" = "user"."id"
-WHERE
-    (
-        sqlc.narg(q)::text IS NULL
-        OR "name" ILIKE '%' || sqlc.narg(q) || '%'
-    )
-    AND (
-        @has_user :: smallint IS NULL
-        OR (
-            @has_user = 1
-            AND "user_id" IS NOT NULL
-        )
-        OR (
-            @has_user = 0
-            AND "user_id" IS NULL
-        )
-        OR (@has_user = -1)
-    )
-ORDER BY
-    "name" ASC
-LIMIT
-    @limit_number OFFSET @offset_number;
-
 -- name: CreateEmployee :one
 INSERT INTO
     "employee" (
@@ -43,10 +13,40 @@ VALUES
         @nip,
         @name,
         @gender,
-        sqlc.narg(photo)::text,
+        sqlc.narg(photo) :: text,
         @occupation_id,
-        sqlc.narg(user_id)::integer
+        sqlc.narg(user_id) :: integer
     ) RETURNING *;
+
+-- name: CountEmployees :one
+
+SELECT
+    COUNT(*)
+FROM
+    employee
+    LEFT JOIN "user" ON employee.user_id = "user".id
+    LEFT JOIN employee_occupation ON employee.occupation_id = employee_occupation.id
+WHERE
+    (
+        @q IS NULL
+        OR employee.name ILIKE '%%' || @q || '%%'
+        OR employee.nip ILIKE '%%' || @q || '%%'
+    )
+    AND (
+        @occupation_id IS NULL
+        OR employee.occupation_id = @occupation_id
+    )
+    AND (
+        @has_user IS NULL
+        OR (
+            @has_user = TRUE
+            AND "user".id IS NOT NULL
+        )
+        OR (
+            @has_user = FALSE
+            AND "user".id IS NULL
+        )
+    );
 
 -- name: UpdateEmployee :one
 UPDATE
@@ -54,7 +54,7 @@ UPDATE
 SET
     "nip" = sqlc.narg(nip),
     "name" = COALESCE(sqlc.narg(name), name),
-    "gender" = COALESCE(sqlc.narg(gender)::gender_type, gender),
+    "gender" = COALESCE(sqlc.narg(gender) :: gender_type, gender),
     "photo" = sqlc.narg(photo),
     "occupation_id" = COALESCE(sqlc.narg(occupation_id), occupation_id),
     "user_id" = sqlc.narg(user_id)
@@ -72,9 +72,16 @@ FROM
 WHERE
     "employee"."id" = @id;
 
+-- name: GetEmployeeByUserId :one
+SELECT
+    "employee".*
+FROM
+    "employee"
+WHERE
+    "user_id" = @user_id;
+
 -- name: DeleteEmployee :one
 DELETE FROM
     "employee"
 WHERE
-    "id" = @id
-RETURNING *;
+    "id" = @id RETURNING *;

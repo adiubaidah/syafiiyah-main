@@ -57,10 +57,11 @@ func Init() {
 	defer redisClient.Close()
 
 	if validateActor, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		validateActor.RegisterValidation("santriorder", model.IsValidSantriOrder)
+		validateActor.RegisterValidation("santri-order", model.IsValidSantriOrder)
 		validateActor.RegisterValidation("role", model.IsValidRole)
 		validateActor.RegisterValidation("userorder", model.IsValidUserOrder)
 		validateActor.RegisterValidation("parentorder", model.IsValidParentOrder)
+		validateActor.RegisterValidation("employee-order", model.IsValidEmployeeOrder)
 		validateActor.RegisterValidation("validTime", model.IsValidTime)
 		validateActor.RegisterValidation("presencetype", model.IsValidPresenceType)
 	}
@@ -96,16 +97,21 @@ func Init() {
 	santriOccupationRouter := router.SantriOccupationRouter(middle, santriOccupationHandler)
 
 	santriUseCase := usecase.NewSantriUseCase(store)
-	santriHandler := handler.NewSantriHandler(&env, logger, santriUseCase)
+	santriHandler := handler.NewSantriHandler(logger, &env, santriUseCase)
 	santriRouter := router.SantriRouter(middle, santriHandler)
 
 	santriPresenceUseCase := usecase.NewSantriPresenceUseCase(store)
 	santriPresenceHandler := handler.NewSantriPresenceHandler(logger, santriPresenceUseCase)
 	santriPresenceRouter := router.SantriPresenceRouter(santriPresenceHandler)
 
-	employyeOccupationUseCase := usecase.NewEmployeeOccupationUseCase(store)
-	employeeOccupationHandler := handler.NewEmployeeOccupationHandler(logger, employyeOccupationUseCase)
+	employeeOccupationUseCase := usecase.NewEmployeeOccupationUseCase(store)
+	employeeOccupationHandler := handler.NewEmployeeOccupationHandler(logger, employeeOccupationUseCase)
 	employeeOccupationRouter := router.EmployeeOccupationRouter(middle, employeeOccupationHandler)
+
+	employeeUseCase := usecase.NewEmployeeUseCase(store)
+
+	profileHandler := handler.NewProfileHandler(logger, employeeUseCase, parentUseCase)
+	profileRouter := router.ProfileRouter(middle, profileHandler)
 
 	smartCardUseCase := usecase.NewSmartCardUseCase(store)
 	smartCardHandler := handler.NewSmartCardHandler(logger, smartCardUseCase)
@@ -136,6 +142,8 @@ func Init() {
 	routerList = append(routerList, santriRouter...)
 	routerList = append(routerList, santriPresenceRouter...)
 	routerList = append(routerList, employeeOccupationRouter...)
+
+	routerList = append(routerList, profileRouter...)
 	routerList = append(routerList, smartCardRouter...)
 	routerList = append(routerList, deviceRouter...)
 

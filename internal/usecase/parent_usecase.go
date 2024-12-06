@@ -14,6 +14,7 @@ type ParentUseCase interface {
 	CreateParent(ctx context.Context, request *model.CreateParentRequest) (*model.ParentResponse, error)
 	ListParents(ctx context.Context, request *model.ListParentRequest) (*[]model.ParentCompleteResponse, error)
 	GetParent(ctx context.Context, parentId int32) (*model.ParentResponse, error)
+	GetParentByUserID(ctx context.Context, userId int32) (*model.ParentResponse, error)
 	CountParents(ctx context.Context, request *model.ListParentRequest) (int64, error)
 	UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (*model.ParentResponse, error)
 	DeleteParent(ctx context.Context, parentId int32) (*model.ParentResponse, error)
@@ -130,6 +131,25 @@ func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateP
 
 func (c *parentService) GetParent(ctx context.Context, parentId int32) (*model.ParentResponse, error) {
 	parent, err := c.store.GetParent(ctx, parentId)
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return nil, exception.NewNotFoundError("Parent not found")
+		}
+		return nil, err
+	}
+	return &model.ParentResponse{
+		ID:             parent.ID,
+		Name:           parent.Name,
+		Address:        parent.Address,
+		WhatsappNumber: parent.WhatsappNumber.String,
+		Gender:         string(parent.Gender),
+		Photo:          parent.Photo.String,
+		UserID:         parent.UserID.Int32,
+	}, nil
+}
+
+func (c *parentService) GetParentByUserID(ctx context.Context, userID int32) (*model.ParentResponse, error) {
+	parent, err := c.store.GetParentByUserId(ctx, pgtype.Int4{Int32: userID, Valid: true})
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
 			return nil, exception.NewNotFoundError("Parent not found")

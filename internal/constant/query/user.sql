@@ -45,17 +45,24 @@ SELECT
     "user"."id",
     "user"."role",
     "user"."username",
-    "user"."password"
+    "user"."password",
+    CASE
+        WHEN "parent"."id" IS NOT NULL THEN "parent"."id"
+        WHEN "employee"."id" IS NOT NULL THEN "employee"."id"
+        ELSE NULL
+    END AS "owner_id"
 FROM
     "user"
+LEFT JOIN "parent" ON "user"."id" = "parent"."user_id"
+LEFT JOIN "employee" ON "user"."id" = "employee"."user_id"
 WHERE
     (
         sqlc.narg(id)::integer IS NOT NULL
-        AND "id" = sqlc.narg(id)::integer
+        AND "user"."id" = sqlc.narg(id)::integer
     )
     OR (
         sqlc.narg(username)::text IS NOT NULL
-        AND "username" = sqlc.narg(username)::text
+        AND "user"."username" = sqlc.narg(username)::text
     )
 LIMIT
     1;

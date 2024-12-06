@@ -47,7 +47,8 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userUseCase.GetUser(c, 0, loginRequest.Username)
+	result, err := h.userUseCase.GetUser(c, 0, loginRequest.Username)
+	h.logger.Println(result)
 	if err != nil {
 		h.logger.Error(err)
 		if appErr, ok := err.(*exception.AppError); ok {
@@ -58,13 +59,19 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	if err := util.CheckPassword(loginRequest.Password, user.Password); err != nil {
+	if err := util.CheckPassword(loginRequest.Password, result.Password); err != nil {
 		h.logger.Error(err)
 		c.JSON(401, model.ResponseMessage{Code: 401, Status: "error", Message: "Username or password is incorrect"})
 		return
 	}
 
-	accessToken, payload, err := h.tokenMaker.CreateToken(user.Username, string(user.Role), h.config.AccessTokenDuration)
+	user := &model.User{
+		ID:       result.ID,
+		Username: result.Username,
+		Role:     result.Role,
+	}
+
+	accessToken, payload, err := h.tokenMaker.CreateToken(user, h.config.AccessTokenDuration)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -72,7 +79,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	refreshToken, refreshPayload, err := h.tokenMaker.CreateToken(user.Username, string(user.Role), h.config.RefreshTokenDuration)
+	refreshToken, refreshPayload, err := h.tokenMaker.CreateToken(user, h.config.RefreshTokenDuration)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Internal server error"})
@@ -106,7 +113,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		AccessTokenExpiresAt:  payload.ExpiredAt,
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
-		User: model.UserResponse{
+		User: model.User{
 			ID:       user.ID,
 			Username: user.Username,
 			Role:     user.Role,
@@ -115,20 +122,9 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 }
 
 func (h *authHandler) IsAuthHandler(c *gin.Context) {
-	accessToken, err := c.Cookie("access_token")
-	if err != nil {
-		h.logger.Error(err)
-		c.JSON(401, model.ResponseMessage{Code: 401, Status: "error", Message: "Unauthorized"})
-		return
-	}
-
-	payload, err := h.tokenMaker.VerifyToken(accessToken)
-	if err != nil {
-		h.logger.Error(err)
-		c.JSON(401, model.ResponseMessage{Code: 401, Status: "error", Message: "Unauthorized"})
-		return
-	}
-	c.JSON(200, model.ResponseData[token.Payload]{Code: 200, Status: "success", Data: *payload})
+	userValue, _ := c.Get("user")
+	user, _ := userValue.(*model.User)
+	c.JSON(200, model.ResponseData[*model.User]{Code: 200, Status: "success", Data: user})
 }
 
 func (h *authHandler) LogoutHandler(c *gin.Context) {
@@ -202,7 +198,11 @@ func (h *authHandler) RefreshAccessTokenHandler(c *gin.Context) {
 		c.JSON(401, model.ResponseMessage{Code: 401, Status: "error", Message: "Unauthorized"})
 	}
 
-	newAccessToken, newAccessPayload, err := h.tokenMaker.CreateToken(refreshPayload.Username, refreshPayload.Role, h.config.AccessTokenDuration)
+	newAccessToken, newAccessPayload, err := h.tokenMaker.CreateToken(&model.User{
+		ID:       refreshPayload.User.ID,
+		Username: refreshPayload.User.Username,
+		Role:     refreshPayload.User.Role,
+	}, h.config.AccessTokenDuration)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Internal server error"})

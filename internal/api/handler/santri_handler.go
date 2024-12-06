@@ -30,7 +30,7 @@ type santriHandler struct {
 	usecase usecase.SantriUseCase
 }
 
-func NewSantriHandler(config *config.Config, logger *logrus.Logger, usecase usecase.SantriUseCase) SantriHandler {
+func NewSantriHandler(logger *logrus.Logger, config *config.Config, usecase usecase.SantriUseCase) SantriHandler {
 	return &santriHandler{
 		config:  config,
 		logger:  logger,
@@ -87,7 +87,6 @@ func (h *santriHandler) ListSantriHandler(c *gin.Context) {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
-	h.logger.Info(listSantriRequest)
 
 	if listSantriRequest.Limit == 0 {
 		listSantriRequest.Limit = 10

@@ -46,7 +46,7 @@ func (m *middleware) Auth() gin.HandlerFunc {
 			})
 			return
 		}
-		c.Set("user", payload)
+		c.Set("user", payload.User)
 		c.Next()
 	}
 }
@@ -63,7 +63,7 @@ func (m *middleware) RequireRoles(allowedRoles ...db.RoleType) gin.HandlerFunc {
 			return
 		}
 
-		user, ok := userValue.(*token.Payload)
+		user, ok := userValue.(*model.User)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, model.ResponseMessage{
 				Code:    http.StatusUnauthorized,
@@ -74,7 +74,7 @@ func (m *middleware) RequireRoles(allowedRoles ...db.RoleType) gin.HandlerFunc {
 		}
 
 		for _, role := range allowedRoles {
-			if user.Role == string(role) {
+			if user.Role == role {
 				c.Next()
 				return
 			}

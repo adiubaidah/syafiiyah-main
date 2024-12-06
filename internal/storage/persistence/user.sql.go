@@ -110,17 +110,24 @@ SELECT
     "user"."id",
     "user"."role",
     "user"."username",
-    "user"."password"
+    "user"."password",
+    CASE
+        WHEN "parent"."id" IS NOT NULL THEN "parent"."id"
+        WHEN "employee"."id" IS NOT NULL THEN "employee"."id"
+        ELSE NULL
+    END AS "owner_id"
 FROM
     "user"
+LEFT JOIN "parent" ON "user"."id" = "parent"."user_id"
+LEFT JOIN "employee" ON "user"."id" = "employee"."user_id"
 WHERE
     (
         $1::integer IS NOT NULL
-        AND "id" = $1::integer
+        AND "user"."id" = $1::integer
     )
     OR (
         $2::text IS NOT NULL
-        AND "username" = $2::text
+        AND "user"."username" = $2::text
     )
 LIMIT
     1
@@ -131,14 +138,23 @@ type GetUserParams struct {
 	Username pgtype.Text `db:"username"`
 }
 
-func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (User, error) {
+type GetUserRow struct {
+	ID       int32        `db:"id"`
+	Role     NullRoleType `db:"role"`
+	Username pgtype.Text  `db:"username"`
+	Password pgtype.Text  `db:"password"`
+	OwnerID  interface{}  `db:"owner_id"`
+}
+
+func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, error) {
 	row := q.db.QueryRow(ctx, getUser, arg.ID, arg.Username)
-	var i User
+	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Role,
 		&i.Username,
 		&i.Password,
+		&i.OwnerID,
 	)
 	return i, err
 }

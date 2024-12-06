@@ -237,3 +237,73 @@ CREATE TYPE card_owner AS ENUM (
     'all',
     'none'
 );
+
+
+CREATE TYPE employee_order_by AS ENUM (
+    'asc:name',
+    'desc:name'
+);
+
+CREATE OR REPLACE FUNCTION list_employee(
+    q TEXT,
+    occupation_id_param INTEGER,
+    has_user BOOLEAN,
+    limit_number INTEGER,
+    offset_number INTEGER,
+    order_by employee_order_by
+) RETURNS TABLE (
+    id INTEGER,
+    nip TEXT,
+    name TEXT,
+    gender gender_type,
+    photo TEXT,
+    occupation_id INTEGER,
+    occupation_name TEXT,
+    user_id INTEGER,
+    username TEXT
+) AS $$
+DECLARE
+    order_column TEXT := 'name';
+    order_direction TEXT := 'ASC';
+BEGIN
+    IF order_by = 'asc:name' THEN
+        order_column := 'name';
+        order_direction := 'ASC';
+    ELSIF order_by = 'desc:name' THEN
+        order_column := 'name';
+        order_direction := 'DESC';
+    END IF;
+
+    RETURN QUERY EXECUTE format(
+        $query$
+        SELECT
+            employee.id,
+            employee.nip::text,
+            employee.name::text,
+            employee.gender::gender_type,
+            employee.photo::text,
+            employee_occupation.id AS occupation_id,
+            employee_occupation.name::text AS occupation_name,
+            "user".id AS user_id,
+            "user".username::text
+        FROM
+            employee
+            LEFT JOIN "user" ON employee.user_id = "user".id
+            LEFT JOIN employee_occupation ON employee.occupation_id = employee_occupation.id
+        WHERE
+            ($1 IS NULL OR employee.name ILIKE '%%' || $1 || '%%' OR employee.nip ILIKE '%%' || $1 || '%%')
+            AND ($2 IS NULL OR employee.occupation_id = $2)
+            AND (
+                $3 IS NULL
+                OR ($3 = TRUE AND "user".id IS NOT NULL)
+                OR ($3 = FALSE AND "user".id IS NULL)
+            )
+        ORDER BY employee.%I %s
+        LIMIT $4 OFFSET $5
+        $query$,
+        order_column,
+        order_direction
+    )
+    USING q, occupation_id_param, has_user ,limit_number, offset_number;
+END;
+$$ LANGUAGE plpgsql;
