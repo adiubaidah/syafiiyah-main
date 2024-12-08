@@ -25,7 +25,7 @@ FROM
 WHERE
 (   
     sqlc.narg(time)::time IS NULL OR 
-    sqlc.narg(time)::time BETWEEN start_presence AND finish_time
+    sqlc.narg(time)::time >= start_presence AND sqlc.narg(time)::time < finish_time
 )   
 ORDER BY
     "start_time";
@@ -42,6 +42,16 @@ WHERE
         FROM
             "santri_schedule"
     );
+-- name: GetSantriSchedule :one
+
+SELECT
+    *
+FROM
+    "santri_schedule"
+WHERE
+    @time::time BETWEEN start_presence AND finish_time
+LIMIT
+    1;
 
 -- name: UpdateSantriSchedule :one
 UPDATE

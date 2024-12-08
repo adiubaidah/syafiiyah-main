@@ -11,16 +11,16 @@ type CreateUserRequest struct {
 	Password string      `json:"password" binding:"required"`
 }
 
-type UserResponse struct {
-	ID       int32  `json:"id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+type User struct {
+	ID       int32       `json:"id"`
+	Username string      `json:"username"`
+	Role     db.RoleType `json:"role"`
 }
 
 type UserWithPassword struct {
 	ID       int32
 	Username string
-	Role     string
+	Role     db.RoleType
 	Password string
 }
 
@@ -69,7 +69,7 @@ func IsValidUserOrder(fl validator.FieldLevel) bool {
 func IsValidRole(fl validator.FieldLevel) bool {
 	role := db.RoleType(fl.Field().String())
 	switch role {
-	case db.RoleTypeAdmin, db.RoleTypeEmployee, db.RoleTypeParent, db.RoleTypeSuperadmin:
+	case db.RoleTypeAdmin, db.RoleTypeEmployee, db.RoleTypeParent, db.RoleTypeSuperadmin, db.RoleTypeSantri:
 		return true
 	default:
 		return false

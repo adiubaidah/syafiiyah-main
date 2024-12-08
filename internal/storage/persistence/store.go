@@ -12,6 +12,7 @@ type Store interface {
 	ListSantri(ctx context.Context, arg ListSantriParams) ([]ListSantriRow, error)
 	ListUsers(ctx context.Context, arg ListUserParams) ([]ListUserRow, error)
 	ListParents(ctx context.Context, arg ListParentParams) ([]ListParentRow, error)
+	ListEmployees(ctx context.Context, arg ListEmployeesParams) ([]ListEmployeesRow, error)
 }
 
 type SQLStore struct {
@@ -26,7 +27,7 @@ func NewStore(connPool *pgxpool.Pool) Store {
 	}
 }
 
-func (q *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (q *SQLStore) ExecTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := q.connPool.Begin(ctx)
 	if err != nil {
 		return err

@@ -12,10 +12,10 @@ import (
 )
 
 type CreateDeviceModesParams struct {
-	Mode                 interface{} `db:"mode"`
-	InputTopic           string      `db:"input_topic"`
-	AcknowledgementTopic string      `db:"acknowledgement_topic"`
-	DeviceID             int32       `db:"device_id"`
+	Mode                 DeviceModeType `db:"mode"`
+	InputTopic           string         `db:"input_topic"`
+	AcknowledgementTopic string         `db:"acknowledgement_topic"`
+	DeviceID             int32          `db:"device_id"`
 }
 
 const deleteDeviceModeByDeviceId = `-- name: DeleteDeviceModeByDeviceId :exec

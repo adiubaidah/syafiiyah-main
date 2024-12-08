@@ -11,6 +11,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countEmployees = `-- name: CountEmployees :one
+
+SELECT
+    COUNT(*)
+FROM
+    employee
+    LEFT JOIN "user" ON employee.user_id = "user".id
+    LEFT JOIN employee_occupation ON employee.occupation_id = employee_occupation.id
+WHERE
+    (
+        $1 IS NULL
+        OR employee.name ILIKE '%%' || $1 || '%%'
+        OR employee.nip ILIKE '%%' || $1 || '%%'
+    )
+    AND (
+        $2 IS NULL
+        OR employee.occupation_id = $2
+    )
+    AND (
+        $3 IS NULL
+        OR (
+            $3 = TRUE
+            AND "user".id IS NOT NULL
+        )
+        OR (
+            $3 = FALSE
+            AND "user".id IS NULL
+        )
+    )
+`
+
+type CountEmployeesParams struct {
+	Q            interface{} `db:"q"`
+	OccupationID interface{} `db:"occupation_id"`
+	HasUser      interface{} `db:"has_user"`
+}
+
+func (q *Queries) CountEmployees(ctx context.Context, arg CountEmployeesParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countEmployees, arg.Q, arg.OccupationID, arg.HasUser)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createEmployee = `-- name: CreateEmployee :one
 INSERT INTO
     "employee" (
@@ -26,9 +70,9 @@ VALUES
         $1,
         $2,
         $3,
-        $4::text,
+        $4 :: text,
         $5,
-        $6::integer
+        $6 :: integer
     ) RETURNING id, nip, name, gender, photo, occupation_id, user_id
 `
 
@@ -67,8 +111,7 @@ const deleteEmployee = `-- name: DeleteEmployee :one
 DELETE FROM
     "employee"
 WHERE
-    "id" = $1
-RETURNING id, nip, name, gender, photo, occupation_id, user_id
+    "id" = $1 RETURNING id, nip, name, gender, photo, occupation_id, user_id
 `
 
 func (q *Queries) DeleteEmployee(ctx context.Context, id int32) (Employee, error) {
@@ -127,89 +170,28 @@ func (q *Queries) GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, er
 	return i, err
 }
 
-const listEmployeesAsc = `-- name: ListEmployeesAsc :many
+const getEmployeeByUserId = `-- name: GetEmployeeByUserId :one
 SELECT
-    employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.user_id,
-    "user"."id" AS "userId",
-    "user"."username" AS "userUsername"
+    employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.user_id
 FROM
     "employee"
-    LEFT JOIN "user" ON "employee"."user_id" = "user"."id"
 WHERE
-    (
-        $1::text IS NULL
-        OR "name" ILIKE '%' || $1 || '%'
-    )
-    AND (
-        $2 :: smallint IS NULL
-        OR (
-            $2 = 1
-            AND "user_id" IS NOT NULL
-        )
-        OR (
-            $2 = 0
-            AND "user_id" IS NULL
-        )
-        OR ($2 = -1)
-    )
-ORDER BY
-    "name" ASC
-LIMIT
-    $4 OFFSET $3
+    "user_id" = $1
 `
 
-type ListEmployeesAscParams struct {
-	Q            pgtype.Text `db:"q"`
-	HasUser      int16       `db:"has_user"`
-	OffsetNumber int32       `db:"offset_number"`
-	LimitNumber  int32       `db:"limit_number"`
-}
-
-type ListEmployeesAscRow struct {
-	ID           int32       `db:"id"`
-	Nip          pgtype.Text `db:"nip"`
-	Name         string      `db:"name"`
-	Gender       GenderType  `db:"gender"`
-	Photo        pgtype.Text `db:"photo"`
-	OccupationID int32       `db:"occupation_id"`
-	UserID       pgtype.Int4 `db:"user_id"`
-	UserId       pgtype.Int4 `db:"userId"`
-	UserUsername pgtype.Text `db:"userUsername"`
-}
-
-func (q *Queries) ListEmployeesAsc(ctx context.Context, arg ListEmployeesAscParams) ([]ListEmployeesAscRow, error) {
-	rows, err := q.db.Query(ctx, listEmployeesAsc,
-		arg.Q,
-		arg.HasUser,
-		arg.OffsetNumber,
-		arg.LimitNumber,
+func (q *Queries) GetEmployeeByUserId(ctx context.Context, userID pgtype.Int4) (Employee, error) {
+	row := q.db.QueryRow(ctx, getEmployeeByUserId, userID)
+	var i Employee
+	err := row.Scan(
+		&i.ID,
+		&i.Nip,
+		&i.Name,
+		&i.Gender,
+		&i.Photo,
+		&i.OccupationID,
+		&i.UserID,
 	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListEmployeesAscRow{}
-	for rows.Next() {
-		var i ListEmployeesAscRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Nip,
-			&i.Name,
-			&i.Gender,
-			&i.Photo,
-			&i.OccupationID,
-			&i.UserID,
-			&i.UserId,
-			&i.UserUsername,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+	return i, err
 }
 
 const updateEmployee = `-- name: UpdateEmployee :one
@@ -218,7 +200,7 @@ UPDATE
 SET
     "nip" = $1,
     "name" = COALESCE($2, name),
-    "gender" = COALESCE($3::gender_type, gender),
+    "gender" = COALESCE($3 :: gender_type, gender),
     "photo" = $4,
     "occupation_id" = COALESCE($5, occupation_id),
     "user_id" = $6

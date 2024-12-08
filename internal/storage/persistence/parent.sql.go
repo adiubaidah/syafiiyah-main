@@ -155,6 +155,30 @@ func (q *Queries) GetParent(ctx context.Context, id int32) (GetParentRow, error)
 	return i, err
 }
 
+const getParentByUserId = `-- name: GetParentByUserId :one
+SELECT
+    parent.id, parent.name, parent.address, parent.gender, parent.whatsapp_number, parent.photo, parent.user_id
+FROM
+    "parent"
+WHERE
+    "user_id" = $1
+`
+
+func (q *Queries) GetParentByUserId(ctx context.Context, userID pgtype.Int4) (Parent, error) {
+	row := q.db.QueryRow(ctx, getParentByUserId, userID)
+	var i Parent
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Address,
+		&i.Gender,
+		&i.WhatsappNumber,
+		&i.Photo,
+		&i.UserID,
+	)
+	return i, err
+}
+
 const updateParent = `-- name: UpdateParent :one
 UPDATE
     "parent"

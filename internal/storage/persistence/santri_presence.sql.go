@@ -11,6 +11,62 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countSantriPresences = `-- name: CountSantriPresences :one
+SELECT
+    COUNT(*)
+FROM
+    "santri_presence"
+    INNER JOIN "santri" ON "santri_presence"."santri_id" = "santri"."id"
+WHERE
+    (
+        $1 :: integer IS NULL
+        OR "santri_id" = $1 :: integer
+    )
+    AND (
+        $2 :: text IS NULL
+        OR "santri"."name" ILIKE '%' || $2 || '%'
+    )
+    AND (
+        $3 :: presence_type IS NULL
+        OR "type" = $3 :: presence_type
+    )
+    AND (
+        $4 :: integer IS NULL
+        OR "schedule_id" = $4 :: integer
+    )
+    AND (
+        $5 :: date IS NULL
+        OR DATE("created_at") >= $5 :: date
+    )
+    AND (
+        $6 :: date IS NULL
+        OR DATE("created_at") <= $6 :: date
+    )
+`
+
+type CountSantriPresencesParams struct {
+	SantriID   pgtype.Int4      `db:"santri_id"`
+	Q          pgtype.Text      `db:"q"`
+	Type       NullPresenceType `db:"type"`
+	ScheduleID pgtype.Int4      `db:"schedule_id"`
+	FromDate   pgtype.Date      `db:"from_date"`
+	ToDate     pgtype.Date      `db:"to_date"`
+}
+
+func (q *Queries) CountSantriPresences(ctx context.Context, arg CountSantriPresencesParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSantriPresences,
+		arg.SantriID,
+		arg.Q,
+		arg.Type,
+		arg.ScheduleID,
+		arg.FromDate,
+		arg.ToDate,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createSantriPresence = `-- name: CreateSantriPresence :one
 INSERT INTO
     "santri_presence" (
@@ -31,7 +87,7 @@ VALUES
         $5,
         $6 :: presence_created_by_type,
         $7
-    ) RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
+    ) RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, created_date
 `
 
 type CreateSantriPresenceParams struct {
@@ -65,8 +121,20 @@ func (q *Queries) CreateSantriPresence(ctx context.Context, arg CreateSantriPres
 		&i.CreatedBy,
 		&i.Notes,
 		&i.SantriPermissionID,
+		&i.CreatedDate,
 	)
 	return i, err
+}
+
+type CreateSantriPresencesParams struct {
+	ScheduleID         int32                 `db:"schedule_id"`
+	ScheduleName       string                `db:"schedule_name"`
+	Type               PresenceType          `db:"type"`
+	SantriID           int32                 `db:"santri_id"`
+	Notes              pgtype.Text           `db:"notes"`
+	CreatedAt          pgtype.Timestamptz    `db:"created_at"`
+	CreatedBy          PresenceCreatedByType `db:"created_by"`
+	SantriPermissionID pgtype.Int4           `db:"santri_permission_id"`
 }
 
 const deleteSantriPresence = `-- name: DeleteSantriPresence :one
@@ -74,10 +142,10 @@ DELETE FROM
     "santri_presence"
 WHERE
     "id" = $1
-RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
+RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, created_date
 `
 
-func (q *Queries) DeleteSantriPresence(ctx context.Context, id pgtype.Int4) (SantriPresence, error) {
+func (q *Queries) DeleteSantriPresence(ctx context.Context, id int32) (SantriPresence, error) {
 	row := q.db.QueryRow(ctx, deleteSantriPresence, id)
 	var i SantriPresence
 	err := row.Scan(
@@ -90,13 +158,63 @@ func (q *Queries) DeleteSantriPresence(ctx context.Context, id pgtype.Int4) (San
 		&i.CreatedBy,
 		&i.Notes,
 		&i.SantriPermissionID,
+		&i.CreatedDate,
 	)
 	return i, err
 }
 
+const listMissingSantriPresences = `-- name: ListMissingSantriPresences :many
+SELECT 
+    "santri"."id", "santri"."name"
+FROM
+    "santri"
+WHERE
+    NOT EXISTS (
+        SELECT
+            1
+        FROM
+            "santri_presence"
+        WHERE
+            "santri_presence"."santri_id" = "santri"."id"
+            AND DATE("santri_presence"."created_at") = $1::date
+            AND "santri_presence"."schedule_id" = $2::integer
+    )
+`
+
+type ListMissingSantriPresencesParams struct {
+	Date       pgtype.Date `db:"date"`
+	ScheduleID pgtype.Int4 `db:"schedule_id"`
+}
+
+type ListMissingSantriPresencesRow struct {
+	ID   int32  `db:"id"`
+	Name string `db:"name"`
+}
+
+func (q *Queries) ListMissingSantriPresences(ctx context.Context, arg ListMissingSantriPresencesParams) ([]ListMissingSantriPresencesRow, error) {
+	rows, err := q.db.Query(ctx, listMissingSantriPresences, arg.Date, arg.ScheduleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListMissingSantriPresencesRow{}
+	for rows.Next() {
+		var i ListMissingSantriPresencesRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSantriPresences = `-- name: ListSantriPresences :many
 SELECT
-    santri_presence.id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, santri.id, nis, name, gender, generation, is_active, photo, occupation_id, parent_id
+    santri_presence.id, santri_presence.schedule_id, santri_presence.schedule_name, santri_presence.type, santri_presence.santri_id, santri_presence.created_at, santri_presence.created_by, santri_presence.notes, santri_presence.santri_permission_id, santri_presence.created_date,
+    "santri"."name" AS "santri_name"
 FROM
     "santri_presence"
     INNER JOIN "santri" ON "santri_presence"."santri_id" = "santri"."id"
@@ -118,12 +236,12 @@ WHERE
         OR "schedule_id" = $4 :: integer
     )
     AND (
-        $5 :: timestamp IS NULL
-        OR "created_at" >= $5 :: timestamp
+        $5 :: date IS NULL
+        OR DATE("created_at") >= $5 :: date
     )
     AND (
-        $6 :: timestamp IS NULL
-        OR "created_at" <= $6 :: timestamp
+        $6 :: date IS NULL
+        OR DATE("created_at") <= $6 :: date
     )
 ORDER BY
     "santri_presence"."id" DESC
@@ -136,14 +254,14 @@ type ListSantriPresencesParams struct {
 	Q            pgtype.Text      `db:"q"`
 	Type         NullPresenceType `db:"type"`
 	ScheduleID   pgtype.Int4      `db:"schedule_id"`
-	FromDate     pgtype.Timestamp `db:"from_date"`
-	ToDate       pgtype.Timestamp `db:"to_date"`
+	FromDate     pgtype.Date      `db:"from_date"`
+	ToDate       pgtype.Date      `db:"to_date"`
 	OffsetNumber int32            `db:"offset_number"`
 	LimitNumber  int32            `db:"limit_number"`
 }
 
 type ListSantriPresencesRow struct {
-	ID                 pgtype.Int4           `db:"id"`
+	ID                 int32                 `db:"id"`
 	ScheduleID         int32                 `db:"schedule_id"`
 	ScheduleName       string                `db:"schedule_name"`
 	Type               PresenceType          `db:"type"`
@@ -152,15 +270,8 @@ type ListSantriPresencesRow struct {
 	CreatedBy          PresenceCreatedByType `db:"created_by"`
 	Notes              pgtype.Text           `db:"notes"`
 	SantriPermissionID pgtype.Int4           `db:"santri_permission_id"`
-	ID_2               int32                 `db:"id_2"`
-	Nis                pgtype.Text           `db:"nis"`
-	Name               string                `db:"name"`
-	Gender             GenderType            `db:"gender"`
-	Generation         int32                 `db:"generation"`
-	IsActive           pgtype.Bool           `db:"is_active"`
-	Photo              pgtype.Text           `db:"photo"`
-	OccupationID       pgtype.Int4           `db:"occupation_id"`
-	ParentID           pgtype.Int4           `db:"parent_id"`
+	CreatedDate        pgtype.Date           `db:"created_date"`
+	SantriName         string                `db:"santri_name"`
 }
 
 func (q *Queries) ListSantriPresences(ctx context.Context, arg ListSantriPresencesParams) ([]ListSantriPresencesRow, error) {
@@ -191,15 +302,8 @@ func (q *Queries) ListSantriPresences(ctx context.Context, arg ListSantriPresenc
 			&i.CreatedBy,
 			&i.Notes,
 			&i.SantriPermissionID,
-			&i.ID_2,
-			&i.Nis,
-			&i.Name,
-			&i.Gender,
-			&i.Generation,
-			&i.IsActive,
-			&i.Photo,
-			&i.OccupationID,
-			&i.ParentID,
+			&i.CreatedDate,
+			&i.SantriName,
 		); err != nil {
 			return nil, err
 		}
@@ -223,7 +327,7 @@ SET
     "santri_permission_id" = $6
 WHERE
     "id" = $7
-    RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id
+RETURNING id, schedule_id, schedule_name, type, santri_id, created_at, created_by, notes, santri_permission_id, created_date
 `
 
 type UpdateSantriPresenceParams struct {
@@ -233,7 +337,7 @@ type UpdateSantriPresenceParams struct {
 	SantriID           pgtype.Int4      `db:"santri_id"`
 	Notes              pgtype.Text      `db:"notes"`
 	SantriPermissionID pgtype.Int4      `db:"santri_permission_id"`
-	ID                 pgtype.Int4      `db:"id"`
+	ID                 int32            `db:"id"`
 }
 
 func (q *Queries) UpdateSantriPresence(ctx context.Context, arg UpdateSantriPresenceParams) (SantriPresence, error) {
@@ -257,6 +361,7 @@ func (q *Queries) UpdateSantriPresence(ctx context.Context, arg UpdateSantriPres
 		&i.CreatedBy,
 		&i.Notes,
 		&i.SantriPermissionID,
+		&i.CreatedDate,
 	)
 	return i, err
 }

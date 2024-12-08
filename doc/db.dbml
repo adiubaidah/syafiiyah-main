@@ -11,6 +11,7 @@ enum role_type {
   "admin"
   "employee"
   "parent"
+  "santri"
 }
 
 Table user {
@@ -88,13 +89,13 @@ Table parent {
 }
 Ref: user.id - parent.user_id [delete: set null]
 
-Table rfid {
+Table smart_card {
   id int [primary key, increment]
-  uid char(12) [unique, not null]
+  uid varchar(20) [unique,not null]
   created_at timestamptz [not null, default: 'now()']
   is_active boolean [default:false, not null]
-  santri_id int [null,ref: - santri.id, note: "Rfid bisa milik santri"]
-  employee_id int [null, ref: - employee.id, note : "Rfid bisa milik employee"]
+  santri_id int [null,ref: - santri.id, note: "Smart Card bisa milik santri"]
+  employee_id int [null, ref: - employee.id, note : "Smart Card bisa milik employee"]
 }
 
 enum presence_type {
@@ -112,7 +113,7 @@ enum presence_created_by_type {
 }
 
 Table santri_presence {
-  id int [increment]
+  id int [primary key,increment]
   schedule_id int [not null, note: "Karena bisa saja activitynya dihapus"]
   schedule_name varchar(100) [not null, note: "menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history"]
   type presence_type [not null]

@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -69,6 +70,25 @@ func TestListSantriSchedule(t *testing.T) {
 		require.NotEmpty(t, santriSchedule)
 		require.Equal(t, santriSchedules[len(santriSchedules)-1].ID, santriSchedule.ID)
 	})
+}
+
+func TestGetSantriSchedule(t *testing.T) {
+	clearSantriScheduleTable(t)
+	santriSchedule := createRandomSantriSchedule(t)
+	fmt.Println(util.ConvertToTime(santriSchedule.StartTime))
+
+	foundSantriSchedule, err := testStore.GetSantriSchedule(context.Background(), pgtype.Time{
+		Microseconds: santriSchedule.StartTime.Microseconds,
+		Valid:        true,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, foundSantriSchedule)
+
+	require.Equal(t, santriSchedule.ID, foundSantriSchedule.ID)
+	require.Equal(t, santriSchedule.Name, foundSantriSchedule.Name)
+	require.Equal(t, santriSchedule.Description.String, foundSantriSchedule.Description.String)
+	require.GreaterOrEqual(t, santriSchedule.StartPresence.Microseconds, foundSantriSchedule.StartPresence.Microseconds)
+	require.LessOrEqual(t, santriSchedule.StartPresence.Microseconds, foundSantriSchedule.FinishTime.Microseconds)
 }
 
 func TestUpdateSantriSchedule(t *testing.T) {

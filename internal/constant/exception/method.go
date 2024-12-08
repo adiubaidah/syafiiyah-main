@@ -20,8 +20,8 @@ func NewParseTimeError(field string, err error) *AppError {
 	return Wrap(err, http.StatusBadRequest, ErrCodeParseTime, fmt.Sprintf("Invalid time format for %s", field))
 }
 
-func NewUniqueViolationError(constraint string, err error) *AppError {
-	return Wrap(err, http.StatusConflict, ErrCodeUniqueViolation, fmt.Sprintf("Duplicate entry for constraint: %s", constraint))
+func NewUniqueViolationError(message string, err error) *AppError {
+	return Wrap(err, http.StatusConflict, ErrCodeUniqueViolation, message)
 }
 
 func NewDatabaseError(operation string, err error) *AppError {

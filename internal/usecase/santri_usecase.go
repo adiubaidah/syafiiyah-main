@@ -12,12 +12,12 @@ import (
 )
 
 type SantriUseCase interface {
-	CreateSantri(ctx context.Context, request *model.CreateSantriRequest) (model.SantriResponse, error)
-	ListSantri(ctx context.Context, request *model.ListSantriRequest) ([]model.SantriCompleteResponse, error)
-	CountSantri(ctx context.Context, request *model.ListSantriRequest) (int32, error)
-	GetSantri(ctx context.Context, santriId int32) (model.SantriCompleteResponse, error)
-	UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId int32) (model.SantriResponse, error)
-	DeleteSantri(ctx context.Context, santriId int32) (model.SantriResponse, error)
+	CreateSantri(ctx context.Context, request *model.CreateSantriRequest) (*model.SantriResponse, error)
+	ListSantri(ctx context.Context, request *model.ListSantriRequest) (*[]model.SantriCompleteResponse, error)
+	CountSantri(ctx context.Context, request *model.ListSantriRequest) (int64, error)
+	GetSantri(ctx context.Context, santriId int32) (*model.SantriCompleteResponse, error)
+	UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId int32) (*model.SantriResponse, error)
+	DeleteSantri(ctx context.Context, santriId int32) (*model.SantriResponse, error)
 }
 
 type santriService struct {
@@ -28,10 +28,10 @@ func NewSantriUseCase(store db.Store) SantriUseCase {
 	return &santriService{store: store}
 }
 
-func (c *santriService) CreateSantri(ctx context.Context, request *model.CreateSantriRequest) (model.SantriResponse, error) {
+func (c *santriService) CreateSantri(ctx context.Context, request *model.CreateSantriRequest) (*model.SantriResponse, error) {
 	isActive, err := strconv.ParseBool(request.IsActive)
 	if err != nil {
-		return model.SantriResponse{}, err
+		return nil, err
 	}
 	createdSantri, err := c.store.CreateSantri(ctx, db.CreateSantriParams{
 		Nis:          pgtype.Text{String: request.Nis, Valid: true},
@@ -44,10 +44,10 @@ func (c *santriService) CreateSantri(ctx context.Context, request *model.CreateS
 		Gender:       request.Gender,
 	})
 	if err != nil {
-		return model.SantriResponse{}, err
+		return nil, err
 	}
 
-	return model.SantriResponse{
+	return &model.SantriResponse{
 		ID: createdSantri.ID,
 
 		Nis:          createdSantri.Nis.String,
@@ -61,7 +61,7 @@ func (c *santriService) CreateSantri(ctx context.Context, request *model.CreateS
 	}, nil
 }
 
-func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantriRequest) ([]model.SantriCompleteResponse, error) {
+func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantriRequest) (*[]model.SantriCompleteResponse, error) {
 	var result []model.SantriCompleteResponse
 	offset := (request.Page - 1) * request.Limit
 	if offset < 0 {
@@ -105,10 +105,10 @@ func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantr
 		})
 	}
 
-	return result, nil
+	return &result, nil
 }
 
-func (c *santriService) CountSantri(ctx context.Context, request *model.ListSantriRequest) (int32, error) {
+func (c *santriService) CountSantri(ctx context.Context, request *model.ListSantriRequest) (int64, error) {
 
 	arg := db.CountSantriParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
@@ -121,15 +121,18 @@ func (c *santriService) CountSantri(ctx context.Context, request *model.ListSant
 	if err != nil {
 		return 0, err
 	}
-	return int32(count), err
+	return count, nil
 }
 
-func (c *santriService) GetSantri(ctx context.Context, santriId int32) (model.SantriCompleteResponse, error) {
+func (c *santriService) GetSantri(ctx context.Context, santriId int32) (*model.SantriCompleteResponse, error) {
 	santri, err := c.store.GetSantri(ctx, santriId)
 	if err != nil {
-		return model.SantriCompleteResponse{}, err
+		if errors.Is(err, exception.ErrNotFound) {
+			return nil, exception.NewNotFoundError("Santri not found")
+		}
+		return nil, err
 	}
-	return model.SantriCompleteResponse{
+	return &model.SantriCompleteResponse{
 		ID:           santri.ID,
 		Nis:          santri.Nis.String,
 		Name:         santri.Name,
@@ -150,10 +153,10 @@ func (c *santriService) GetSantri(ctx context.Context, santriId int32) (model.Sa
 	}, nil
 }
 
-func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId int32) (model.SantriResponse, error) {
+func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateSantriRequest, santriId int32) (*model.SantriResponse, error) {
 	isActive, err := strconv.ParseBool(request.IsActive)
 	if err != nil {
-		return model.SantriResponse{}, err
+		return nil, err
 	}
 	createdSantri, err := c.store.UpdateSantri(ctx, db.UpdateSantriParams{
 		ID:           santriId,
@@ -168,12 +171,12 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 	})
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
-			return model.SantriResponse{}, exception.NewNotFoundError("Santri not found")
+			return nil, exception.NewNotFoundError("Santri not found")
 		}
-		return model.SantriResponse{}, err
+		return nil, err
 	}
 
-	return model.SantriResponse{
+	return &model.SantriResponse{
 		ID:           createdSantri.ID,
 		Nis:          createdSantri.Nis.String,
 		Name:         createdSantri.Name,
@@ -186,15 +189,15 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 	}, nil
 }
 
-func (c *santriService) DeleteSantri(ctx context.Context, santriId int32) (model.SantriResponse, error) {
+func (c *santriService) DeleteSantri(ctx context.Context, santriId int32) (*model.SantriResponse, error) {
 	santri, err := c.store.DeleteSantri(ctx, santriId)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
-			return model.SantriResponse{}, exception.NewNotFoundError("Santri not found")
+			return nil, exception.NewNotFoundError("Santri not found")
 		}
-		return model.SantriResponse{}, err
+		return nil, err
 	}
-	return model.SantriResponse{
+	return &model.SantriResponse{
 		ID:           santri.ID,
 		Nis:          santri.Nis.String,
 		Name:         santri.Name,

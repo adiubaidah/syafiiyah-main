@@ -11,6 +11,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CardOwner string
+
+const (
+	CardOwnerSantri   CardOwner = "santri"
+	CardOwnerEmployee CardOwner = "employee"
+	CardOwnerAll      CardOwner = "all"
+	CardOwnerNone     CardOwner = "none"
+)
+
+func (e *CardOwner) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CardOwner(s)
+	case string:
+		*e = CardOwner(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CardOwner: %T", src)
+	}
+	return nil
+}
+
+type NullCardOwner struct {
+	CardOwner CardOwner
+	Valid     bool // Valid is true if CardOwner is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCardOwner) Scan(value interface{}) error {
+	if value == nil {
+		ns.CardOwner, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CardOwner.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCardOwner) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CardOwner), nil
+}
+
 type DeviceModeType string
 
 const (
@@ -53,6 +97,48 @@ func (ns NullDeviceModeType) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.DeviceModeType), nil
+}
+
+type EmployeeOrderBy string
+
+const (
+	EmployeeOrderByAscName  EmployeeOrderBy = "asc:name"
+	EmployeeOrderByDescName EmployeeOrderBy = "desc:name"
+)
+
+func (e *EmployeeOrderBy) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = EmployeeOrderBy(s)
+	case string:
+		*e = EmployeeOrderBy(s)
+	default:
+		return fmt.Errorf("unsupported scan type for EmployeeOrderBy: %T", src)
+	}
+	return nil
+}
+
+type NullEmployeeOrderBy struct {
+	EmployeeOrderBy EmployeeOrderBy
+	Valid           bool // Valid is true if EmployeeOrderBy is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEmployeeOrderBy) Scan(value interface{}) error {
+	if value == nil {
+		ns.EmployeeOrderBy, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.EmployeeOrderBy.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEmployeeOrderBy) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.EmployeeOrderBy), nil
 }
 
 type GenderType string
@@ -234,6 +320,7 @@ const (
 	RoleTypeAdmin      RoleType = "admin"
 	RoleTypeEmployee   RoleType = "employee"
 	RoleTypeParent     RoleType = "parent"
+	RoleTypeSantri     RoleType = "santri"
 )
 
 func (e *RoleType) Scan(src interface{}) error {
@@ -496,17 +583,6 @@ type Parent struct {
 	UserID         pgtype.Int4 `db:"user_id"`
 }
 
-type Rfid struct {
-	ID        int32              `db:"id"`
-	Uid       string             `db:"uid"`
-	CreatedAt pgtype.Timestamptz `db:"created_at"`
-	IsActive  bool               `db:"is_active"`
-	// Rfid bisa milik santri
-	SantriID pgtype.Int4 `db:"santri_id"`
-	// Rfid bisa milik employee
-	EmployeeID pgtype.Int4 `db:"employee_id"`
-}
-
 type Santri struct {
 	ID     int32       `db:"id"`
 	Nis    pgtype.Text `db:"nis"`
@@ -537,7 +613,7 @@ type SantriPermission struct {
 }
 
 type SantriPresence struct {
-	ID pgtype.Int4 `db:"id"`
+	ID int32 `db:"id"`
 	// Karena bisa saja activitynya dihapus
 	ScheduleID int32 `db:"schedule_id"`
 	// menggunakan name, karena jika activity dihapus, atau diubah maka masih tetap ada presence nya, karena bersifat history
@@ -549,6 +625,7 @@ type SantriPresence struct {
 	Notes        pgtype.Text           `db:"notes"`
 	// Jika izin ditengah kegiatan maka akan diisi
 	SantriPermissionID pgtype.Int4 `db:"santri_permission_id"`
+	CreatedDate        pgtype.Date `db:"created_date"`
 }
 
 type SantriSchedule struct {
@@ -560,6 +637,17 @@ type SantriSchedule struct {
 	StartTime pgtype.Time `db:"start_time"`
 	// Waktu berakhirnya kegiatan
 	FinishTime pgtype.Time `db:"finish_time"`
+}
+
+type SmartCard struct {
+	ID        int32              `db:"id"`
+	Uid       string             `db:"uid"`
+	CreatedAt pgtype.Timestamptz `db:"created_at"`
+	IsActive  bool               `db:"is_active"`
+	// Smart Card bisa milik santri
+	SantriID pgtype.Int4 `db:"santri_id"`
+	// Smart Card bisa milik employee
+	EmployeeID pgtype.Int4 `db:"employee_id"`
 }
 
 type User struct {

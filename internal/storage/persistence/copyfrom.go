@@ -76,3 +76,42 @@ func (r iteratorForCreateHolidayDates) Err() error {
 func (q *Queries) CreateHolidayDates(ctx context.Context, arg []CreateHolidayDatesParams) (int64, error) {
 	return q.db.CopyFrom(ctx, []string{"holiday_date"}, []string{"date", "holiday_id"}, &iteratorForCreateHolidayDates{rows: arg})
 }
+
+// iteratorForCreateSantriPresences implements pgx.CopyFromSource.
+type iteratorForCreateSantriPresences struct {
+	rows                 []CreateSantriPresencesParams
+	skippedFirstNextCall bool
+}
+
+func (r *iteratorForCreateSantriPresences) Next() bool {
+	if len(r.rows) == 0 {
+		return false
+	}
+	if !r.skippedFirstNextCall {
+		r.skippedFirstNextCall = true
+		return true
+	}
+	r.rows = r.rows[1:]
+	return len(r.rows) > 0
+}
+
+func (r iteratorForCreateSantriPresences) Values() ([]interface{}, error) {
+	return []interface{}{
+		r.rows[0].ScheduleID,
+		r.rows[0].ScheduleName,
+		r.rows[0].Type,
+		r.rows[0].SantriID,
+		r.rows[0].Notes,
+		r.rows[0].CreatedAt,
+		r.rows[0].CreatedBy,
+		r.rows[0].SantriPermissionID,
+	}, nil
+}
+
+func (r iteratorForCreateSantriPresences) Err() error {
+	return nil
+}
+
+func (q *Queries) CreateSantriPresences(ctx context.Context, arg []CreateSantriPresencesParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"santri_presence"}, []string{"schedule_id", "schedule_name", "type", "santri_id", "notes", "created_at", "created_by", "santri_permission_id"}, &iteratorForCreateSantriPresences{rows: arg})
+}

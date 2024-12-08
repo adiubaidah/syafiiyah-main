@@ -73,14 +73,17 @@ func TestListEmployeeWithQ(t *testing.T) {
 	createRandomEmployee(t)
 
 	// Search for a specific parent name using `q`
-	arg := ListEmployeesAscParams{
+	arg := ListEmployeesParams{
 		Q:            pgtype.Text{String: employee1.Name[:3], Valid: true},
+		HasUser:      pgtype.Bool{Valid: false},
 		LimitNumber:  10,
 		OffsetNumber: 0,
+		OrderBy:      NullEmployeeOrderBy{Valid: false},
+		OccupationID: pgtype.Int4{Valid: false},
 	}
 
 	// Perform List
-	employees, err := testStore.ListEmployeesAsc(context.Background(), arg)
+	employees, err := testStore.ListEmployees(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, employees)
 
@@ -100,31 +103,31 @@ func TestListEmployeeWithHasUser(t *testing.T) {
 	_, user := createRandomEmployeeWithUser(t)
 	createRandomEmployee(t)
 
-	t.Run("List with `has_user = 1` (only parents with user_id)", func(t *testing.T) {
-		arg := ListEmployeesAscParams{
-			HasUser:      1,
+	t.Run("List with `has_user = 1` (only employees with user_id)", func(t *testing.T) {
+		arg := ListEmployeesParams{
+			HasUser:      pgtype.Bool{Bool: true, Valid: true},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		employeessWithUser, err := testStore.ListEmployeesAsc(context.Background(), arg)
+		employeessWithUser, err := testStore.ListEmployees(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, employeessWithUser)
 
 		for _, employee := range employeessWithUser {
 			require.NotNil(t, employee.UserID, "Expected employee to have a user_id")
 			if employee.UserID.Int32 == user.ID {
-				require.Equal(t, user.Username.String, employee.UserUsername.String)
+				require.Equal(t, user.Username.String, employee.Username.String)
 			}
 		}
 	})
 
 	t.Run("List with `has_user = 0` (only parents without user_id)", func(t *testing.T) {
-		arg := ListEmployeesAscParams{
-			HasUser:      0,
+		arg := ListEmployeesParams{
+			HasUser:      pgtype.Bool{Bool: false, Valid: true},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		employeesWithoutUser, err := testStore.ListEmployeesAsc(context.Background(), arg)
+		employeesWithoutUser, err := testStore.ListEmployees(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, employeesWithoutUser)
 
@@ -134,12 +137,12 @@ func TestListEmployeeWithHasUser(t *testing.T) {
 	})
 
 	t.Run("List with `has_user = -1` (all parents)", func(t *testing.T) {
-		arg := ListEmployeesAscParams{
-			HasUser:      -1,
+		arg := ListEmployeesParams{
+			HasUser:      pgtype.Bool{Valid: false},
 			LimitNumber:  10,
 			OffsetNumber: 0,
 		}
-		allEmployees, err := testStore.ListEmployeesAsc(context.Background(), arg)
+		allEmployees, err := testStore.ListEmployees(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, allEmployees)
 
@@ -167,12 +170,12 @@ func TestListEmployeePagination(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		arg      ListEmployeesAscParams
+		arg      ListEmployeesParams
 		expected int
 	}{
 		{
 			name: "Limit 5",
-			arg: ListEmployeesAscParams{
+			arg: ListEmployeesParams{
 				LimitNumber:  5,
 				OffsetNumber: 0,
 			},
@@ -180,7 +183,7 @@ func TestListEmployeePagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 5",
-			arg: ListEmployeesAscParams{
+			arg: ListEmployeesParams{
 				LimitNumber:  5,
 				OffsetNumber: 5,
 			},
@@ -188,7 +191,7 @@ func TestListEmployeePagination(t *testing.T) {
 		},
 		{
 			name: "Limit 5 Offset 10",
-			arg: ListEmployeesAscParams{
+			arg: ListEmployeesParams{
 				LimitNumber:  5,
 				OffsetNumber: 10,
 			},
@@ -198,11 +201,27 @@ func TestListEmployeePagination(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			employees, err := testStore.ListEmployeesAsc(context.Background(), tt.arg)
+			employees, err := testStore.ListEmployees(context.Background(), tt.arg)
 			require.NoError(t, err)
 			require.Len(t, employees, tt.expected)
 		})
 	}
+}
+
+func TestGetEmployee(t *testing.T) {
+	employee1 := createRandomEmployee(t)
+
+	employee2, err := testStore.GetEmployee(context.Background(), employee1.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, employee2)
+
+	require.Equal(t, employee1.ID, employee2.ID)
+	require.Equal(t, employee1.Nip.String, employee2.Nip.String)
+	require.Equal(t, employee1.Name, employee2.Name)
+	require.Equal(t, employee1.Gender, employee2.Gender)
+	require.Equal(t, employee1.Photo.String, employee2.Photo.String)
+	require.Equal(t, employee1.OccupationID, employee2.OccupationID)
+	require.Equal(t, employee1.UserID, employee2.UserID)
 }
 
 func TestUpdateEmployee(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -11,8 +12,7 @@ import (
 // Payload defines the structure for JWT payload
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	Role      string    `json:"role"`
+	User      *model.User
 	IssuedAt  time.Time `json:"iat"`
 	ExpiredAt time.Time `json:"exp"`
 	Audience  string    `json:"aud"`
@@ -22,7 +22,7 @@ type Payload struct {
 }
 
 // NewPayload creates a new payload
-func NewPayload(username, role string, duration time.Duration) (*Payload, error) {
+func NewPayload(user *model.User, duration time.Duration) (*Payload, error) {
 	now := time.Now()
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
@@ -31,8 +31,7 @@ func NewPayload(username, role string, duration time.Duration) (*Payload, error)
 
 	payload := &Payload{
 		ID:        tokenID,
-		Username:  username,
-		Role:      role,
+		User:      user,
 		IssuedAt:  now,
 		ExpiredAt: now.Add(duration),
 		Audience:  "post-service",

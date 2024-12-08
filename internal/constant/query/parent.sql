@@ -59,6 +59,14 @@ FROM
 WHERE
     "parent"."id" = @id;
 
+-- name: GetParentByUserId :one
+SELECT
+    "parent".*
+FROM
+    "parent"
+WHERE
+    "user_id" = @user_id;
+
 -- name: DeleteParent :one
 DELETE FROM
     "parent"

@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/random"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -47,6 +48,41 @@ func TestCreateSantriPresence(t *testing.T) {
 	clearSantriPresenceTable(t)
 	clearSantriTable(t)
 	createRandomSantriPresence(t)
+}
+
+func TestCreateSantriPresenceBulk(t *testing.T) {
+	clearSantriPermissionTable(t)
+	clearSantriPresenceTable(t)
+	clearSantriTable(t)
+
+	schedules := make([]SantriSchedule, 0)
+
+	for i := 0; i < 5; i++ {
+		schedule := createRandomSantriSchedule(t)
+		schedules = append(schedules, schedule)
+	}
+
+	santri := createRandomSantri(t)
+	args := make([]CreateSantriPresencesParams, 0)
+
+	for i := 0; i < 5; i++ {
+
+		arg := CreateSantriPresencesParams{
+			ScheduleID:   schedules[i].ID,
+			ScheduleName: schedules[i].Name,
+			Type:         PresenceTypeAlpha,
+			SantriID:     santri.ID,
+			Notes:        pgtype.Text{Valid: false},
+			CreatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
+			CreatedBy:    PresenceCreatedByTypeSystem,
+		}
+
+		args = append(args, arg)
+	}
+
+	affected, err := testStore.CreateSantriPresences(context.Background(), args)
+	require.NoError(t, err)
+	require.Equal(t, int64(5), affected)
 }
 
 func TestListSantriPresence(t *testing.T) {
@@ -132,6 +168,26 @@ func TestListSantriPresence(t *testing.T) {
 		}
 	})
 
+}
+
+func TestListMissingSantriPresence(t *testing.T) {
+	clearSantriScheduleTable(t)
+	clearSantriPresenceTable(t)
+	clearSantriTable(t)
+
+	santri := createRandomSantri(t)
+	schedule := createRandomSantriSchedule(t)
+	scheduleTime := time.Unix(0, schedule.StartPresence.Microseconds*int64(time.Microsecond))
+
+	listAbsent, err := testStore.ListMissingSantriPresences(context.Background(), ListMissingSantriPresencesParams{
+		Date: pgtype.Date{Time: scheduleTime, Valid: true},
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, listAbsent)
+
+	require.Equal(t, listAbsent[0].ID, santri.ID)
+	require.Equal(t, listAbsent[0].Name, santri.Name)
 }
 
 func TestUpdateSantriPresence(t *testing.T) {

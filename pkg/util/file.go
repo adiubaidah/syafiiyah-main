@@ -1,6 +1,8 @@
 package util
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -51,4 +53,9 @@ func DeleteFile(filePath string) error {
 		return fmt.Errorf("failed to delete file")
 	}
 	return nil
+}
+
+func CalculateSHA256(data []byte) string {
+	hash := sha256.Sum256(data)
+	return base64.StdEncoding.EncodeToString(hash[:])
 }

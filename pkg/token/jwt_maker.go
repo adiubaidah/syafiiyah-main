@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -20,8 +21,8 @@ func NewJWTMaker(secretKey string) (Maker, error) {
 	return &JWTMaker{secretKey}, nil
 }
 
-func (maker *JWTMaker) CreateToken(username string, role string, duration time.Duration) (string, *Payload, error) {
-	payload, err := NewPayload(username, role, duration)
+func (maker *JWTMaker) CreateToken(user *model.User, duration time.Duration) (string, *Payload, error) {
+	payload, err := NewPayload(user, duration)
 	if err != nil {
 		return "", payload, err
 	}

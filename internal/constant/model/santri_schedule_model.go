@@ -16,9 +16,9 @@ type CreateSantriScheduleRequest struct {
 type UpdateSantriScheduleRequest struct {
 	Name          string `json:"name"`
 	Description   string `json:"description"`
-	StartPresence string `json:"start_presence" binding:"validTime"`
-	StartTime     string `json:"start_time" binding:"validTime"`
-	FinishTime    string `json:"finish_time" binding:"validTime"`
+	StartPresence string `json:"start_presence" binding:"omitempty,validTime"`
+	StartTime     string `json:"start_time" binding:"omitempty,validTime"`
+	FinishTime    string `json:"finish_time" binding:"omitempty,validTime"`
 }
 
 func IsValidTime(fl validator.FieldLevel) bool {
