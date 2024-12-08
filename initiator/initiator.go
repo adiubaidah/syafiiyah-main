@@ -104,7 +104,7 @@ func Init() {
 	holidayRouter := router.HolidayRouter(middle, holidayHandler)
 
 	parentUseCase := usecase.NewParentUseCase(store)
-	parentHandler := handler.NewParentHandler(&env, logger, parentUseCase, userUseCase)
+	parentHandler := handler.NewParentHandler(logger, &env, storageManager, parentUseCase, userUseCase)
 	parentRouter := router.ParentRouter(middle, parentHandler)
 
 	santriScheduleUseCase := usecase.NewSantriScheduleUseCase(store)

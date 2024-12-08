@@ -11,6 +11,7 @@ import (
 type EmployeeUseCase interface {
 	CreateEmployee(ctx context.Context, request *model.CreateEmployeeRequest) (*model.Employee, error)
 	ListEmployees(ctx context.Context, request *model.ListEmployeeRequest) (*[]model.EmployeeComplete, error)
+	GetEmployeeByUserID(ctx context.Context, userId int32) (*model.Employee, error)
 	CountEmployees(ctx context.Context, request *model.ListEmployeeRequest) (int64, error)
 	UpdateEmployee(ctx context.Context, request *model.UpdateEmployeeRequest, employeeId int32) (*model.Employee, error)
 	DeleteEmployee(ctx context.Context, employeeId int32) (*model.Employee, error)
@@ -83,6 +84,19 @@ func (s *employeeService) ListEmployees(ctx context.Context, request *model.List
 
 	return &result, nil
 
+}
+
+func (s *employeeService) GetEmployeeByUserID(ctx context.Context, userId int32) (*model.Employee, error) {
+	employee, err := s.store.GetEmployeeByUserId(ctx, pgtype.Int4{Int32: userId, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Employee{
+		ID:   employee.ID,
+		Name: employee.Name,
+		NIP:  employee.Nip.String,
+	}, nil
 }
 
 func (s *employeeService) CountEmployees(ctx context.Context, request *model.ListEmployeeRequest) (int64, error) {

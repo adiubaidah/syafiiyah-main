@@ -43,12 +43,15 @@ func (h *profileHandler) GetProfile(c *gin.Context) {
 		}
 		c.JSON(200, model.ResponseData[*model.ParentResponse]{Code: 200, Status: "success", Data: parent})
 	} else {
-		// parent, err := h.parentUseCase.GetParentByUserID(user.ID)
-		// if err != nil {
-		// 	c.JSON(500, gin.H{"error": err.Error()})
-		// 	return
-		// }
-		// c.JSON(200, parent)
-		// return
+		employee, err := h.employeeUseCase.GetEmployeeByUserID(c, user.ID)
+		if err != nil {
+			h.logger.Error(err)
+			if appErr, ok := err.(*exception.AppError); ok {
+				c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+				return
+			}
+			c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Internal server error"})
+		}
+		c.JSON(200, model.ResponseData[*model.Employee]{Code: 200, Status: "success", Data: employee})
 	}
 }

@@ -77,8 +77,6 @@ func (s *StorageManager) UploadFile(ctx context.Context, entity *multipart.FileH
 
 func (s *StorageManager) DeleteFile(ctx context.Context, fileName string) error {
 
-	//get object without url
-
 	stringObj := strings.Split(fileName, "/")[3]
 
 	deleteObjectInput := &s3.DeleteObjectInput{
