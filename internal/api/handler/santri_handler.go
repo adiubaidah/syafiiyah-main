@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"strconv"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
@@ -11,6 +11,7 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/rfid-syafiiyah/platform/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -27,13 +28,15 @@ type SantriHandler interface {
 type santriHandler struct {
 	config  *config.Config
 	logger  *logrus.Logger
+	storage *storage.StorageManager
 	usecase usecase.SantriUseCase
 }
 
-func NewSantriHandler(logger *logrus.Logger, config *config.Config, usecase usecase.SantriUseCase) SantriHandler {
+func NewSantriHandler(logger *logrus.Logger, config *config.Config, storage *storage.StorageManager, usecase usecase.SantriUseCase) SantriHandler {
 	return &santriHandler{
 		config:  config,
 		logger:  logger,
+		storage: storage,
 		usecase: usecase,
 	}
 }
@@ -59,14 +62,11 @@ func (h *santriHandler) CreateSantriHandler(c *gin.Context) {
 			return
 		}
 		fileName := fmt.Sprintf("%s%s", uuid.New().String(), util.GetFileExtension(photo))
-		photoPath := filepath.Join(config.PathPhoto, fileName)
-		if err := c.SaveUploadedFile(photo, photoPath); err != nil {
+		if santriRequest.Photo, err = h.storage.UploadFile(c, photo, fileName); err != nil {
 			h.logger.Error(err)
 			c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Failed to save photo"})
 			return
 		}
-
-		santriRequest.Photo = fileName
 	}
 	result, err := h.usecase.CreateSantri(c, &santriRequest)
 	if err != nil {
@@ -99,14 +99,6 @@ func (h *santriHandler) ListSantriHandler(c *gin.Context) {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
-	}
-
-	//format all image from filename to url
-	for i := range *result {
-		if (*result)[i].Photo == "" {
-			continue
-		}
-		(*result)[i].Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, (*result)[i].Photo)
 	}
 
 	count, err := h.usecase.CountSantri(c, &listSantriRequest)
@@ -148,7 +140,6 @@ func (h *santriHandler) GetSantriHandler(c *gin.Context) {
 		c.JSON(404, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	result.Photo = fmt.Sprintf("%s/photo/%s", h.config.ServerPublicUrl, result.Photo)
 	c.JSON(200, model.ResponseData[model.SantriCompleteResponse]{Code: 200, Status: "OK", Data: *result})
 }
 
@@ -187,16 +178,14 @@ func (h *santriHandler) UpdateSantriHandler(c *gin.Context) {
 			return
 		}
 		fileName := fmt.Sprintf("%s%s", uuid.New().String(), util.GetFileExtension(photo))
-		photoPath := filepath.Join(config.PathPhoto, fileName)
-		if err := c.SaveUploadedFile(photo, photoPath); err != nil {
+		if santriRequest.Photo, err = h.storage.UploadFile(c, photo, fileName); err != nil {
 			h.logger.Error(err)
 			c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Failed to save photo"})
 			return
 		}
-		santriRequest.Photo = fileName
 		//delete old photo
 		if oldSantri.Photo != "" {
-			util.DeleteFile(filepath.Join(config.PathPhoto, oldSantri.Photo))
+			h.storage.DeleteFile(context.Background(), oldSantri.Photo)
 		}
 	}
 	result, err := h.usecase.UpdateSantri(c, &santriRequest, santriId)
@@ -222,7 +211,7 @@ func (h *santriHandler) DeleteSantriHandler(c *gin.Context) {
 	}
 	santriId := int32(id)
 
-	deletedSantri, err := h.usecase.DeleteSantri(c, santriId)
+	result, err := h.usecase.DeleteSantri(c, santriId)
 	if err != nil {
 		h.logger.Error(err)
 		if appErr, ok := err.(*exception.AppError); ok {
@@ -234,9 +223,12 @@ func (h *santriHandler) DeleteSantriHandler(c *gin.Context) {
 		return
 	}
 
-	if deletedSantri.Photo != "" {
-		util.DeleteFile(filepath.Join(config.PathPhoto, deletedSantri.Photo))
+	if result.Photo != "" {
+		err = h.storage.DeleteFile(context.Background(), result.Photo)
+		if err != nil {
+			h.logger.Error(err)
+		}
 	}
 
-	c.JSON(200, model.ResponseData[model.SantriResponse]{Code: 200, Status: "OK", Data: *deletedSantri})
+	c.JSON(200, model.ResponseData[model.SantriResponse]{Code: 200, Status: "OK", Data: *result})
 }

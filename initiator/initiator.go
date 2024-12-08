@@ -18,6 +18,11 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/mqtt"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
+	"github.com/adiubaidah/rfid-syafiiyah/platform/storage"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,22 +33,36 @@ import (
 func Init() {
 
 	logger := logrus.New()
-	env, err := config.LoadConfig(".")
+	env, err := config.Load(".")
 	if err != nil {
 		logger.Fatalf("%s cannot load config", err.Error())
 	}
 
-	config, err := pgxpool.ParseConfig(env.DBSource)
+	awsConfig, err := awsCfg.LoadDefaultConfig(context.Background(), awsCfg.WithCredentialsProvider(awsCreds.StaticCredentialsProvider{
+		Value: aws.Credentials{
+			AccessKeyID:     env.AWSAccessKey,
+			SecretAccessKey: env.AWSSecretKey,
+		},
+	}), awsCfg.WithRegion(env.AWSRegion))
+
+	awsS3Client := s3.NewFromConfig(awsConfig)
+	storageManager := storage.NewStorageManager(awsS3Client, env.AWSBucketName, env.AWSRegion)
+
 	if err != nil {
-		logger.Fatalf("Unable to parse config: %v", err)
+		logger.Fatalf("Unable to parse awsConfig: %v", err)
 	}
 
-	config.MaxConns = 30
-	config.MinConns = 5
-	config.MaxConnIdleTime = time.Minute * 5
-	config.MaxConnLifetime = time.Hour
+	pgConfig, err := pgxpool.ParseConfig(env.DBSource)
+	if err != nil {
+		logger.Fatalf("Unable to parse pgConfig: %v", err)
+	}
 
-	connPool, err := pgxpool.NewWithConfig(context.Background(), config)
+	pgConfig.MaxConns = 30
+	pgConfig.MinConns = 5
+	pgConfig.MaxConnIdleTime = time.Minute * 5
+	pgConfig.MaxConnLifetime = time.Hour
+
+	connPool, err := pgxpool.NewWithConfig(context.Background(), pgConfig)
 	if err != nil {
 		logger.Fatalf("Unable to create connection pool: %v", err)
 	}
@@ -97,7 +116,7 @@ func Init() {
 	santriOccupationRouter := router.SantriOccupationRouter(middle, santriOccupationHandler)
 
 	santriUseCase := usecase.NewSantriUseCase(store)
-	santriHandler := handler.NewSantriHandler(logger, &env, santriUseCase)
+	santriHandler := handler.NewSantriHandler(logger, &env, storageManager, santriUseCase)
 	santriRouter := router.SantriRouter(middle, santriHandler)
 
 	santriPresenceUseCase := usecase.NewSantriPresenceUseCase(store)

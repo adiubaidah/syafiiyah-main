@@ -12,7 +12,7 @@ import (
 var redisClient *redis.Client
 
 func TestMain(m *testing.M) {
-	env, err := config.LoadConfig("../../..")
+	env, err := config.Load("../../..")
 	if err != nil {
 		log.Fatalf("Cannot load config: %v", err)
 	}
