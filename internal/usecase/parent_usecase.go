@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -21,15 +21,15 @@ type ParentUseCase interface {
 }
 
 type parentService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewParentUseCase(store db.Store) ParentUseCase {
+func NewParentUseCase(store repo.Store) ParentUseCase {
 	return &parentService{store: store}
 }
 
 func (c *parentService) CreateParent(ctx context.Context, request *model.CreateParentRequest) (*model.ParentResponse, error) {
-	arg := db.CreateParentParams{
+	arg := repo.CreateParentParams{
 		Name:           request.Name,
 		Address:        request.Address,
 		WhatsappNumber: pgtype.Text{String: request.WhatsappNumber, Valid: request.WhatsappNumber != ""},
@@ -54,12 +54,12 @@ func (c *parentService) CreateParent(ctx context.Context, request *model.CreateP
 }
 
 func (c *parentService) ListParents(ctx context.Context, request *model.ListParentRequest) (*[]model.ParentCompleteResponse, error) {
-	arg := db.ListParentParams{
+	arg := repo.ListParentParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasUser:      pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != 0},
 		LimitNumber:  request.Limit,
 		OffsetNumber: (request.Page - 1) * request.Limit,
-		OrderBy:      db.NullParentOrderBy{ParentOrderBy: db.ParentOrderBy(request.Order), Valid: request.Order != ""},
+		OrderBy:      repo.NullParentOrderBy{ParentOrderBy: repo.ParentOrderBy(request.Order), Valid: request.Order != ""},
 	}
 
 	parents, err := c.store.ListParents(ctx, arg)
@@ -88,7 +88,7 @@ func (c *parentService) ListParents(ctx context.Context, request *model.ListPare
 }
 
 func (c *parentService) CountParents(ctx context.Context, request *model.ListParentRequest) (int64, error) {
-	arg := db.CountParentsParams{
+	arg := repo.CountParentsParams{
 		Q:       pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasUser: pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != -1},
 	}
@@ -101,12 +101,12 @@ func (c *parentService) CountParents(ctx context.Context, request *model.ListPar
 }
 
 func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (*model.ParentResponse, error) {
-	arg := db.UpdateParentParams{
+	arg := repo.UpdateParentParams{
 		ID:             parentId,
 		Name:           pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Address:        pgtype.Text{String: request.Address, Valid: request.Address != ""},
 		WhatsappNumber: pgtype.Text{String: request.WhatsappNumber, Valid: request.WhatsappNumber != ""},
-		Gender:         db.NullGenderType{GenderType: request.Gender, Valid: true},
+		Gender:         repo.NullGenderType{GenderType: request.Gender, Valid: true},
 		Photo:          pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		UserID:         pgtype.Int4{Int32: request.UserID, Valid: request.UserID != 0},
 	}

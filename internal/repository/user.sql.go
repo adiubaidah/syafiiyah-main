@@ -25,7 +25,7 @@ WHERE
     )
     AND (
         $2 :: role_type  IS NULL
-        OR "role" = $2
+        OR "role" = $2 :: role_type
     )
     AND (
         $3 :: boolean IS NULL

@@ -5,7 +5,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/middleware"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func ParentRouter(middle middleware.Middleware, handler handler.ParentHandler) [
 			Handle: handler.CreateParentHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeAdmin, db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeAdmin, repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -27,7 +27,7 @@ func ParentRouter(middle middleware.Middleware, handler handler.ParentHandler) [
 			Handle: handler.ListParentHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeAdmin, db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeAdmin, repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -36,7 +36,7 @@ func ParentRouter(middle middleware.Middleware, handler handler.ParentHandler) [
 			Handle: handler.GetParentHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeAdmin, db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeAdmin, repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func ParentRouter(middle middleware.Middleware, handler handler.ParentHandler) [
 			Handle: handler.UpdateParentHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeAdmin, db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeAdmin, repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func ParentRouter(middle middleware.Middleware, handler handler.ParentHandler) [
 			Handle: handler.DeleteParentHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeAdmin, db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeAdmin, repo.RoleTypeSuperadmin),
 			},
 		},
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -18,17 +18,17 @@ type EmployeeUseCase interface {
 }
 
 type employeeService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewEmployeeUseCase(store db.Store) EmployeeUseCase {
+func NewEmployeeUseCase(store repo.Store) EmployeeUseCase {
 	return &employeeService{
 		store: store,
 	}
 }
 
 func (s *employeeService) CreateEmployee(ctx context.Context, request *model.CreateEmployeeRequest) (*model.Employee, error) {
-	result, err := s.store.CreateEmployee(ctx, db.CreateEmployeeParams{
+	result, err := s.store.CreateEmployee(ctx, repo.CreateEmployeeParams{
 		Nip:          pgtype.Text{String: request.NIP, Valid: request.NIP != ""},
 		Name:         request.Name,
 		Gender:       request.Gender,
@@ -53,13 +53,13 @@ func (s *employeeService) CreateEmployee(ctx context.Context, request *model.Cre
 }
 
 func (s *employeeService) ListEmployees(ctx context.Context, request *model.ListEmployeeRequest) (*[]model.EmployeeComplete, error) {
-	employees, err := s.store.ListEmployees(ctx, db.ListEmployeesParams{
+	employees, err := s.store.ListEmployees(ctx, repo.ListEmployeesParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		HasUser:      pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != 0},
 		LimitNumber:  request.Limit,
 		OffsetNumber: (request.Page - 1) * request.Limit,
-		OrderBy:      db.NullEmployeeOrderBy{EmployeeOrderBy: request.Order, Valid: request.Order != ""},
+		OrderBy:      repo.NullEmployeeOrderBy{EmployeeOrderBy: request.Order, Valid: request.Order != ""},
 	})
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (s *employeeService) GetEmployeeByUserID(ctx context.Context, userId int32)
 }
 
 func (s *employeeService) CountEmployees(ctx context.Context, request *model.ListEmployeeRequest) (int64, error) {
-	count, err := s.store.CountEmployees(ctx, db.CountEmployeesParams{
+	count, err := s.store.CountEmployees(ctx, repo.CountEmployeesParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		HasUser:      pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != 0},
@@ -113,11 +113,11 @@ func (s *employeeService) CountEmployees(ctx context.Context, request *model.Lis
 }
 
 func (s *employeeService) UpdateEmployee(ctx context.Context, request *model.UpdateEmployeeRequest, employeeId int32) (*model.Employee, error) {
-	result, err := s.store.UpdateEmployee(ctx, db.UpdateEmployeeParams{
+	result, err := s.store.UpdateEmployee(ctx, repo.UpdateEmployeeParams{
 		ID:           employeeId,
 		Nip:          pgtype.Text{String: request.NIP, Valid: true}, // Nip can be null
 		Name:         pgtype.Text{String: request.Name, Valid: request.Name != ""},
-		Gender:       db.NullGenderType{GenderType: request.Gender, Valid: true},
+		Gender:       repo.NullGenderType{GenderType: request.Gender, Valid: true},
 		Photo:        pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		UserID:       pgtype.Int4{Int32: request.UserID, Valid: true},

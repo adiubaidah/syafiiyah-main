@@ -1,10 +1,10 @@
 package model
 
-import db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+import repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 
 type CreateDeviceRequest struct {
-	Name  string              `json:"name" binding:"required,min=3,max=50"`
-	Modes []db.DeviceModeType `json:"modes" binding:"required"`
+	Name  string                `json:"name" binding:"required,min=3,max=50"`
+	Modes []repo.DeviceModeType `json:"modes" binding:"required"`
 }
 
 type UpdateDeviceRequest = CreateDeviceRequest
@@ -21,7 +21,7 @@ type DeviceWithModesResponse struct {
 }
 
 type DeviceMode struct {
-	Mode                db.DeviceModeType `json:"mode"`
-	InputTopic          string            `json:"input_topic"`
-	AcknowledgmentTopic string            `json:"acknowledgment_topic"`
+	Mode                repo.DeviceModeType `json:"mode"`
+	InputTopic          string              `json:"input_topic"`
+	AcknowledgmentTopic string              `json:"acknowledgment_topic"`
 }

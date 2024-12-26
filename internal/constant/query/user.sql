@@ -22,7 +22,7 @@ WHERE
     )
     AND (
         sqlc.narg(role) :: role_type  IS NULL
-        OR "role" = sqlc.narg(role)
+        OR "role" = sqlc.narg(role) :: role_type
     )
     AND (
         sqlc.narg(has_owner) :: boolean IS NULL

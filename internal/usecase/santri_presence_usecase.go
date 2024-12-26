@@ -7,14 +7,14 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type SantriPresenceUseCase interface {
 	CreateSantriPresence(ctx context.Context, request *model.CreateSantriPresenceRequest) (*model.SantriPresenceResponse, error)
-	BulkCreateSantriPresence(ctx context.Context, args []db.CreateSantriPresencesParams) (int64, error)
+	BulkCreateSantriPresence(ctx context.Context, args []repo.CreateSantriPresencesParams) (int64, error)
 	ListSantriPresences(ctx context.Context, request *model.ListSantriPresenceRequest) (*[]model.SantriPresenceResponse, error)
 	ListMissingSantriPresences(ctx context.Context, request *model.ListMissingSantriPresenceRequest) (*[]model.IdAndName, error)
 	CountSantriPresences(ctx context.Context, request *model.ListSantriPresenceRequest) (int64, error)
@@ -23,10 +23,10 @@ type SantriPresenceUseCase interface {
 }
 
 type santriPresenceService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewSantriPresenceUseCase(store db.Store) SantriPresenceUseCase {
+func NewSantriPresenceUseCase(store repo.Store) SantriPresenceUseCase {
 	return &santriPresenceService{
 		store: store,
 	}
@@ -41,7 +41,7 @@ func (s *santriPresenceService) CreateSantriPresence(ctx context.Context, reques
 		}
 		return nil, err
 	}
-	createdSantriPresence, err := s.store.CreateSantriPresence(ctx, db.CreateSantriPresenceParams{
+	createdSantriPresence, err := s.store.CreateSantriPresence(ctx, repo.CreateSantriPresenceParams{
 		ScheduleID:         request.ScheduleID,
 		SantriID:           request.SantriID,
 		ScheduleName:       request.ScheduleName,
@@ -76,7 +76,7 @@ func (s *santriPresenceService) CreateSantriPresence(ctx context.Context, reques
 
 }
 
-func (s *santriPresenceService) BulkCreateSantriPresence(ctx context.Context, args []db.CreateSantriPresencesParams) (int64, error) {
+func (s *santriPresenceService) BulkCreateSantriPresence(ctx context.Context, args []repo.CreateSantriPresencesParams) (int64, error) {
 
 	if len(args) == 0 {
 		return 0, exception.NewValidationError("Santri presence data is empty")
@@ -108,10 +108,10 @@ func (s *santriPresenceService) ListSantriPresences(ctx context.Context, request
 		}
 	}
 
-	santriPresences, err := s.store.ListSantriPresences(ctx, db.ListSantriPresencesParams{
+	santriPresences, err := s.store.ListSantriPresences(ctx, repo.ListSantriPresencesParams{
 		SantriID:     pgtype.Int4{Int32: request.SantriID, Valid: request.SantriID != 0},
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
-		Type:         db.NullPresenceType{PresenceType: request.Type, Valid: request.Type != ""},
+		Type:         repo.NullPresenceType{PresenceType: request.Type, Valid: request.Type != ""},
 		ScheduleID:   pgtype.Int4{Int32: request.ScheduleID, Valid: request.ScheduleID != 0},
 		FromDate:     pgtype.Date{Time: fromDate, Valid: request.From != ""},
 		ToDate:       pgtype.Date{Time: toDate, Valid: request.To != ""},
@@ -162,10 +162,10 @@ func (s *santriPresenceService) CountSantriPresences(ctx context.Context, reques
 		}
 	}
 
-	count, err := s.store.CountSantriPresences(ctx, db.CountSantriPresencesParams{
+	count, err := s.store.CountSantriPresences(ctx, repo.CountSantriPresencesParams{
 		SantriID:   pgtype.Int4{Int32: request.SantriID, Valid: request.SantriID != 0},
 		Q:          pgtype.Text{String: request.Q, Valid: request.Q != ""},
-		Type:       db.NullPresenceType{PresenceType: request.Type, Valid: request.Type != ""},
+		Type:       repo.NullPresenceType{PresenceType: request.Type, Valid: request.Type != ""},
 		ScheduleID: pgtype.Int4{Int32: request.ScheduleID, Valid: request.ScheduleID != 0},
 		FromDate:   pgtype.Date{Time: fromDate, Valid: request.From != ""},
 		ToDate:     pgtype.Date{Time: toDate, Valid: request.To != ""},
@@ -178,7 +178,7 @@ func (s *santriPresenceService) CountSantriPresences(ctx context.Context, reques
 }
 
 func (s *santriPresenceService) ListMissingSantriPresences(ctx context.Context, request *model.ListMissingSantriPresenceRequest) (*[]model.IdAndName, error) {
-	missingSantriPresences, err := s.store.ListMissingSantriPresences(ctx, db.ListMissingSantriPresencesParams{
+	missingSantriPresences, err := s.store.ListMissingSantriPresences(ctx, repo.ListMissingSantriPresencesParams{
 		Date:       pgtype.Date{Time: request.Time, Valid: true},
 		ScheduleID: pgtype.Int4{Int32: request.ScheduleID, Valid: request.ScheduleID != 0},
 	})
@@ -207,10 +207,10 @@ func (s *santriPresenceService) UpdateSantriPresence(ctx context.Context, reques
 		return nil, err
 	}
 
-	updatedSantriPresence, err := s.store.UpdateSantriPresence(ctx, db.UpdateSantriPresenceParams{
+	updatedSantriPresence, err := s.store.UpdateSantriPresence(ctx, repo.UpdateSantriPresenceParams{
 		ID:                 santriPresenceID,
 		ScheduleID:         pgtype.Int4{Int32: request.ScheduleID, Valid: request.ScheduleID != 0},
-		Type:               db.NullPresenceType{PresenceType: request.Type, Valid: request.Type != ""},
+		Type:               repo.NullPresenceType{PresenceType: request.Type, Valid: request.Type != ""},
 		Notes:              pgtype.Text{String: request.Notes, Valid: request.Notes != ""},
 		SantriPermissionID: pgtype.Int4{Int32: request.SantriPermissionID, Valid: request.SantriPermissionID != 0},
 	})

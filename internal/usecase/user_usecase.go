@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -21,10 +21,10 @@ type UserUseCase interface {
 }
 
 type userService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewUserUseCase(store db.Store) UserUseCase {
+func NewUserUseCase(store repo.Store) UserUseCase {
 	return &userService{store: store}
 }
 
@@ -35,7 +35,7 @@ func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserR
 		return nil, err
 	}
 
-	createdUser, err := c.store.CreateUser(ctx, db.CreateUserParams{
+	createdUser, err := c.store.CreateUser(ctx, repo.CreateUserParams{
 		Username: request.Username,
 		Role:     request.Role,
 		Password: hashedPassword,
@@ -54,16 +54,19 @@ func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserR
 
 func (c *userService) ListUsers(ctx context.Context, request *model.ListUserRequest) (*[]model.UserComplete, error) {
 
-	arg := db.ListUserParams{
+	arg := repo.ListUserParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
-		Role:         db.NullRoleType{RoleType: request.Role, Valid: true},
+		Role:         repo.NullRoleType{RoleType: request.Role, Valid: request.Role != ""},
 		HasOwner:     pgtype.Bool{Bool: request.HasOwner == 1, Valid: request.HasOwner != 0},
 		LimitNumber:  request.Limit,
 		OffsetNumber: (request.Page - 1) * request.Limit,
-		OrderBy:      db.NullUserOrderBy{UserOrderBy: db.UserOrderBy(request.Order), Valid: request.Order != ""},
+		OrderBy:      repo.NullUserOrderBy{UserOrderBy: repo.UserOrderBy(request.Order), Valid: request.Order != ""},
 	}
 	users, err := c.store.ListUsers(ctx, arg)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return nil, exception.NewNotFoundError("User not found")
+		}
 		return nil, err
 	}
 
@@ -84,7 +87,7 @@ func (c *userService) ListUsers(ctx context.Context, request *model.ListUserRequ
 }
 
 func (c *userService) GetUser(ctx context.Context, userId int32, username string) (*model.UserWithPassword, error) {
-	user, err := c.store.GetUser(ctx, db.GetUserParams{
+	user, err := c.store.GetUser(ctx, repo.GetUserParams{
 		Username: pgtype.Text{String: username, Valid: username != ""},
 		ID:       pgtype.Int4{Int32: userId, Valid: userId != 0},
 	})
@@ -105,10 +108,10 @@ func (c *userService) GetUser(ctx context.Context, userId int32, username string
 }
 
 func (c *userService) CountUsers(ctx context.Context, request *model.ListUserRequest) (int64, error) {
-	count, err := c.store.CountUsers(ctx, db.CountUsersParams{
+	count, err := c.store.CountUsers(ctx, repo.CountUsersParams{
 		Q:        pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasOwner: pgtype.Bool{Bool: request.HasOwner == 1, Valid: request.HasOwner != -1},
-		Role:     db.NullRoleType{RoleType: request.Role, Valid: true},
+		Role:     repo.NullRoleType{RoleType: request.Role, Valid: request.Role != ""},
 	})
 	if err != nil {
 		return 0, err
@@ -128,10 +131,10 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 		newPassword = hashedPassword
 	}
 
-	updatedUser, err := c.store.UpdateUser(ctx, db.UpdateUserParams{
+	updatedUser, err := c.store.UpdateUser(ctx, repo.UpdateUserParams{
 		ID:       userId,
 		Username: pgtype.Text{String: request.Username, Valid: request.Username != ""},
-		Role:     db.NullRoleType{RoleType: request.Role, Valid: true},
+		Role:     repo.NullRoleType{RoleType: request.Role, Valid: true},
 		Password: pgtype.Text{String: newPassword, Valid: newPassword != ""},
 	})
 	if err != nil {

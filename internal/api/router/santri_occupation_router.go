@@ -5,7 +5,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/middleware"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func SantriOccupationRouter(middle middleware.Middleware, handler handler.Santri
 			Handle: handler.CreateSantriOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(persistence.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 		{

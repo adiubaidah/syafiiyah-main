@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -20,15 +20,15 @@ type SmartCardUseCase interface {
 }
 
 type service struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewSmartCardUseCase(store db.Store) SmartCardUseCase {
+func NewSmartCardUseCase(store repo.Store) SmartCardUseCase {
 	return &service{store: store}
 }
 
 func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCard, error) {
-	createdSmartCard, err := c.store.CreateSmartCard(ctx, db.CreateSmartCardParams{
+	createdSmartCard, err := c.store.CreateSmartCard(ctx, repo.CreateSmartCardParams{
 		Uid:        request.Uid,
 		IsActive:   true,
 		SantriID:   pgtype.Int4{Valid: false},
@@ -51,10 +51,10 @@ func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardR
 }
 
 func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (*[]model.SmartCardComplete, error) {
-	listSmartCard, err := c.store.ListSmartCards(ctx, db.ListSmartCardsParams{
+	listSmartCard, err := c.store.ListSmartCards(ctx, repo.ListSmartCardsParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		IsActive:     pgtype.Bool{Bool: true, Valid: true},
-		CardOwner:    db.NullCardOwner{CardOwner: request.CardOwner, Valid: request.CardOwner != ""},
+		CardOwner:    repo.NullCardOwner{CardOwner: request.CardOwner, Valid: request.CardOwner != ""},
 		OffsetNumber: request.Limit * (request.Page - 1),
 		LimitNumber:  request.Limit,
 	})
@@ -89,7 +89,7 @@ func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCa
 			},
 			Owner: model.OwenerDetails{
 				ID:   detailsId,
-				Role: db.RoleType(ownerRole),
+				Role: repo.RoleType(ownerRole),
 				Name: detailsName,
 			},
 		})
@@ -99,10 +99,10 @@ func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCa
 }
 
 func (c *service) CountSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (int64, error) {
-	count, err := c.store.CountSmartCards(ctx, db.CountSmartCardsParams{
+	count, err := c.store.CountSmartCards(ctx, repo.CountSmartCardsParams{
 		Q:         pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		IsActive:  pgtype.Bool{Bool: true, Valid: true},
-		CardOwner: db.NullCardOwner{CardOwner: request.CardOwner, Valid: request.CardOwner != ""},
+		CardOwner: repo.NullCardOwner{CardOwner: request.CardOwner, Valid: request.CardOwner != ""},
 	})
 
 	if err != nil {
@@ -148,7 +148,7 @@ func (c *service) GetSmartCard(ctx context.Context, request *model.SmartCardRequ
 		},
 		Owner: model.OwenerDetails{
 			ID:   ownerId,
-			Role: db.RoleType(ownerRole),
+			Role: repo.RoleType(ownerRole),
 			Name: ownerName,
 		},
 	}, nil
@@ -159,7 +159,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 	var detailsId int32
 	var detailsName string
 
-	if request.OwnerRole == db.RoleTypeSantri {
+	if request.OwnerRole == repo.RoleTypeSantri {
 		santri, err := c.store.GetSantri(ctx, request.OwnerID)
 		if err != nil {
 			return nil, err
@@ -177,7 +177,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 		ownerRole = "employee"
 	}
 
-	updatedSmartCard, err := c.store.UpdateSmartCard(ctx, db.UpdateSmartCardParams{
+	updatedSmartCard, err := c.store.UpdateSmartCard(ctx, repo.UpdateSmartCardParams{
 		ID:         id,
 		IsActive:   pgtype.Bool{Bool: request.IsActive, Valid: true},
 		SantriID:   pgtype.Int4{Int32: request.OwnerID, Valid: ownerRole == "santri"},
@@ -197,7 +197,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 		},
 		Owner: model.OwenerDetails{
 			ID:   detailsId,
-			Role: db.RoleType(ownerRole),
+			Role: repo.RoleType(ownerRole),
 			Name: detailsName,
 		},
 	}, nil

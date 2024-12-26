@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -12,7 +12,7 @@ import (
 
 type Middleware interface {
 	Auth() gin.HandlerFunc
-	RequireRoles(allowedRoles ...db.RoleType) gin.HandlerFunc
+	RequireRoles(allowedRoles ...repo.RoleType) gin.HandlerFunc
 }
 
 type middleware struct {
@@ -51,7 +51,7 @@ func (m *middleware) Auth() gin.HandlerFunc {
 	}
 }
 
-func (m *middleware) RequireRoles(allowedRoles ...db.RoleType) gin.HandlerFunc {
+func (m *middleware) RequireRoles(allowedRoles ...repo.RoleType) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userValue, exists := c.Get("user")
 		if !exists {

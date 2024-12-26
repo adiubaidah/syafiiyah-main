@@ -7,7 +7,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 )
 
@@ -19,19 +19,19 @@ type DeviceUseCase interface {
 }
 
 type deviceService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewDeviceUseCase(store db.Store) DeviceUseCase {
+func NewDeviceUseCase(store repo.Store) DeviceUseCase {
 	return &deviceService{store: store}
 }
 
 func (c *deviceService) CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (*model.DeviceResponse, error) {
-	sqlStore := c.store.(*db.SQLStore)
-	modeParams := make([]db.CreateDeviceModesParams, 0)
+	sqlStore := c.store.(*repo.SQLStore)
+	modeParams := make([]repo.CreateDeviceModesParams, 0)
 
 	for _, mode := range request.Modes {
-		modeParams = append(modeParams, db.CreateDeviceModesParams{
+		modeParams = append(modeParams, repo.CreateDeviceModesParams{
 			Mode:                 mode,
 			InputTopic:           fmt.Sprintf("%s/input/%s", util.ToSnakeCase(request.Name), mode),
 			AcknowledgementTopic: fmt.Sprintf("%s/acknowledgment/%s", util.ToSnakeCase(request.Name), mode),
@@ -84,11 +84,11 @@ func (c *deviceService) ListDevices(ctx context.Context) (*[]model.DeviceWithMod
 }
 
 func (c *deviceService) UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (*model.DeviceResponse, error) {
-	sqlStore := c.store.(*db.SQLStore)
-	modeParams := make([]db.CreateDeviceModesParams, 0)
+	sqlStore := c.store.(*repo.SQLStore)
+	modeParams := make([]repo.CreateDeviceModesParams, 0)
 
 	for _, mode := range request.Modes {
-		modeParams = append(modeParams, db.CreateDeviceModesParams{
+		modeParams = append(modeParams, repo.CreateDeviceModesParams{
 			Mode:                 mode,
 			InputTopic:           fmt.Sprintf("%s/input/%s", util.ToSnakeCase(request.Name), mode),
 			AcknowledgementTopic: fmt.Sprintf("%s/acknowledgment/%s", util.ToSnakeCase(request.Name), mode),

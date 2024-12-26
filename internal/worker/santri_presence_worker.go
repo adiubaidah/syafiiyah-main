@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/sirupsen/logrus"
@@ -39,15 +39,15 @@ func (s *santriPresenceWorker) CreateAlphaForMissingPresence(scheduleId int32) {
 		return
 	}
 
-	var bulkPresenceArgs []db.CreateSantriPresencesParams
+	var bulkPresenceArgs []repo.CreateSantriPresencesParams
 
 	for _, m := range *missing {
-		bulkPresenceArgs = append(bulkPresenceArgs, db.CreateSantriPresencesParams{
+		bulkPresenceArgs = append(bulkPresenceArgs, repo.CreateSantriPresencesParams{
 			ScheduleID:         scheduleId,
 			SantriID:           m.Id,
-			Type:               db.PresenceTypeAlpha,
+			Type:               repo.PresenceTypeAlpha,
 			Notes:              pgtype.Text{String: "Auto created by system", Valid: true},
-			CreatedBy:          db.PresenceCreatedByTypeSystem,
+			CreatedBy:          repo.PresenceCreatedByTypeSystem,
 			SantriPermissionID: pgtype.Int4{Int32: 0, Valid: false},
 			CreatedAt:          pgtype.Timestamptz{Time: time.Now(), Valid: true},
 		})

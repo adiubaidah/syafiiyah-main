@@ -7,7 +7,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -21,10 +21,10 @@ type SantriUseCase interface {
 }
 
 type santriService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewSantriUseCase(store db.Store) SantriUseCase {
+func NewSantriUseCase(store repo.Store) SantriUseCase {
 	return &santriService{store: store}
 }
 
@@ -33,7 +33,7 @@ func (c *santriService) CreateSantri(ctx context.Context, request *model.CreateS
 	if err != nil {
 		return nil, err
 	}
-	createdSantri, err := c.store.CreateSantri(ctx, db.CreateSantriParams{
+	createdSantri, err := c.store.CreateSantri(ctx, repo.CreateSantriParams{
 		Nis:          pgtype.Text{String: request.Nis, Valid: true},
 		Name:         request.Name,
 		IsActive:     pgtype.Bool{Bool: isActive, Valid: true},
@@ -68,14 +68,14 @@ func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantr
 		offset = 0
 	}
 
-	arg := db.ListSantriParams{
+	arg := repo.ListSantriParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		Generation:   pgtype.Int4{Int32: request.Generation, Valid: request.Generation != 0},
 		OffsetNumber: offset,
 		LimitNumber:  request.Limit,
 		IsActive:     pgtype.Bool{Bool: request.IsActive == 1, Valid: request.IsActive != 0},
-		OrderBy:      db.NullSantriOrderBy{SantriOrderBy: db.SantriOrderBy(request.Order), Valid: request.Order != ""},
+		OrderBy:      repo.NullSantriOrderBy{SantriOrderBy: repo.SantriOrderBy(request.Order), Valid: request.Order != ""},
 	}
 	santris, err := c.store.ListSantri(ctx, arg)
 	if err != nil {
@@ -110,7 +110,7 @@ func (c *santriService) ListSantri(ctx context.Context, request *model.ListSantr
 
 func (c *santriService) CountSantri(ctx context.Context, request *model.ListSantriRequest) (int64, error) {
 
-	arg := db.CountSantriParams{
+	arg := repo.CountSantriParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		Generation:   pgtype.Int4{Int32: request.Generation, Valid: request.Generation != 0},
@@ -158,7 +158,7 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 	if err != nil {
 		return nil, err
 	}
-	createdSantri, err := c.store.UpdateSantri(ctx, db.UpdateSantriParams{
+	createdSantri, err := c.store.UpdateSantri(ctx, repo.UpdateSantriParams{
 		ID:           santriId,
 		Nis:          pgtype.Text{String: request.Nis, Valid: true},
 		Name:         pgtype.Text{String: request.Name, Valid: request.Name != ""},
@@ -167,7 +167,7 @@ func (c *santriService) UpdateSantri(ctx context.Context, request *model.UpdateS
 		Photo:        pgtype.Text{String: request.Photo, Valid: request.Photo != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		ParentID:     pgtype.Int4{Int32: request.ParentID, Valid: request.ParentID != 0},
-		Gender:       db.NullGenderType{GenderType: request.Gender, Valid: true},
+		Gender:       repo.NullGenderType{GenderType: request.Gender, Valid: true},
 	})
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {

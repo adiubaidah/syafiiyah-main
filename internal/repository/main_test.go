@@ -15,7 +15,7 @@ var sqlStore *SQLStore
 
 func TestMain(m *testing.M) {
 	// Load configuration
-	env, err := config.Load("../../..")
+	env, err := config.Load("../..")
 	if err != nil {
 		log.Fatalf("Cannot load config: %v", err)
 	}

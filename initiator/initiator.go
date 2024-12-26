@@ -9,8 +9,7 @@ import (
 	router "github.com/adiubaidah/rfid-syafiiyah/internal/api/router"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/storage/cache"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/worker"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
@@ -68,7 +67,7 @@ func Init() {
 	}
 	defer connPool.Close()
 
-	store := db.NewStore(connPool)
+	store := repo.NewStore(connPool)
 	redisClient := redis.NewClient(&redis.Options{
 		DB:   env.DBRedis,
 		Addr: env.RedisAddress,
@@ -89,14 +88,14 @@ func Init() {
 		logger.Fatalf("%s cannot create token maker", err.Error())
 	}
 
-	cacheClient := cache.NewClient(redisClient)
+	sessionUseCase := usecase.NewSessionUseCase(redisClient)
 
 	middle := middleware.NewMiddleware(logger, tokenMaker)
 	userUseCase := usecase.NewUserUseCase(store)
 	userHandler := handler.NewUserHandler(logger, userUseCase)
 	useRouter := router.UserRouter(userHandler)
 
-	authHandler := handler.NewAuthHandler(userUseCase, cacheClient, &env, logger, tokenMaker)
+	authHandler := handler.NewAuthHandler(userUseCase, sessionUseCase, &env, logger, tokenMaker)
 	authRouter := router.AuthRouter(middle, authHandler)
 
 	holidayUseCase := usecase.NewHolidayUseCase(store)

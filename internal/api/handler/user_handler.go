@@ -66,6 +66,10 @@ func (h *userHandler) ListUserHandler(c *gin.Context) {
 	result, err := h.usecase.ListUsers(c, &listUserRequest)
 	if err != nil {
 		h.logger.Error(err)
+		if appErr, ok := err.(*exception.AppError); ok {
+			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
+			return
+		}
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}

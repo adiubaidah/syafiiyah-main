@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 )
 
 func (h *MQTTBroker) handleRecord(acknowledgmentTopic string, request *model.SmartCardRequest) {
@@ -78,7 +78,7 @@ func (h *MQTTBroker) handlePresence(acknowledgmentTopic string, request *model.S
 	}
 
 	switch getSmartCard.Owner.Role {
-	case db.RoleTypeSantri:
+	case repo.RoleTypeSantri:
 		result, err := h.SantriHandler.Presence(request.Uid, getSmartCard.Owner.ID)
 		if err != nil {
 			if appErr, ok := err.(*exception.AppError); ok {

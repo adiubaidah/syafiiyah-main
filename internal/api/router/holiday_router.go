@@ -5,7 +5,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/middleware"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler)
 			Handle: handler.CreateHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -27,7 +27,7 @@ func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler)
 			Handle: handler.ListHolidaysHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -36,7 +36,7 @@ func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler)
 			Handle: handler.UpdateHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func HolidayRouter(middle middleware.Middleware, handler handler.HolidayHandler)
 			Handle: handler.DeleteHolidayHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 	}

@@ -1,17 +1,17 @@
 package model
 
 import (
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/go-playground/validator/v10"
 )
 
 type CreateParentRequest struct {
-	Name           string        `form:"name" binding:"required"`
-	Address        string        `form:"address" binding:"required"`
-	Gender         db.GenderType `form:"gender" binding:"required,oneof=male female"`
-	WhatsappNumber string        `form:"whatsapp_number" binding:"min=10,max=14"`
-	Photo          string        `form:"-"`
-	UserID         int32         `form:"user_id"`
+	Name           string          `form:"name" binding:"required"`
+	Address        string          `form:"address" binding:"required"`
+	Gender         repo.GenderType `form:"gender" binding:"required,oneof=male female"`
+	WhatsappNumber string          `form:"whatsapp_number" binding:"min=10,max=14"`
+	Photo          string          `form:"-"`
+	UserID         int32           `form:"user_id"`
 }
 
 type ListParentRequest struct {
@@ -23,12 +23,12 @@ type ListParentRequest struct {
 }
 
 type UpdateParentRequest struct {
-	Name           string        `form:"name"`
-	Address        string        `form:"address"`
-	Gender         db.GenderType `form:"gender" binding:"omitempty,oneof=male female"`
-	WhatsappNumber string        `form:"whatsapp_number" binding:"min=10,max=14"`
-	Photo          string        `form:"-"`
-	UserID         int32         `form:"user_id"`
+	Name           string          `form:"name"`
+	Address        string          `form:"address"`
+	Gender         repo.GenderType `form:"gender" binding:"omitempty,oneof=male female"`
+	WhatsappNumber string          `form:"whatsapp_number" binding:"min=10,max=14"`
+	Photo          string          `form:"-"`
+	UserID         int32           `form:"user_id"`
 }
 
 type ParentResponse struct {
@@ -56,9 +56,9 @@ type ListParentResponse struct {
 }
 
 func IsValidParentOrder(fl validator.FieldLevel) bool {
-	order := db.ParentOrderBy(fl.Field().String())
+	order := repo.ParentOrderBy(fl.Field().String())
 	switch order {
-	case db.ParentOrderByAscName, db.ParentOrderByDescName:
+	case repo.ParentOrderByAscName, repo.ParentOrderByDescName:
 		return true
 	default:
 		return false

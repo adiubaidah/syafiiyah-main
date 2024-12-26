@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/random"
 	"github.com/stretchr/testify/require"
 )
@@ -15,8 +15,8 @@ func TestJwtMaker(t *testing.T) {
 	require.NoError(t, err)
 
 	username := random.RandomString(16)
-	roles := []persistence.RoleType{persistence.RoleTypeAdmin, persistence.RoleTypeEmployee}
-	role := roles[random.RandomInt(0, int64(len(roles)))]
+	roles := []repo.RoleType{repo.RoleTypeAdmin, repo.RoleTypeEmployee}
+	role := roles[random.RandomInt(0, int64(len(roles))-1)]
 	duration := time.Minute
 
 	issuedAt := time.Now()

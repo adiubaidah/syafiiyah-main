@@ -1,4 +1,4 @@
-name: Testing CI/CD
+name: Testing
 
 on: [push]
 

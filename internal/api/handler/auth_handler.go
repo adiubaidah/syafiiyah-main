@@ -5,7 +5,6 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/storage/cache"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
@@ -22,20 +21,20 @@ type AuthHandler interface {
 }
 
 type authHandler struct {
-	userUseCase usecase.UserUseCase
-	cache       *cache.Cache
-	config      *config.Config
-	logger      *logrus.Logger
-	tokenMaker  token.Maker
+	userUseCase    usecase.UserUseCase
+	sessionUseCase usecase.SessionUseCase
+	config         *config.Config
+	logger         *logrus.Logger
+	tokenMaker     token.Maker
 }
 
-func NewAuthHandler(userUsecase usecase.UserUseCase, cache *cache.Cache, config *config.Config, logger *logrus.Logger, tokenMaker token.Maker) AuthHandler {
+func NewAuthHandler(userUsecase usecase.UserUseCase, sessionUseCase usecase.SessionUseCase, config *config.Config, logger *logrus.Logger, tokenMaker token.Maker) AuthHandler {
 	return &authHandler{
-		userUseCase: userUsecase,
-		cache:       cache,
-		config:      config,
-		logger:      logger,
-		tokenMaker:  tokenMaker,
+		userUseCase:    userUsecase,
+		sessionUseCase: sessionUseCase,
+		config:         config,
+		logger:         logger,
+		tokenMaker:     tokenMaker,
 	}
 }
 
@@ -86,7 +85,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	session := cache.Session{
+	session := model.Session{
 		ID:           refreshPayload.ID,
 		Username:     user.Username,
 		RefreshToken: refreshToken,
@@ -97,7 +96,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		CreatedAt:    time.Now(),
 	}
 
-	if err := h.cache.CreateSession(session); err != nil {
+	if err := h.sessionUseCase.CreateSession(session); err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Internal server error"})
 		return
@@ -142,7 +141,7 @@ func (h *authHandler) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	session, err := h.cache.GetSession(refreshPayload.ID.String())
+	session, err := h.sessionUseCase.GetSession(refreshPayload.ID.String())
 
 	if err != nil {
 		h.logger.Error(err)
@@ -152,7 +151,7 @@ func (h *authHandler) LogoutHandler(c *gin.Context) {
 		}
 	}
 
-	if err := h.cache.DeleteSession(session.ID.String()); err != nil {
+	if err := h.sessionUseCase.DeleteSession(session.ID.String()); err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Internal server error"})
 		return
@@ -179,7 +178,7 @@ func (h *authHandler) RefreshAccessTokenHandler(c *gin.Context) {
 		return
 	}
 
-	session, err := h.cache.GetSession(refreshPayload.ID.String())
+	session, err := h.sessionUseCase.GetSession(refreshPayload.ID.String())
 
 	if err != nil {
 		h.logger.Error(err)

@@ -9,7 +9,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -23,10 +23,10 @@ type SantriScheduleUseCase interface {
 }
 
 type santriScheduleService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewSantriScheduleUseCase(store db.Store) SantriScheduleUseCase {
+func NewSantriScheduleUseCase(store repo.Store) SantriScheduleUseCase {
 	return &santriScheduleService{store: store}
 }
 
@@ -79,7 +79,7 @@ func (c *santriScheduleService) CreateSantriSchedule(ctx context.Context, reques
 		return nil, exception.NewValidationError("finish_time must be after start_presence")
 	}
 
-	createdSantriSchedule, err := c.store.CreateSantriSchedule(ctx, db.CreateSantriScheduleParams{
+	createdSantriSchedule, err := c.store.CreateSantriSchedule(ctx, repo.CreateSantriScheduleParams{
 		Name:          request.Name,
 		Description:   pgtype.Text{String: request.Description, Valid: request.Description != ""},
 		StartPresence: util.ConvertToPgxTime(startPresence),
@@ -157,7 +157,7 @@ func (c *santriScheduleService) UpdateSantriSchedule(ctx context.Context, reques
 		return nil, err
 	}
 
-	updatedSantriSchedule, err := c.store.UpdateSantriSchedule(ctx, db.UpdateSantriScheduleParams{
+	updatedSantriSchedule, err := c.store.UpdateSantriSchedule(ctx, repo.UpdateSantriScheduleParams{
 		ID:            santriScheduleId,
 		Name:          pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Description:   pgtype.Text{String: request.Description, Valid: request.Description != ""},

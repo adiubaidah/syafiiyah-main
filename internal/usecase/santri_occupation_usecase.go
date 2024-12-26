@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -18,16 +18,16 @@ type SantriOccuapationUsecase interface {
 }
 
 type santriOccupationService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewSantriOccupationUseCase(store db.Store) SantriOccuapationUsecase {
+func NewSantriOccupationUseCase(store repo.Store) SantriOccuapationUsecase {
 	return &santriOccupationService{store: store}
 }
 
 func (s *santriOccupationService) CreateSantriOccupation(ctx context.Context, request *model.CreateSantriOccupationRequest) (*model.SantriOccupationResponse, error) {
 
-	result, err := s.store.CreateSantriOccupation(ctx, db.CreateSantriOccupationParams{
+	result, err := s.store.CreateSantriOccupation(ctx, repo.CreateSantriOccupationParams{
 		Name:        request.Name,
 		Description: pgtype.Text{String: request.Description, Valid: true},
 	})
@@ -64,7 +64,7 @@ func (s *santriOccupationService) ListSantriOccupations(ctx context.Context) (*[
 }
 
 func (s *santriOccupationService) UpdateSantriOccupation(ctx context.Context, request *model.UpdateSantriOccupationRequest, occupationId int32) (*model.SantriOccupationResponse, error) {
-	result, err := s.store.UpdateSantriOccupation(ctx, db.UpdateSantriOccupationParams{
+	result, err := s.store.UpdateSantriOccupation(ctx, repo.UpdateSantriOccupationParams{
 		ID:          occupationId,
 		Name:        pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Description: pgtype.Text{String: request.Description, Valid: true},

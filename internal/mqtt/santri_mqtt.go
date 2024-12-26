@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
@@ -51,12 +51,12 @@ func (h *SantriMQTTHandler) Presence(uid string, santriID int32) (*model.SantriP
 		ScheduleID:   h.schedule.ActiveScheduleSantri.ID,
 		ScheduleName: h.schedule.ActiveScheduleSantri.Name,
 		SantriID:     santriID,
-		CreatedBy:    db.PresenceCreatedByTypeTap,
+		CreatedBy:    repo.PresenceCreatedByTypeTap,
 	}
 	if CURRENT_TIME_PRESENCE.After(santriStartPresence) && CURRENT_TIME_PRESENCE.Before(santriStartTime) {
-		arg.Type = db.PresenceTypePresent
+		arg.Type = repo.PresenceTypePresent
 	} else if CURRENT_TIME_PRESENCE.After(santriStartTime) {
-		arg.Type = db.PresenceTypeLate
+		arg.Type = repo.PresenceTypeLate
 	}
 	presence, err := h.presenceUseCase.CreateSantriPresence(context.Background(), arg)
 	if err != nil {

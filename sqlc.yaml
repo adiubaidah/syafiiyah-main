@@ -7,7 +7,7 @@ sql:
     go:
       package: persistence
       sql_package: "pgx/v5"
-      out: internal/storage/persistence/
+      out: internal/repository/
       emit_db_tags: true
       emit_json_tags: false
       emit_interface: true

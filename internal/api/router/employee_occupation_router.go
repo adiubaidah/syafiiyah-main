@@ -5,7 +5,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/api/middleware"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func EmployeeOccupationRouter(middle middleware.Middleware, handler handler.Empl
 			Handle: handler.CreateEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -27,7 +27,7 @@ func EmployeeOccupationRouter(middle middleware.Middleware, handler handler.Empl
 			Handle: handler.ListEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -36,7 +36,7 @@ func EmployeeOccupationRouter(middle middleware.Middleware, handler handler.Empl
 			Handle: handler.UpdateEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func EmployeeOccupationRouter(middle middleware.Middleware, handler handler.Empl
 			Handle: handler.DeleteEmployeeOccupationHandler,
 			MiddleWares: []gin.HandlerFunc{
 				middle.Auth(),
-				middle.RequireRoles(db.RoleTypeSuperadmin),
+				middle.RequireRoles(repo.RoleTypeSuperadmin),
 			},
 		},
 	}

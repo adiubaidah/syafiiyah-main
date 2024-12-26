@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -42,7 +42,7 @@ func (h *smartCardHandler) ListSmartCardsHandler(c *gin.Context) {
 	}
 
 	if request.CardOwner == "" {
-		request.CardOwner = db.CardOwnerAll
+		request.CardOwner = repo.CardOwnerAll
 	}
 
 	result, err := h.usecase.ListSmartCards(c, &request)

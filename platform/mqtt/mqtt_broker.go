@@ -8,7 +8,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -113,14 +113,14 @@ func (h *MQTTBroker) defaultMessageHandler() mqtt.MessageHandler {
 			return
 		}
 
-		switch db.DeviceModeType(deviceMode) {
-		case db.DeviceModeTypeRecord:
+		switch repo.DeviceModeType(deviceMode) {
+		case repo.DeviceModeTypeRecord:
 			h.handleRecord(acknowledgmentTopic, &request)
-		case db.DeviceModeTypePresence:
+		case repo.DeviceModeTypePresence:
 			h.handlePresence(acknowledgmentTopic, &request)
-		case db.DeviceModeTypePermission:
+		case repo.DeviceModeTypePermission:
 			h.handlePermission(acknowledgmentTopic, &request)
-		case db.DeviceModeTypePing:
+		case repo.DeviceModeTypePing:
 			h.handlePing(acknowledgmentTopic)
 		default:
 			h.logger.Warnf("Unhandled topic: %s\n", msg.Topic())

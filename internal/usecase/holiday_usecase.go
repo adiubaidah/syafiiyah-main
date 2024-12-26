@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -19,28 +19,28 @@ type HolidayUseCase interface {
 }
 
 type holidayService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewHolidayUseCase(store db.Store) HolidayUseCase {
+func NewHolidayUseCase(store repo.Store) HolidayUseCase {
 	return &holidayService{store: store}
 }
 
 func (s *holidayService) CreateHoliday(ctx context.Context, request *model.CreateHolidayRequest) (*model.HolidayResponse, error) {
-	sqlStore := s.store.(*db.SQLStore)
+	sqlStore := s.store.(*repo.SQLStore)
 
-	argCreateDates := make([]db.CreateHolidayDatesParams, 0)
+	argCreateDates := make([]repo.CreateHolidayDatesParams, 0)
 	for _, date := range request.Dates {
 		parsedDate, err := util.ParseDate(date)
 		if err != nil {
 			return nil, exception.NewValidationError(err.Error())
 		}
-		argCreateDates = append(argCreateDates, db.CreateHolidayDatesParams{
+		argCreateDates = append(argCreateDates, repo.CreateHolidayDatesParams{
 			Date: pgtype.Date{Time: parsedDate, Valid: true},
 		})
 	}
 
-	holiday, err := sqlStore.CreateHolidayWithDates(ctx, db.CreateHolidayParams{
+	holiday, err := sqlStore.CreateHolidayWithDates(ctx, repo.CreateHolidayParams{
 		Name:        request.Name,
 		Color:       pgtype.Text{String: request.Color, Valid: request.Color != ""},
 		Description: pgtype.Text{String: request.Description, Valid: request.Description != ""},
@@ -62,7 +62,7 @@ func (s *holidayService) CreateHoliday(ctx context.Context, request *model.Creat
 }
 
 func (s *holidayService) ListHolidays(ctx context.Context, request *model.ListHolidayRequest) (*[]model.HolidayResponse, error) {
-	holidays, err := s.store.ListHolidays(ctx, db.ListHolidaysParams{
+	holidays, err := s.store.ListHolidays(ctx, repo.ListHolidaysParams{
 		Month: pgtype.Int4{Int32: request.Month, Valid: request.Month != 0},
 		Year:  pgtype.Int4{Int32: request.Year, Valid: request.Year != 0},
 	})
@@ -92,18 +92,18 @@ func (s *holidayService) ListHolidays(ctx context.Context, request *model.ListHo
 }
 
 func (s *holidayService) UpdateHoliday(ctx context.Context, request *model.UpdateHolidayRequest, holidayId int32) (*model.HolidayResponse, error) {
-	sqlStore := s.store.(*db.SQLStore)
-	argCreateDates := make([]db.CreateHolidayDatesParams, 0)
+	sqlStore := s.store.(*repo.SQLStore)
+	argCreateDates := make([]repo.CreateHolidayDatesParams, 0)
 	for _, date := range request.Dates {
 		parsedDate, err := util.ParseDate(date)
 		if err != nil {
 			return nil, exception.NewValidationError(err.Error())
 		}
-		argCreateDates = append(argCreateDates, db.CreateHolidayDatesParams{
+		argCreateDates = append(argCreateDates, repo.CreateHolidayDatesParams{
 			Date: pgtype.Date{Time: parsedDate, Valid: true},
 		})
 	}
-	holiday, err := sqlStore.UpdateHolidayWithDates(ctx, holidayId, db.UpdateHolidayParams{
+	holiday, err := sqlStore.UpdateHolidayWithDates(ctx, holidayId, repo.UpdateHolidayParams{
 		ID:          holidayId,
 		Name:        pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Color:       pgtype.Text{String: request.Color, Valid: request.Color != ""},

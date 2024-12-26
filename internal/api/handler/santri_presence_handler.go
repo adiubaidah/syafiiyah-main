@@ -10,7 +10,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 )
 
@@ -41,7 +41,7 @@ func (h *santriPresenceHandler) CreateSantriPresenceHandler(c *gin.Context) {
 		return
 	}
 
-	santriPresenceRequest.CreatedBy = db.PresenceCreatedByTypeAdmin
+	santriPresenceRequest.CreatedBy = repo.PresenceCreatedByTypeAdmin
 
 	result, err := h.usecase.CreateSantriPresence(context.Background(), &santriPresenceRequest)
 	if err != nil {

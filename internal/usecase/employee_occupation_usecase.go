@@ -6,7 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	db "github.com/adiubaidah/rfid-syafiiyah/internal/storage/persistence"
+	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -18,16 +18,16 @@ type EmployeeOccuapationUsecase interface {
 }
 
 type employeeOccupationService struct {
-	store db.Store
+	store repo.Store
 }
 
-func NewEmployeeOccupationUseCase(store db.Store) EmployeeOccuapationUsecase {
+func NewEmployeeOccupationUseCase(store repo.Store) EmployeeOccuapationUsecase {
 	return &employeeOccupationService{store: store}
 }
 
 func (s *employeeOccupationService) CreateEmployeeOccupation(ctx context.Context, request *model.CreateEmployeeOccupationRequest) (*model.EmployeeOccupationResponse, error) {
 
-	result, err := s.store.CreateEmployeeOccupation(ctx, db.CreateEmployeeOccupationParams{
+	result, err := s.store.CreateEmployeeOccupation(ctx, repo.CreateEmployeeOccupationParams{
 		Name:        request.Name,
 		Description: pgtype.Text{String: request.Description, Valid: true},
 	})
@@ -64,7 +64,7 @@ func (s *employeeOccupationService) ListEmployeeOccupations(ctx context.Context)
 }
 
 func (s *employeeOccupationService) UpdateEmployeeOccupation(ctx context.Context, request *model.UpdateEmployeeOccupationRequest, occupationId int32) (*model.EmployeeOccupationResponse, error) {
-	result, err := s.store.UpdateEmployeeOccupation(ctx, db.UpdateEmployeeOccupationParams{
+	result, err := s.store.UpdateEmployeeOccupation(ctx, repo.UpdateEmployeeOccupationParams{
 		ID:          occupationId,
 		Name:        pgtype.Text{String: request.Name, Valid: request.Name != ""},
 		Description: pgtype.Text{String: request.Description, Valid: true},
