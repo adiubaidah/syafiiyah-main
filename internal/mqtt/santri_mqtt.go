@@ -9,7 +9,6 @@ import (
 	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
-	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,15 +16,13 @@ type SantriMQTTHandler struct {
 	logger          *logrus.Logger
 	usecase         usecase.SantriUseCase
 	presenceUseCase usecase.SantriPresenceUseCase
-	schedule        *cron.ScheduleCron
 }
 
-func NewSantriMQTTHandler(logger *logrus.Logger, schedule *cron.ScheduleCron, usecase usecase.SantriUseCase, presenceUseCase usecase.SantriPresenceUseCase) *SantriMQTTHandler {
+func NewSantriMQTTHandler(logger *logrus.Logger, usecase usecase.SantriUseCase, presenceUseCase usecase.SantriPresenceUseCase) *SantriMQTTHandler {
 	return &SantriMQTTHandler{
 		logger:          logger,
 		usecase:         usecase,
 		presenceUseCase: presenceUseCase,
-		schedule:        schedule,
 	}
 }
 

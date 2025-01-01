@@ -5,6 +5,13 @@ sqlcinit:
 sqlc:
 	docker run --rm -v "%cd%:/src" -w /src sqlc/sqlc generate
 
+proto:
+	protoc \
+  --proto_path=./internal/constant/proto \
+  --go_out=paths=source_relative:./platform/protobuf \
+  --go-grpc_out=paths=source_relative:./platform/protobuf \
+  ./internal/constant/proto/*.proto
+
 start_postgres:
 	docker container start postgres
 postgres:

@@ -2596,12 +2596,17 @@ components:
           example:
             "2024-10-09T15:00:00Z"
           nullable: false
+        expired_at:
+          type: string
+          example:
+            "2024-10-09T15:00:00Z"
+          nullable: false
         type: 
           type: string
           enum:
             - sick
             - permission
-        excuse:
+        reason:
           type: string
     SantriPermission:
       allOf:

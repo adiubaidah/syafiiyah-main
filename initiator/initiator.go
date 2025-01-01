@@ -11,11 +11,10 @@ import (
 	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
 	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/worker"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
-	"github.com/adiubaidah/rfid-syafiiyah/platform/cron"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/mqtt"
+	pb "github.com/adiubaidah/rfid-syafiiyah/platform/protobuf"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -27,6 +26,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 func Init() {
@@ -74,6 +74,11 @@ func Init() {
 	})
 	defer redisClient.Close()
 
+	scheduleServiceConn, err := grpc.NewClient(env.ScheduleServiceAddress)
+	if err != nil {
+		logger.Fatalf("Unable to create schedule service connection: %v", err)
+	}
+
 	if validateActor, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		validateActor.RegisterValidation("santri-order", model.IsValidSantriOrder)
 		validateActor.RegisterValidation("role", model.IsValidRole)
@@ -106,8 +111,8 @@ func Init() {
 	parentHandler := handler.NewParentHandler(logger, &env, storageManager, parentUseCase, userUseCase)
 	parentRouter := router.ParentRouter(middle, parentHandler)
 
-	santriScheduleUseCase := usecase.NewSantriScheduleUseCase(store)
-	santriScheduleHandler := handler.NewSantriScheduleHandler(logger, santriScheduleUseCase)
+	santriScheduleService := pb.NewSantriScheduleServiceClient(scheduleServiceConn)
+	santriScheduleHandler := handler.NewSantriScheduleHandler(logger, santriScheduleService)
 	santriScheduleRouter := router.SantriScheduleRouter(santriScheduleHandler)
 
 	santriOccupationUseCase := usecase.NewSantriOccupationUseCase(store)
@@ -136,10 +141,9 @@ func Init() {
 	smartCardRouter := router.SmartCardRouter(smartCardHandler)
 
 	deviceUseCase := usecase.NewDeviceUseCase(store)
-	santriPresenceWorker := worker.NewSantriPresenceWorker(logger, santriPresenceUseCase)
-	scheduleCron := cron.NewScheduleCron(logger, santriScheduleUseCase, santriPresenceWorker)
+	// santriPresenceWorker := worker.NewSantriPresenceWorker(logger, santriPresenceUseCase)
 
-	mqttSantriHandler := mqttHandler.NewSantriMQTTHandler(logger, scheduleCron, santriUseCase, santriPresenceUseCase)
+	mqttSantriHandler := mqttHandler.NewSantriMQTTHandler(logger, santriUseCase, santriPresenceUseCase)
 	mqttBroker := mqtt.NewMQTTBroker(&mqtt.MQTTBrokerConfig{
 		Logger:           logger,
 		DeviceUseCase:    deviceUseCase,
@@ -166,7 +170,6 @@ func Init() {
 	routerList = append(routerList, deviceRouter...)
 
 	server := routers.NewRouting(env.ServerAddress, routerList)
-	scheduleCron.Start()
 	server.Serve()
 
 }

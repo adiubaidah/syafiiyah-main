@@ -1,0 +1,61 @@
+// santri.proto
+
+syntax = "proto3";
+
+option go_package = "github.com/adiubaidah/rfid-syafiiyah/internal/constant/proto;proto";
+
+message SantriSchedule {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string startPresence = 4;
+  string startTime = 5;
+  string finishTime = 6;
+}
+
+message CreateSantriScheduleRequest {
+  string name = 1;
+  string description = 2;
+  string startPresence = 3;
+  string startTime = 4;
+  string finishTime = 5;
+}
+
+message GetSantriScheduleRequest {
+  int32 id = 1;
+}
+
+message GetSantriScheduleResponse {
+  SantriSchedule schedule = 1;
+}
+
+message CurrentSantriScheduleRequest {
+}
+
+message CurrentSantriScheduleResponse {
+  SantriSchedule schedule = 1;
+}
+
+message UpdateSantriScheduleRequest {
+  SantriSchedule schedule = 1;
+}
+
+message DeleteSantriScheduleRequest {
+  int32 id = 1;
+}
+
+message ListSantriScheduleRequest {
+}
+
+message ListSantriScheduleResponse {
+  repeated SantriSchedule schedules = 1;
+}
+
+service SantriScheduleService {
+  rpc CreateSantriSchedule(CreateSantriScheduleRequest) returns (SantriSchedule);
+  rpc ListSantriSchedule(ListSantriScheduleRequest) returns (ListSantriScheduleResponse);
+  rpc CurrentSantriSchedule(CurrentSantriScheduleRequest) returns (SantriSchedule);
+  rpc GetSantriSchedule(GetSantriScheduleRequest) returns (SantriSchedule);
+  rpc UpdateSantriSchedule(UpdateSantriScheduleRequest) returns (SantriSchedule);
+  rpc DeleteSantriSchedule(DeleteSantriScheduleRequest) returns (SantriSchedule);
+}

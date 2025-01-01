@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
+	pb "github.com/adiubaidah/rfid-syafiiyah/platform/protobuf"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -21,13 +20,13 @@ type SantriScheduleHandler interface {
 
 type santriScheduleHandler struct {
 	logger  *logrus.Logger
-	usecase usecase.SantriScheduleUseCase
+	service pb.SantriScheduleServiceClient
 }
 
-func NewSantriScheduleHandler(logger *logrus.Logger, usecase usecase.SantriScheduleUseCase) SantriScheduleHandler {
+func NewSantriScheduleHandler(logger *logrus.Logger, service pb.SantriScheduleServiceClient) SantriScheduleHandler {
 	return &santriScheduleHandler{
 		logger:  logger,
-		usecase: usecase,
+		service: service,
 	}
 }
 
@@ -39,30 +38,47 @@ func (h *santriScheduleHandler) CreateSantriScheduleHandler(c *gin.Context) {
 		return
 	}
 
-	result, err := h.usecase.CreateSantriSchedule(context.Background(), &santriScheduleRequest)
-	if err != nil {
-		h.logger.Error(err)
-
-		if appErr, ok := err.(*exception.AppError); ok {
-			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
-			return
-		}
-
-	}
-	c.JSON(http.StatusCreated, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusCreated, Status: "Created", Data: result})
-}
-
-func (h *santriScheduleHandler) ListSantriScheduleHandler(c *gin.Context) {
-	result, err := h.usecase.ListSantriSchedule(context.Background())
+	resp, err := h.service.CreateSantriSchedule(context.Background(), &pb.CreateSantriScheduleRequest{
+		Name:          santriScheduleRequest.Name,
+		Description:   santriScheduleRequest.Description,
+		StartPresence: santriScheduleRequest.StartPresence,
+		StartTime:     santriScheduleRequest.StartTime,
+		FinishTime:    santriScheduleRequest.FinishTime,
+	})
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.ResponseData[*[]model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+	c.JSON(http.StatusCreated, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusCreated, Status: "Created", Data: &model.SantriScheduleResponse{
+		ID:            int32(resp.Id),
+		Name:          resp.Name,
+		Description:   resp.Description,
+		StartPresence: resp.StartPresence,
+		StartTime:     resp.StartTime,
+		FinishTime:    resp.FinishTime,
+	}})
+}
+
+func (h *santriScheduleHandler) ListSantriScheduleHandler(c *gin.Context) {
+	resp, err := h.service.ListSantriSchedule(context.Background(), &pb.ListSantriScheduleRequest{})
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
+		return
+	}
+	var santriScheduleResponses []model.SantriScheduleResponse
+	for _, santriSchedule := range resp.Schedules {
+		santriScheduleResponses = append(santriScheduleResponses, model.SantriScheduleResponse{
+			ID:            int32(santriSchedule.Id),
+			Name:          santriSchedule.Name,
+			Description:   santriSchedule.Description,
+			StartPresence: santriSchedule.StartPresence,
+			StartTime:     santriSchedule.StartTime,
+			FinishTime:    santriSchedule.FinishTime,
+		})
+	}
+	c.JSON(http.StatusOK, model.ResponseData[*[]model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: &santriScheduleResponses})
 }
 
 func (h *santriScheduleHandler) UpdateSantriScheduleHandler(c *gin.Context) {
@@ -80,18 +96,33 @@ func (h *santriScheduleHandler) UpdateSantriScheduleHandler(c *gin.Context) {
 		c.JSON(400, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	result, err := h.usecase.UpdateSantriSchedule(context.Background(), &santriScheduleRequest, int32(santriScheduleId))
+
+	resp, err := h.service.UpdateSantriSchedule(context.Background(), &pb.UpdateSantriScheduleRequest{
+		Schedule: &pb.SantriSchedule{
+			Id:            int32(santriScheduleId),
+			Name:          santriScheduleRequest.Name,
+			Description:   santriScheduleRequest.Description,
+			StartPresence: santriScheduleRequest.StartPresence,
+			StartTime:     santriScheduleRequest.StartTime,
+			FinishTime:    santriScheduleRequest.FinishTime,
+		},
+	})
+
 	if err != nil {
 		h.logger.Error(err)
-
-		if appErr, ok := err.(*exception.AppError); ok {
-			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
-			return
-		}
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+
+	c.JSON(http.StatusOK, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: &model.SantriScheduleResponse{
+		ID:            int32(resp.Id),
+		Name:          resp.Name,
+		Description:   resp.Description,
+		StartPresence: resp.StartPresence,
+		StartTime:     resp.StartTime,
+		FinishTime:    resp.FinishTime,
+	}})
+
 }
 
 func (h *santriScheduleHandler) DeleteSantriScheduleHandler(c *gin.Context) {
@@ -102,15 +133,16 @@ func (h *santriScheduleHandler) DeleteSantriScheduleHandler(c *gin.Context) {
 		c.JSON(400, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
-	result, err := h.usecase.DeleteSantriSchedule(context.Background(), int32(santriScheduleId))
-	if err != nil {
-		if appErr, ok := err.(*exception.AppError); ok {
-			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
-			return
-		}
-	}
-	c.JSON(http.StatusOK, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: result})
+
+	resp, err := h.service.DeleteSantriSchedule(context.Background(), &pb.DeleteSantriScheduleRequest{
+		Id: int32(santriScheduleId),
+	})
+
+	c.JSON(http.StatusOK, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: &model.SantriScheduleResponse{
+		ID:            int32(resp.Id),
+		Name:          resp.Name,
+		Description:   resp.Description,
+		StartPresence: resp.StartPresence,
+		StartTime:     resp.StartTime,
+	}})
 }
