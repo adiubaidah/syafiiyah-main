@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	pb "github.com/adiubaidah/rfid-syafiiyah/platform/protobuf"
+	pb "github.com/adiubaidah/rfid-syafiiyah/internal/protobuf"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -138,11 +138,18 @@ func (h *santriScheduleHandler) DeleteSantriScheduleHandler(c *gin.Context) {
 		Id: int32(santriScheduleId),
 	})
 
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, model.ResponseData[*model.SantriScheduleResponse]{Code: http.StatusOK, Status: "OK", Data: &model.SantriScheduleResponse{
 		ID:            int32(resp.Id),
 		Name:          resp.Name,
 		Description:   resp.Description,
 		StartPresence: resp.StartPresence,
 		StartTime:     resp.StartTime,
+		FinishTime:    resp.FinishTime,
 	}})
 }

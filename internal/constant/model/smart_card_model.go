@@ -10,6 +10,7 @@ type SmartCardRequest struct {
 
 type ListSmartCardRequest struct {
 	CardOwner repo.CardOwner `form:"card-owner" binding:"omitempty,oneof=santri employee none all"`
+	IsActive  int            `form:"is-active" binding:"omitempty,oneof=-1 0 1"`
 	Q         string         `form:"q"`
 	Page      int32          `form:"page" binding:"omitempty,gte=1"`
 	Limit     int32          `form:"limit" binding:"omitempty,gte=1"`
@@ -17,7 +18,7 @@ type ListSmartCardRequest struct {
 
 type UpdateSmartCardRequest struct {
 	IsActive  bool          `json:"is_active"`
-	OwnerRole repo.RoleType `json:"owner_role" binding:"omitempty,oneof"`
+	OwnerRole repo.RoleType `json:"owner_role" binding:"omitempty,oneof=santri employee admin superadmin"` //parent can't have card
 	OwnerID   int32         `json:"owner_id"`
 }
 

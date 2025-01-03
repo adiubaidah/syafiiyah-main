@@ -53,7 +53,7 @@ func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardR
 func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (*[]model.SmartCardComplete, error) {
 	listSmartCard, err := c.store.ListSmartCards(ctx, repo.ListSmartCardsParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
-		IsActive:     pgtype.Bool{Bool: true, Valid: true},
+		IsActive:     pgtype.Bool{Bool: request.IsActive == 1, Valid: request.IsActive != 0},
 		CardOwner:    repo.NullCardOwner{CardOwner: request.CardOwner, Valid: request.CardOwner != ""},
 		OffsetNumber: request.Limit * (request.Page - 1),
 		LimitNumber:  request.Limit,

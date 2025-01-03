@@ -13,20 +13,20 @@ func ParseTime(timeString string) (time.Time, error) {
 	return time.Parse("15:04:05", timeString)
 }
 
-func ParseTimeWithCurrentDate(timeString string) (time.Time, error) {
+func ParseHHMMWithCurrentDate(timeString string) (time.Time, error) {
 	if timeString == "" {
 		return time.Time{}, errors.New("time string is empty")
 	}
 
-	parsedTime, err := time.Parse("15:04:05", timeString)
+	parsedTime, err := time.Parse("15:04", timeString)
 	if err != nil {
 		return time.Time{}, err
 	}
 
 	now := time.Now()
 	currentDate := now.Format("2006-01-02")
-	fullTimeString := fmt.Sprintf("%s %s", currentDate, parsedTime.Format("15:04:05"))
-	fullTime, err := time.Parse("2006-01-02 15:04:05", fullTimeString)
+	fullTimeString := fmt.Sprintf("%s %s", currentDate, parsedTime.Format("15:04"))
+	fullTime, err := time.Parse("2006-01-02 15:04", fullTimeString)
 	if err != nil {
 		return time.Time{}, err
 	}

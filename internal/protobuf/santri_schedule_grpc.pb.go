@@ -21,12 +21,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SantriScheduleService_CreateSantriSchedule_FullMethodName  = "/SantriScheduleService/CreateSantriSchedule"
-	SantriScheduleService_ListSantriSchedule_FullMethodName    = "/SantriScheduleService/ListSantriSchedule"
-	SantriScheduleService_CurrentSantriSchedule_FullMethodName = "/SantriScheduleService/CurrentSantriSchedule"
-	SantriScheduleService_GetSantriSchedule_FullMethodName     = "/SantriScheduleService/GetSantriSchedule"
-	SantriScheduleService_UpdateSantriSchedule_FullMethodName  = "/SantriScheduleService/UpdateSantriSchedule"
-	SantriScheduleService_DeleteSantriSchedule_FullMethodName  = "/SantriScheduleService/DeleteSantriSchedule"
+	SantriScheduleService_CreateSantriSchedule_FullMethodName = "/SantriScheduleService/CreateSantriSchedule"
+	SantriScheduleService_ListSantriSchedule_FullMethodName   = "/SantriScheduleService/ListSantriSchedule"
+	SantriScheduleService_ActiveSantriSchedule_FullMethodName = "/SantriScheduleService/ActiveSantriSchedule"
+	SantriScheduleService_GetSantriSchedule_FullMethodName    = "/SantriScheduleService/GetSantriSchedule"
+	SantriScheduleService_UpdateSantriSchedule_FullMethodName = "/SantriScheduleService/UpdateSantriSchedule"
+	SantriScheduleService_DeleteSantriSchedule_FullMethodName = "/SantriScheduleService/DeleteSantriSchedule"
 )
 
 // SantriScheduleServiceClient is the client API for SantriScheduleService service.
@@ -35,7 +35,7 @@ const (
 type SantriScheduleServiceClient interface {
 	CreateSantriSchedule(ctx context.Context, in *CreateSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error)
 	ListSantriSchedule(ctx context.Context, in *ListSantriScheduleRequest, opts ...grpc.CallOption) (*ListSantriScheduleResponse, error)
-	CurrentSantriSchedule(ctx context.Context, in *CurrentSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error)
+	ActiveSantriSchedule(ctx context.Context, in *ActiveSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error)
 	GetSantriSchedule(ctx context.Context, in *GetSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error)
 	UpdateSantriSchedule(ctx context.Context, in *UpdateSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error)
 	DeleteSantriSchedule(ctx context.Context, in *DeleteSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error)
@@ -69,10 +69,10 @@ func (c *santriScheduleServiceClient) ListSantriSchedule(ctx context.Context, in
 	return out, nil
 }
 
-func (c *santriScheduleServiceClient) CurrentSantriSchedule(ctx context.Context, in *CurrentSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error) {
+func (c *santriScheduleServiceClient) ActiveSantriSchedule(ctx context.Context, in *ActiveSantriScheduleRequest, opts ...grpc.CallOption) (*SantriSchedule, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SantriSchedule)
-	err := c.cc.Invoke(ctx, SantriScheduleService_CurrentSantriSchedule_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, SantriScheduleService_ActiveSantriSchedule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *santriScheduleServiceClient) DeleteSantriSchedule(ctx context.Context, 
 type SantriScheduleServiceServer interface {
 	CreateSantriSchedule(context.Context, *CreateSantriScheduleRequest) (*SantriSchedule, error)
 	ListSantriSchedule(context.Context, *ListSantriScheduleRequest) (*ListSantriScheduleResponse, error)
-	CurrentSantriSchedule(context.Context, *CurrentSantriScheduleRequest) (*SantriSchedule, error)
+	ActiveSantriSchedule(context.Context, *ActiveSantriScheduleRequest) (*SantriSchedule, error)
 	GetSantriSchedule(context.Context, *GetSantriScheduleRequest) (*SantriSchedule, error)
 	UpdateSantriSchedule(context.Context, *UpdateSantriScheduleRequest) (*SantriSchedule, error)
 	DeleteSantriSchedule(context.Context, *DeleteSantriScheduleRequest) (*SantriSchedule, error)
@@ -135,8 +135,8 @@ func (UnimplementedSantriScheduleServiceServer) CreateSantriSchedule(context.Con
 func (UnimplementedSantriScheduleServiceServer) ListSantriSchedule(context.Context, *ListSantriScheduleRequest) (*ListSantriScheduleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSantriSchedule not implemented")
 }
-func (UnimplementedSantriScheduleServiceServer) CurrentSantriSchedule(context.Context, *CurrentSantriScheduleRequest) (*SantriSchedule, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CurrentSantriSchedule not implemented")
+func (UnimplementedSantriScheduleServiceServer) ActiveSantriSchedule(context.Context, *ActiveSantriScheduleRequest) (*SantriSchedule, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ActiveSantriSchedule not implemented")
 }
 func (UnimplementedSantriScheduleServiceServer) GetSantriSchedule(context.Context, *GetSantriScheduleRequest) (*SantriSchedule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSantriSchedule not implemented")
@@ -204,20 +204,20 @@ func _SantriScheduleService_ListSantriSchedule_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SantriScheduleService_CurrentSantriSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CurrentSantriScheduleRequest)
+func _SantriScheduleService_ActiveSantriSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActiveSantriScheduleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SantriScheduleServiceServer).CurrentSantriSchedule(ctx, in)
+		return srv.(SantriScheduleServiceServer).ActiveSantriSchedule(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SantriScheduleService_CurrentSantriSchedule_FullMethodName,
+		FullMethod: SantriScheduleService_ActiveSantriSchedule_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SantriScheduleServiceServer).CurrentSantriSchedule(ctx, req.(*CurrentSantriScheduleRequest))
+		return srv.(SantriScheduleServiceServer).ActiveSantriSchedule(ctx, req.(*ActiveSantriScheduleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -292,8 +292,8 @@ var SantriScheduleService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SantriScheduleService_ListSantriSchedule_Handler,
 		},
 		{
-			MethodName: "CurrentSantriSchedule",
-			Handler:    _SantriScheduleService_CurrentSantriSchedule_Handler,
+			MethodName: "ActiveSantriSchedule",
+			Handler:    _SantriScheduleService_ActiveSantriSchedule_Handler,
 		},
 		{
 			MethodName: "GetSantriSchedule",

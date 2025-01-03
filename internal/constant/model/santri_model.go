@@ -46,7 +46,7 @@ type ListSantriRequest struct {
 	Limit        int32  `form:"limit" binding:"omitempty,gte=1"`
 	Page         int32  `form:"page" binding:"omitempty,gte=1"`
 	Generation   int32  `form:"generation"`
-	IsActive     int    `form:"is-active"`
+	IsActive     int    `form:"is-active" binding:"omitempty,oneof=-1 0 1"`
 	OccupationID int32  `form:"occupation_id"`
 }
 

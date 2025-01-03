@@ -9,12 +9,12 @@ import (
 	router "github.com/adiubaidah/rfid-syafiiyah/internal/api/router"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
 	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
+	pb "github.com/adiubaidah/rfid-syafiiyah/internal/protobuf"
 	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/mqtt"
-	pb "github.com/adiubaidah/rfid-syafiiyah/platform/protobuf"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -27,6 +27,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Init() {
@@ -74,10 +75,11 @@ func Init() {
 	})
 	defer redisClient.Close()
 
-	scheduleServiceConn, err := grpc.NewClient(env.ScheduleServiceAddress)
+	scheduleServiceConn, err := grpc.NewClient(env.ScheduleServiceAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatalf("Unable to create schedule service connection: %v", err)
 	}
+	defer scheduleServiceConn.Close()
 
 	if validateActor, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		validateActor.RegisterValidation("santri-order", model.IsValidSantriOrder)
@@ -85,7 +87,7 @@ func Init() {
 		validateActor.RegisterValidation("userorder", model.IsValidUserOrder)
 		validateActor.RegisterValidation("parentorder", model.IsValidParentOrder)
 		validateActor.RegisterValidation("employee-order", model.IsValidEmployeeOrder)
-		validateActor.RegisterValidation("validTime", model.IsValidTime)
+		validateActor.RegisterValidation("valid-time", model.IsValidTime)
 		validateActor.RegisterValidation("presencetype", model.IsValidPresenceType)
 	}
 	tokenMaker, err := token.NewJWTMaker(env.TokenSymmetricKey)
@@ -143,7 +145,7 @@ func Init() {
 	deviceUseCase := usecase.NewDeviceUseCase(store)
 	// santriPresenceWorker := worker.NewSantriPresenceWorker(logger, santriPresenceUseCase)
 
-	mqttSantriHandler := mqttHandler.NewSantriMQTTHandler(logger, santriUseCase, santriPresenceUseCase)
+	mqttSantriHandler := mqttHandler.NewSantriMQTTHandler(logger, santriUseCase, santriScheduleService, santriPresenceUseCase)
 	mqttBroker := mqtt.NewMQTTBroker(&mqtt.MQTTBrokerConfig{
 		Logger:           logger,
 		DeviceUseCase:    deviceUseCase,

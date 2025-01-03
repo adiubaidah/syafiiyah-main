@@ -25,15 +25,7 @@ message GetSantriScheduleRequest {
   int32 id = 1;
 }
 
-message GetSantriScheduleResponse {
-  SantriSchedule schedule = 1;
-}
-
-message CurrentSantriScheduleRequest {
-}
-
-message CurrentSantriScheduleResponse {
-  SantriSchedule schedule = 1;
+message ActiveSantriScheduleRequest {
 }
 
 message UpdateSantriScheduleRequest {
@@ -54,7 +46,7 @@ message ListSantriScheduleResponse {
 service SantriScheduleService {
   rpc CreateSantriSchedule(CreateSantriScheduleRequest) returns (SantriSchedule);
   rpc ListSantriSchedule(ListSantriScheduleRequest) returns (ListSantriScheduleResponse);
-  rpc CurrentSantriSchedule(CurrentSantriScheduleRequest) returns (SantriSchedule);
+  rpc ActiveSantriSchedule(ActiveSantriScheduleRequest) returns (SantriSchedule);
   rpc GetSantriSchedule(GetSantriScheduleRequest) returns (SantriSchedule);
   rpc UpdateSantriSchedule(UpdateSantriScheduleRequest) returns (SantriSchedule);
   rpc DeleteSantriSchedule(DeleteSantriScheduleRequest) returns (SantriSchedule);

@@ -6,6 +6,7 @@ import (
 
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	pb "github.com/adiubaidah/rfid-syafiiyah/internal/protobuf"
 	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
 	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
@@ -16,37 +17,41 @@ type SantriMQTTHandler struct {
 	logger          *logrus.Logger
 	usecase         usecase.SantriUseCase
 	presenceUseCase usecase.SantriPresenceUseCase
+	service         pb.SantriScheduleServiceClient
 }
 
-func NewSantriMQTTHandler(logger *logrus.Logger, usecase usecase.SantriUseCase, presenceUseCase usecase.SantriPresenceUseCase) *SantriMQTTHandler {
+func NewSantriMQTTHandler(logger *logrus.Logger, usecase usecase.SantriUseCase, service pb.SantriScheduleServiceClient, presenceUseCase usecase.SantriPresenceUseCase) *SantriMQTTHandler {
 	return &SantriMQTTHandler{
 		logger:          logger,
 		usecase:         usecase,
 		presenceUseCase: presenceUseCase,
+		service:         service,
 	}
 }
 
 func (h *SantriMQTTHandler) Presence(uid string, santriID int32) (*model.SantriPresenceResponse, error) {
-	if h.schedule.ActiveScheduleSantri == nil {
+
+	activeSchedule, err := h.service.ActiveSantriSchedule(context.Background(), &pb.ActiveSantriScheduleRequest{})
+	if err != nil {
 		return nil, exception.NewNotFoundError("no active schedule found for santri attendance")
 	}
 
 	CURRENT_TIME_PRESENCE := time.Now()
-	_, err := h.usecase.GetSantri(context.Background(), santriID)
+	_, err = h.usecase.GetSantri(context.Background(), santriID)
 	if err != nil {
 		h.logger.Errorf("Error getting santri: %v\n", err)
 	}
 
-	santriStartPresence, err := util.ParseTimeWithCurrentDate(h.schedule.ActiveScheduleSantri.StartPresence)
+	santriStartPresence, err := util.ParseHHMMWithCurrentDate(activeSchedule.StartPresence)
 	if err != nil {
 		h.logger.Errorf("Error parsing time: %v\n", err)
 		return nil, exception.NewParseTimeError("start presence", err)
 	}
-	santriStartTime, _ := util.ParseTimeWithCurrentDate(h.schedule.ActiveScheduleSantri.StartTime)
+	santriStartTime, _ := util.ParseHHMMWithCurrentDate(activeSchedule.StartTime)
 
 	arg := &model.CreateSantriPresenceRequest{
-		ScheduleID:   h.schedule.ActiveScheduleSantri.ID,
-		ScheduleName: h.schedule.ActiveScheduleSantri.Name,
+		ScheduleID:   activeSchedule.Id,
+		ScheduleName: activeSchedule.Name,
 		SantriID:     santriID,
 		CreatedBy:    repo.PresenceCreatedByTypeTap,
 	}

@@ -8,8 +8,8 @@ sqlc:
 proto:
 	protoc \
   --proto_path=./internal/constant/proto \
-  --go_out=paths=source_relative:./platform/protobuf \
-  --go-grpc_out=paths=source_relative:./platform/protobuf \
+  --go_out=paths=source_relative:./internal/protobuf \
+  --go-grpc_out=paths=source_relative:./internal/protobuf \
   ./internal/constant/proto/*.proto
 
 start_postgres:
@@ -37,6 +37,9 @@ db_schema:
 
 build_windows:
 	go build -o main.exe cmd/rest/main.go
+
+build_linux:
+	GOOS=linux GOARCH=amd64 go build -o main cmd/rest/main.go
 
 test:
 	go test -v ./... -cover
