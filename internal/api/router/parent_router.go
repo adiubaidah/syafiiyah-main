@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ParentRouter(middle middleware.Middleware, handler handler.ParentHandler) []routers.Route {
+func ParentRouter(middle middleware.Middleware, handler *handler.ParentHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method: http.MethodPost,

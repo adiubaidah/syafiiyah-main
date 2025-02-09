@@ -10,8 +10,8 @@ type CreateEmployeeRequest struct {
 	NIP          string          `form:"nip" binding:"required,numeric,len=18"`
 	Gender       repo.GenderType `form:"gender" binding:"required,oneof=male female"`
 	Photo        string          `form:"-"`
-	OccupationID int32           `form:"occupation_id"`
-	UserID       int32           `form:"user_id"`
+	OccupationID int32           `form:"occupation_id" binding:"required"`
+	UserID       int32           `form:"user_id" binding:"omitempty"`
 }
 
 type UpdateEmployeeRequest struct {
@@ -19,8 +19,8 @@ type UpdateEmployeeRequest struct {
 	NIP          string          `form:"nip" binding:"omitempty,numeric,len=18"`
 	Gender       repo.GenderType `form:"gender" binding:"omitempty,oneof=male female"`
 	Photo        string          `form:"-"`
-	OccupationID int32           `form:"occupation_id"`
-	UserID       int32           `form:"user_id"`
+	OccupationID int32           `form:"occupation_id" binding:"required"`
+	UserID       int32           `form:"user_id" binding:"omitempty"`
 }
 
 type ListEmployeeRequest struct {

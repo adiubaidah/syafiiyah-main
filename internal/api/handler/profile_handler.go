@@ -9,32 +9,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ProfileHandler interface {
-	GetProfile(c *gin.Context)
+type ProfileHandler struct {
+	Logger          *logrus.Logger
+	EmployeeUseCase *usecase.EmployeeUseCase
+	ParentUseCase   *usecase.ParentUseCase
 }
 
-type profileHandler struct {
-	logger          *logrus.Logger
-	employeeUseCase usecase.EmployeeUseCase
-	parentUseCase   usecase.ParentUseCase
+func NewProfileHandler(args *ProfileHandler) *ProfileHandler {
+	return args
 }
 
-func NewProfileHandler(logger *logrus.Logger, employeeUseCase usecase.EmployeeUseCase, parentUseCase usecase.ParentUseCase) ProfileHandler {
-	return &profileHandler{
-		logger:          logger,
-		employeeUseCase: employeeUseCase,
-		parentUseCase:   parentUseCase,
-	}
-}
-
-func (h *profileHandler) GetProfile(c *gin.Context) {
+func (h *ProfileHandler) GetProfile(c *gin.Context) {
 	userValue, _ := c.Get("user")
 	user, _ := userValue.(*model.User)
 
 	if user.Role == repo.RoleTypeParent {
-		parent, err := h.parentUseCase.GetParentByUserID(c, user.ID)
+		parent, err := h.ParentUseCase.GetByUserID(c, user.ID)
 		if err != nil {
-			h.logger.Error(err)
+			h.Logger.Error(err)
 			if appErr, ok := err.(*exception.AppError); ok {
 				c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
 				return
@@ -43,9 +35,9 @@ func (h *profileHandler) GetProfile(c *gin.Context) {
 		}
 		c.JSON(200, model.ResponseData[*model.ParentResponse]{Code: 200, Status: "success", Data: parent})
 	} else {
-		employee, err := h.employeeUseCase.GetEmployeeByUserID(c, user.ID)
+		employee, err := h.EmployeeUseCase.GetByUserID(c, user.ID)
 		if err != nil {
-			h.logger.Error(err)
+			h.Logger.Error(err)
 			if appErr, ok := err.(*exception.AppError); ok {
 				c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
 				return

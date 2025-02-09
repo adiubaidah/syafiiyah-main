@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ProfileRouter(middle middleware.Middleware, handler handler.ProfileHandler) []routers.Route {
+func ProfileRouter(middle middleware.Middleware, handler *handler.ProfileHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method: http.MethodGet,

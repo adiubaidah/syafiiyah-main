@@ -61,7 +61,7 @@ SET
 WHERE
     "id" = @id RETURNING *;
 
--- name: GetEmployee :one
+-- name: GetEmployeeByID :one
 SELECT
     "employee".*,
     "user"."id" AS "userId",
@@ -72,7 +72,7 @@ FROM
 WHERE
     "employee"."id" = @id;
 
--- name: GetEmployeeByUserId :one
+-- name: GetEmployeeByUserID :one
 SELECT
     "employee".*
 FROM

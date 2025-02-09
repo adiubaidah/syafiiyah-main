@@ -16,7 +16,7 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/mqtt"
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
-	"github.com/adiubaidah/rfid-syafiiyah/platform/storage"
+	storage "github.com/adiubaidah/rfid-syafiiyah/platform/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
@@ -98,19 +98,31 @@ func Init() {
 	sessionUseCase := usecase.NewSessionUseCase(redisClient)
 
 	middle := middleware.NewMiddleware(logger, tokenMaker)
+
 	userUseCase := usecase.NewUserUseCase(store)
-	userHandler := handler.NewUserHandler(logger, userUseCase)
+	userHandler := handler.NewUserHandler(&handler.UserHandler{
+		Logger:  logger,
+		UseCase: userUseCase,
+	})
 	useRouter := router.UserRouter(userHandler)
 
-	authHandler := handler.NewAuthHandler(userUseCase, sessionUseCase, &env, logger, tokenMaker)
+	authHandler := handler.NewAuthHandler(&handler.AuthHandler{
+		Config:         &env,
+		UserUseCase:    userUseCase,
+		SessionUseCase: sessionUseCase,
+		Logger:         logger,
+		TokenMaker:     tokenMaker,
+	})
 	authRouter := router.AuthRouter(middle, authHandler)
 
-	holidayUseCase := usecase.NewHolidayUseCase(store)
-	holidayHandler := handler.NewHolidayHandler(logger, holidayUseCase)
-	holidayRouter := router.HolidayRouter(middle, holidayHandler)
-
 	parentUseCase := usecase.NewParentUseCase(store)
-	parentHandler := handler.NewParentHandler(logger, &env, storageManager, parentUseCase, userUseCase)
+	parentHandler := handler.NewParentHandler(&handler.ParentHandler{
+		Config:      &env,
+		Logger:      logger,
+		Storage:     storageManager,
+		UseCase:     parentUseCase,
+		UserUseCase: userUseCase,
+	})
 	parentRouter := router.ParentRouter(middle, parentHandler)
 
 	santriScheduleService := pb.NewSantriScheduleServiceClient(scheduleServiceConn)
@@ -129,13 +141,26 @@ func Init() {
 	santriPresenceHandler := handler.NewSantriPresenceHandler(logger, santriPresenceUseCase)
 	santriPresenceRouter := router.SantriPresenceRouter(santriPresenceHandler)
 
+	// employeeScheduleService := pb.NewEmployeeScheduleServiceClient(scheduleServiceConn)
+	// employeeScheduleHandler := handler.NewEmployee(logger, employeeScheduleService)
+
 	employeeOccupationUseCase := usecase.NewEmployeeOccupationUseCase(store)
 	employeeOccupationHandler := handler.NewEmployeeOccupationHandler(logger, employeeOccupationUseCase)
 	employeeOccupationRouter := router.EmployeeOccupationRouter(middle, employeeOccupationHandler)
 
 	employeeUseCase := usecase.NewEmployeeUseCase(store)
+	employeeHandler := handler.NewEmployeeHandler(&handler.EmployeeHandler{
+		Logger:  logger,
+		Storage: storageManager,
+		UseCase: employeeUseCase,
+	})
+	employeeRouter := router.EmployeeRouter(middle, employeeHandler)
 
-	profileHandler := handler.NewProfileHandler(logger, employeeUseCase, parentUseCase)
+	profileHandler := handler.NewProfileHandler(&handler.ProfileHandler{
+		Logger:          logger,
+		EmployeeUseCase: employeeUseCase,
+		ParentUseCase:   parentUseCase,
+	})
 	profileRouter := router.ProfileRouter(middle, profileHandler)
 
 	smartCardUseCase := usecase.NewSmartCardUseCase(store)
@@ -146,6 +171,7 @@ func Init() {
 	// santriPresenceWorker := worker.NewSantriPresenceWorker(logger, santriPresenceUseCase)
 
 	mqttSantriHandler := mqttHandler.NewSantriMQTTHandler(logger, santriUseCase, santriScheduleService, santriPresenceUseCase)
+	// mqttEmployeeHandler := mqttHandler.NewEmployeeMQTTHandler(logger, employeeUseCase, santriScheduleService, santriPresenceUseCase)
 	mqttBroker := mqtt.NewMQTTBroker(&mqtt.MQTTBrokerConfig{
 		Logger:           logger,
 		DeviceUseCase:    deviceUseCase,
@@ -153,19 +179,24 @@ func Init() {
 		BrokerURL:        env.MQTTBroker,
 		SantriHandler:    mqttSantriHandler,
 	})
-	deviceHandler := handler.NewDeviceHandler(logger, deviceUseCase, mqttBroker)
+	deviceHandler := handler.NewDeviceHandler(&handler.DeviceHandler{
+		Logger:      logger,
+		UseCase:     deviceUseCase,
+		MqttHandler: mqttBroker,
+	})
 	deviceRouter := router.DeviceRouter(deviceHandler)
 
 	var routerList []routers.Route
 	routerList = append(routerList, authRouter...)
 	routerList = append(routerList, useRouter...)
-	routerList = append(routerList, holidayRouter...)
 	routerList = append(routerList, parentRouter...)
 	routerList = append(routerList, santriScheduleRouter...)
 	routerList = append(routerList, santriOccupationRouter...)
 	routerList = append(routerList, santriRouter...)
 	routerList = append(routerList, santriPresenceRouter...)
+
 	routerList = append(routerList, employeeOccupationRouter...)
+	routerList = append(routerList, employeeRouter...)
 
 	routerList = append(routerList, profileRouter...)
 	routerList = append(routerList, smartCardRouter...)

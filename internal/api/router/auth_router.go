@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthRouter(middle middleware.Middleware, handler handler.AuthHandler) []routers.Route {
+func AuthRouter(middle middleware.Middleware, handler *handler.AuthHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,

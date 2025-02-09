@@ -10,25 +10,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type ParentUseCase interface {
-	CreateParent(ctx context.Context, request *model.CreateParentRequest) (*model.ParentResponse, error)
-	ListParents(ctx context.Context, request *model.ListParentRequest) (*[]model.ParentCompleteResponse, error)
-	GetParent(ctx context.Context, parentId int32) (*model.ParentResponse, error)
-	GetParentByUserID(ctx context.Context, userId int32) (*model.ParentResponse, error)
-	CountParents(ctx context.Context, request *model.ListParentRequest) (int64, error)
-	UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (*model.ParentResponse, error)
-	DeleteParent(ctx context.Context, parentId int32) (*model.ParentResponse, error)
-}
-
-type parentService struct {
+type ParentUseCase struct {
 	store repo.Store
 }
 
-func NewParentUseCase(store repo.Store) ParentUseCase {
-	return &parentService{store: store}
+func NewParentUseCase(store repo.Store) *ParentUseCase {
+	return &ParentUseCase{store: store}
 }
 
-func (c *parentService) CreateParent(ctx context.Context, request *model.CreateParentRequest) (*model.ParentResponse, error) {
+func (c *ParentUseCase) Create(ctx context.Context, request *model.CreateParentRequest) (*model.ParentResponse, error) {
 	arg := repo.CreateParentParams{
 		Name:           request.Name,
 		Address:        request.Address,
@@ -53,7 +43,7 @@ func (c *parentService) CreateParent(ctx context.Context, request *model.CreateP
 	}, nil
 }
 
-func (c *parentService) ListParents(ctx context.Context, request *model.ListParentRequest) (*[]model.ParentCompleteResponse, error) {
+func (c *ParentUseCase) List(ctx context.Context, request *model.ListParentRequest) (*[]model.ParentCompleteResponse, error) {
 	arg := repo.ListParentParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasUser:      pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != 0},
@@ -87,7 +77,7 @@ func (c *parentService) ListParents(ctx context.Context, request *model.ListPare
 	return &result, nil
 }
 
-func (c *parentService) CountParents(ctx context.Context, request *model.ListParentRequest) (int64, error) {
+func (c *ParentUseCase) Count(ctx context.Context, request *model.ListParentRequest) (int64, error) {
 	arg := repo.CountParentsParams{
 		Q:       pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasUser: pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != -1},
@@ -100,7 +90,7 @@ func (c *parentService) CountParents(ctx context.Context, request *model.ListPar
 	return count, nil
 }
 
-func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (*model.ParentResponse, error) {
+func (c *ParentUseCase) Update(ctx context.Context, request *model.UpdateParentRequest, parentId int32) (*model.ParentResponse, error) {
 	arg := repo.UpdateParentParams{
 		ID:             parentId,
 		Name:           pgtype.Text{String: request.Name, Valid: request.Name != ""},
@@ -129,7 +119,7 @@ func (c *parentService) UpdateParent(ctx context.Context, request *model.UpdateP
 	}, nil
 }
 
-func (c *parentService) GetParent(ctx context.Context, parentId int32) (*model.ParentResponse, error) {
+func (c *ParentUseCase) GetByID(ctx context.Context, parentId int32) (*model.ParentResponse, error) {
 	parent, err := c.store.GetParent(ctx, parentId)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
@@ -148,7 +138,7 @@ func (c *parentService) GetParent(ctx context.Context, parentId int32) (*model.P
 	}, nil
 }
 
-func (c *parentService) GetParentByUserID(ctx context.Context, userID int32) (*model.ParentResponse, error) {
+func (c *ParentUseCase) GetByUserID(ctx context.Context, userID int32) (*model.ParentResponse, error) {
 	parent, err := c.store.GetParentByUserId(ctx, pgtype.Int4{Int32: userID, Valid: true})
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
@@ -167,7 +157,7 @@ func (c *parentService) GetParentByUserID(ctx context.Context, userID int32) (*m
 	}, nil
 }
 
-func (c *parentService) DeleteParent(ctx context.Context, parentId int32) (*model.ParentResponse, error) {
+func (c *ParentUseCase) Delete(ctx context.Context, parentId int32) (*model.ParentResponse, error) {
 	parent, err := c.store.DeleteParent(ctx, parentId)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {

@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.27.0
 
-package persistence
+package repository
 
 import (
 	"database/sql/driver"
@@ -529,24 +529,24 @@ type EmployeeOccupation struct {
 }
 
 type EmployeePermission struct {
-	ID              int32       `db:"id"`
-	EmployeeID      int32       `db:"employee_id"`
-	ScheduleID      int32       `db:"schedule_id"`
-	ScheduleName    string      `db:"schedule_name"`
-	StartPermission pgtype.Time `db:"start_permission"`
-	// waktu kembali, null berarti pulang
-	EndPermission pgtype.Time `db:"end_permission"`
-	Reason        string      `db:"reason"`
-	// Pulang, keluar sementara
-	IsGoHome pgtype.Bool `db:"is_go_home"`
+	ID              int32                `db:"id"`
+	EmployeeID      int32                `db:"employee_id"`
+	Type            SantriPermissionType `db:"type"`
+	StartPermission pgtype.Timestamptz   `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
+	Excuse          string               `db:"excuse"`
 }
 
 type EmployeePresence struct {
-	ID         pgtype.Int4  `db:"id"`
-	ScheduleID pgtype.Int4  `db:"schedule_id"`
-	Type       PresenceType `db:"type"`
-	EmployeeID int32        `db:"employee_id"`
-	Notes      pgtype.Text  `db:"notes"`
+	ID                   int32                 `db:"id"`
+	ScheduleID           int32                 `db:"schedule_id"`
+	ScheduleName         string                `db:"schedule_name"`
+	Type                 PresenceType          `db:"type"`
+	EmployeeID           int32                 `db:"employee_id"`
+	CreatedAt            pgtype.Timestamptz    `db:"created_at"`
+	CreatedBy            PresenceCreatedByType `db:"created_by"`
+	Notes                pgtype.Text           `db:"notes"`
+	EmployeePermissionID pgtype.Int4           `db:"employee_permission_id"`
 }
 
 type EmployeeSchedule struct {
@@ -653,6 +653,7 @@ type SmartCard struct {
 type User struct {
 	ID       int32        `db:"id"`
 	Role     NullRoleType `db:"role"`
+	Email    pgtype.Text  `db:"email"`
 	Username pgtype.Text  `db:"username"`
 	Password pgtype.Text  `db:"password"`
 }

@@ -1,4 +1,4 @@
-package persistence
+package repository
 
 import (
 	"context"
@@ -20,6 +20,7 @@ func createRandomUser(t *testing.T, role RoleType) User {
 	require.NoError(t, err)
 	arg := CreateUserParams{
 		Username: random.RandomString(8),
+		Email:    random.RandomEmail(),
 		Role:     role,
 		Password: hashedPassword,
 	}
@@ -28,6 +29,7 @@ func createRandomUser(t *testing.T, role RoleType) User {
 	require.NotEmpty(t, user)
 
 	require.Equal(t, arg.Username, user.Username.String)
+	require.Equal(t, arg.Email, user.Email.String)
 	require.Equal(t, arg.Role, user.Role.RoleType)
 
 	return user

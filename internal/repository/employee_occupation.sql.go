@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: employee_occupation.sql
 
-package persistence
+package repository
 
 import (
 	"context"

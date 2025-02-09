@@ -10,47 +10,36 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type DeviceHandler interface {
-	CreateDeviceHandler(c *gin.Context)
-	ListDevicesHandler(c *gin.Context)
-	UpdateDeviceHandler(c *gin.Context)
-	DeleteDeviceHandler(c *gin.Context)
+type DeviceHandler struct {
+	Logger      *logrus.Logger
+	UseCase     *usecase.DeviceUseCase
+	MqttHandler *mqtt.MQTTBroker
 }
 
-type deviceHandler struct {
-	logger      *logrus.Logger
-	usecase     usecase.DeviceUseCase
-	mqttHandler *mqtt.MQTTBroker
+func NewDeviceHandler(args *DeviceHandler) *DeviceHandler {
+	return args
 }
 
-func NewDeviceHandler(logger *logrus.Logger, usecase usecase.DeviceUseCase, mqttHandler *mqtt.MQTTBroker) DeviceHandler {
-	return &deviceHandler{
-		logger:      logger,
-		usecase:     usecase,
-		mqttHandler: mqttHandler,
-	}
-}
-
-func (h *deviceHandler) CreateDeviceHandler(c *gin.Context) {
+func (h *DeviceHandler) CreateDeviceHandler(c *gin.Context) {
 	var request model.CreateDeviceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	device, err := h.usecase.CreateDevice(c, &request)
+	device, err := h.UseCase.CreateDevice(c, &request)
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	h.mqttHandler.RefreshTopics()
+	h.MqttHandler.RefreshTopics()
 
 	c.JSON(200, model.ResponseData[*model.DeviceResponse]{Code: 200, Status: "success", Data: device})
 }
 
-func (h *deviceHandler) ListDevicesHandler(c *gin.Context) {
-	result, err := h.usecase.ListDevices(c)
+func (h *DeviceHandler) ListDevicesHandler(c *gin.Context) {
+	result, err := h.UseCase.ListDevices(c)
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
@@ -59,7 +48,7 @@ func (h *deviceHandler) ListDevicesHandler(c *gin.Context) {
 	c.JSON(200, model.ResponseData[*[]model.DeviceWithModesResponse]{Code: 200, Status: "success", Data: result})
 }
 
-func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {
+func (h *DeviceHandler) UpdateDeviceHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	arduinoId, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -73,31 +62,31 @@ func (h *deviceHandler) UpdateDeviceHandler(c *gin.Context) {
 		return
 	}
 
-	device, err := h.usecase.UpdateDevice(c, &request, int32(arduinoId))
+	device, err := h.UseCase.UpdateDevice(c, &request, int32(arduinoId))
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	h.mqttHandler.RefreshTopics()
+	h.MqttHandler.RefreshTopics()
 
 	c.JSON(200, model.ResponseData[*model.DeviceResponse]{Code: 200, Status: "success", Data: device})
 }
 
-func (h *deviceHandler) DeleteDeviceHandler(c *gin.Context) {
+func (h *DeviceHandler) DeleteDeviceHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	arduinoId, err := strconv.Atoi(idParam)
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
-	device, err := h.usecase.DeleteDevice(c, int32(arduinoId))
+	device, err := h.UseCase.DeleteDevice(c, int32(arduinoId))
 	if err != nil {
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	h.mqttHandler.RefreshTopics()
+	h.MqttHandler.RefreshTopics()
 
 	c.JSON(200, model.ResponseData[*model.DeviceResponse]{Code: 200, Status: "success", Data: device})
 }

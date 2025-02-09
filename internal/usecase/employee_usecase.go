@@ -8,26 +8,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type EmployeeUseCase interface {
-	CreateEmployee(ctx context.Context, request *model.CreateEmployeeRequest) (*model.Employee, error)
-	ListEmployees(ctx context.Context, request *model.ListEmployeeRequest) (*[]model.EmployeeComplete, error)
-	GetEmployeeByUserID(ctx context.Context, userId int32) (*model.Employee, error)
-	CountEmployees(ctx context.Context, request *model.ListEmployeeRequest) (int64, error)
-	UpdateEmployee(ctx context.Context, request *model.UpdateEmployeeRequest, employeeId int32) (*model.Employee, error)
-	DeleteEmployee(ctx context.Context, employeeId int32) (*model.Employee, error)
-}
-
-type employeeService struct {
+type EmployeeUseCase struct {
 	store repo.Store
 }
 
-func NewEmployeeUseCase(store repo.Store) EmployeeUseCase {
-	return &employeeService{
+func NewEmployeeUseCase(store repo.Store) *EmployeeUseCase {
+	return &EmployeeUseCase{
 		store: store,
 	}
 }
 
-func (s *employeeService) CreateEmployee(ctx context.Context, request *model.CreateEmployeeRequest) (*model.Employee, error) {
+func (s *EmployeeUseCase) Create(ctx context.Context, request *model.CreateEmployeeRequest) (*model.Employee, error) {
 	result, err := s.store.CreateEmployee(ctx, repo.CreateEmployeeParams{
 		Nip:          pgtype.Text{String: request.NIP, Valid: request.NIP != ""},
 		Name:         request.Name,
@@ -52,7 +43,7 @@ func (s *employeeService) CreateEmployee(ctx context.Context, request *model.Cre
 	}, nil
 }
 
-func (s *employeeService) ListEmployees(ctx context.Context, request *model.ListEmployeeRequest) (*[]model.EmployeeComplete, error) {
+func (s *EmployeeUseCase) List(ctx context.Context, request *model.ListEmployeeRequest) (*[]model.EmployeeComplete, error) {
 	employees, err := s.store.ListEmployees(ctx, repo.ListEmployeesParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
@@ -86,8 +77,8 @@ func (s *employeeService) ListEmployees(ctx context.Context, request *model.List
 
 }
 
-func (s *employeeService) GetEmployeeByUserID(ctx context.Context, userId int32) (*model.Employee, error) {
-	employee, err := s.store.GetEmployeeByUserId(ctx, pgtype.Int4{Int32: userId, Valid: true})
+func (s *EmployeeUseCase) GetByID(ctx context.Context, employeeId int32) (*model.Employee, error) {
+	employee, err := s.store.GetEmployeeByID(ctx, employeeId)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +90,20 @@ func (s *employeeService) GetEmployeeByUserID(ctx context.Context, userId int32)
 	}, nil
 }
 
-func (s *employeeService) CountEmployees(ctx context.Context, request *model.ListEmployeeRequest) (int64, error) {
+func (s *EmployeeUseCase) GetByUserID(ctx context.Context, userId int32) (*model.Employee, error) {
+	employee, err := s.store.GetEmployeeByUserID(ctx, pgtype.Int4{Int32: userId, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Employee{
+		ID:   employee.ID,
+		Name: employee.Name,
+		NIP:  employee.Nip.String,
+	}, nil
+}
+
+func (s *EmployeeUseCase) Count(ctx context.Context, request *model.ListEmployeeRequest) (int64, error) {
 	count, err := s.store.CountEmployees(ctx, repo.CountEmployeesParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
@@ -112,7 +116,7 @@ func (s *employeeService) CountEmployees(ctx context.Context, request *model.Lis
 	return count, nil
 }
 
-func (s *employeeService) UpdateEmployee(ctx context.Context, request *model.UpdateEmployeeRequest, employeeId int32) (*model.Employee, error) {
+func (s *EmployeeUseCase) Update(ctx context.Context, request *model.UpdateEmployeeRequest, employeeId int32) (*model.Employee, error) {
 	result, err := s.store.UpdateEmployee(ctx, repo.UpdateEmployeeParams{
 		ID:           employeeId,
 		Nip:          pgtype.Text{String: request.NIP, Valid: true}, // Nip can be null
@@ -137,7 +141,7 @@ func (s *employeeService) UpdateEmployee(ctx context.Context, request *model.Upd
 	}, nil
 }
 
-func (s *employeeService) DeleteEmployee(ctx context.Context, employeeId int32) (*model.Employee, error) {
+func (s *EmployeeUseCase) Delete(ctx context.Context, employeeId int32) (*model.Employee, error) {
 	result, err := s.store.DeleteEmployee(ctx, employeeId)
 	if err != nil {
 		return nil, err

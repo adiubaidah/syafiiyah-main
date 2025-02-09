@@ -10,7 +10,7 @@ import (
 )
 
 func (h *MQTTBroker) handleRecord(acknowledgmentTopic string, request *model.SmartCardRequest) {
-	recordedSmartCard, err := h.smartCardUseCase.CreateSmartCard(context.Background(), request)
+	recordedSmartCard, err := h.smartCardUseCase.Create(context.Background(), request)
 	if err != nil {
 		h.logger.Errorf("Error creating smart card: %v\n", err)
 	}
@@ -55,7 +55,7 @@ func (h *MQTTBroker) handleRecord(acknowledgmentTopic string, request *model.Sma
 
 func (h *MQTTBroker) handlePresence(acknowledgmentTopic string, request *model.SmartCardRequest) {
 
-	getSmartCard, err := h.smartCardUseCase.GetSmartCard(context.Background(), &model.SmartCardRequest{Uid: request.Uid})
+	getSmartCard, err := h.smartCardUseCase.Get(context.Background(), &model.SmartCardRequest{Uid: request.Uid})
 	var response any
 	if err != nil {
 		h.logger.Errorf("Error getting smart card: %v\n", err)

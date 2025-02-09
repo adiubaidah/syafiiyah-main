@@ -2426,8 +2426,12 @@ components:
       properties:
         role:
           type: string
+        email:
+          type: string
+          uniqueItems: true
         username:
           type: string
+          nullable: false
           uniqueItems: true
     NewUserWithPassword:
       allOf:

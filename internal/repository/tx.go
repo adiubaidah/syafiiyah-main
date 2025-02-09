@@ -1,4 +1,4 @@
-package persistence
+package repository
 
 import (
 	"context"
@@ -60,57 +60,4 @@ func (store *SQLStore) UpdateDeviceWithModes(ctx context.Context, deviceID int32
 
 	})
 	return updatedArduino, err
-}
-
-func (store *SQLStore) CreateHolidayWithDates(ctx context.Context, arg CreateHolidayParams, argsCreateDates []CreateHolidayDatesParams) (Holiday, error) {
-	var createdHoliday Holiday
-
-	err := store.ExecTx(ctx, func(q *Queries) error {
-		var err error
-
-		holiday, err := q.CreateHoliday(ctx, arg)
-		if err != nil {
-			return err
-		}
-		createdHoliday = holiday
-		var args []CreateHolidayDatesParams
-		for _, arg := range argsCreateDates {
-			arg.HolidayID = holiday.ID
-			args = append(args, arg)
-
-		}
-		_, err = q.CreateHolidayDates(ctx, args)
-
-		return err
-	})
-	return createdHoliday, err
-}
-func (store *SQLStore) UpdateHolidayWithDates(ctx context.Context, holidayId int32, arg UpdateHolidayParams, argsCreateDates []CreateHolidayDatesParams) (Holiday, error) {
-	var updateHoliday Holiday
-
-	err := store.ExecTx(ctx, func(q *Queries) error {
-		var err error
-
-		holiday, err := q.UpdateHoliday(ctx, arg)
-		if err != nil {
-			return err
-		}
-		updateHoliday = holiday
-
-		err = q.DeleteHolidayDateByHolidayId(ctx, holidayId)
-		if err != nil {
-			return err
-		}
-
-		var args []CreateHolidayDatesParams
-		for _, arg := range argsCreateDates {
-			arg.HolidayID = holiday.ID
-			args = append(args, arg)
-
-		}
-		_, err = q.CreateHolidayDates(ctx, args)
-
-		return err
-	})
-	return updateHoliday, err
 }

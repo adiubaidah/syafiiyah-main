@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: holiday_date.sql
 
-package persistence
+package repository
 
 import (
 	"context"

@@ -11,24 +11,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type UserUseCase interface {
-	CreateUser(ctx context.Context, request *model.CreateUserRequest) (*model.User, error)
-	ListUsers(ctx context.Context, request *model.ListUserRequest) (*[]model.UserComplete, error)
-	GetUser(ctx context.Context, userId int32, username string) (*model.UserWithPassword, error)
-	CountUsers(ctx context.Context, request *model.ListUserRequest) (int64, error)
-	UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (*model.User, error)
-	DeleteUser(ctx context.Context, userId int32) (*model.User, error)
-}
-
-type userService struct {
+type UserUseCase struct {
 	store repo.Store
 }
 
-func NewUserUseCase(store repo.Store) UserUseCase {
-	return &userService{store: store}
+func NewUserUseCase(store repo.Store) *UserUseCase {
+	return &UserUseCase{store: store}
 }
 
-func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserRequest) (*model.User, error) {
+func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserRequest) (*model.User, error) {
 	hashedPassword, err := util.HashPassword(request.Password)
 
 	if err != nil {
@@ -52,7 +43,7 @@ func (c *userService) CreateUser(ctx context.Context, request *model.CreateUserR
 
 }
 
-func (c *userService) ListUsers(ctx context.Context, request *model.ListUserRequest) (*[]model.UserComplete, error) {
+func (c *UserUseCase) List(ctx context.Context, request *model.ListUserRequest) (*[]model.UserComplete, error) {
 
 	arg := repo.ListUserParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
@@ -86,11 +77,42 @@ func (c *userService) ListUsers(ctx context.Context, request *model.ListUserRequ
 	return &userComplete, nil
 }
 
-func (c *userService) GetUser(ctx context.Context, userId int32, username string) (*model.UserWithPassword, error) {
-	user, err := c.store.GetUser(ctx, repo.GetUserParams{
-		Username: pgtype.Text{String: username, Valid: username != ""},
-		ID:       pgtype.Int4{Int32: userId, Valid: userId != 0},
-	})
+func (c *UserUseCase) GetByID(ctx context.Context, userId int32) (*model.UserWithPassword, error) {
+	user, err := c.store.GetUserById(ctx, pgtype.Int4{Int32: userId, Valid: userId != 0})
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return nil, exception.NewNotFoundError("User not found")
+		}
+
+		return nil, err
+	}
+
+	return &model.UserWithPassword{
+		ID:       user.ID,
+		Username: user.Username.String,
+		Role:     user.Role.RoleType,
+		Password: user.Password.String,
+	}, nil
+}
+func (c *UserUseCase) GetByUsername(ctx context.Context, username string) (*model.UserWithPassword, error) {
+	user, err := c.store.GetUserByUsername(ctx, pgtype.Text{String: username, Valid: username != ""})
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			return nil, exception.NewNotFoundError("User not found")
+		}
+
+		return nil, err
+	}
+
+	return &model.UserWithPassword{
+		ID:       user.ID,
+		Username: user.Username.String,
+		Role:     user.Role.RoleType,
+		Password: user.Password.String,
+	}, nil
+}
+func (c *UserUseCase) GetByEmail(ctx context.Context, email string) (*model.UserWithPassword, error) {
+	user, err := c.store.GetUserByEmail(ctx, pgtype.Text{String: email, Valid: email != ""})
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
 			return nil, exception.NewNotFoundError("User not found")
@@ -107,7 +129,7 @@ func (c *userService) GetUser(ctx context.Context, userId int32, username string
 	}, nil
 }
 
-func (c *userService) CountUsers(ctx context.Context, request *model.ListUserRequest) (int64, error) {
+func (c *UserUseCase) Count(ctx context.Context, request *model.ListUserRequest) (int64, error) {
 	count, err := c.store.CountUsers(ctx, repo.CountUsersParams{
 		Q:        pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		HasOwner: pgtype.Bool{Bool: request.HasOwner == 1, Valid: request.HasOwner != -1},
@@ -120,7 +142,7 @@ func (c *userService) CountUsers(ctx context.Context, request *model.ListUserReq
 	return count, nil
 }
 
-func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserRequest, userId int32) (*model.User, error) {
+func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserRequest, userId int32) (*model.User, error) {
 
 	var newPassword string
 	if request.Password != "" {
@@ -151,7 +173,7 @@ func (c *userService) UpdateUser(ctx context.Context, request *model.UpdateUserR
 	}, nil
 }
 
-func (c *userService) DeleteUser(ctx context.Context, userId int32) (*model.User, error) {
+func (c *UserUseCase) Delete(ctx context.Context, userId int32) (*model.User, error) {
 	userDeleted, err := c.store.DeleteUser(ctx, userId)
 	if err != nil {
 

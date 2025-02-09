@@ -8,18 +8,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UserRouter(handler handler.UserHandler) []routers.Route {
+func UserRouter(handler *handler.UserHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,
 			Path:        "/user",
-			Handle:      handler.CreateUserHandler,
+			Handle:      handler.Create,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodGet,
 			Path:        "/user",
-			Handle:      handler.ListUserHandler,
+			Handle:      handler.List,
 			MiddleWares: []gin.HandlerFunc{},
 		},
 		{

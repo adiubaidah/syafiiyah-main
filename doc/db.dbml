@@ -17,6 +17,7 @@ enum role_type {
 Table user {
   id int [primary key, increment]
   role role_type
+  email varchar(255) [unique]
   username varchar(50) [unique]
   password varchar(255)
 
@@ -126,7 +127,7 @@ Table santri_presence {
 Ref: santri_presence.santri_id > santri.id [delete: cascade]
 Ref: santri_presence.santri_permission_id > santri_permission.id [delete: cascade]
 
-enum santri_permission_type {
+enum permission_type {
   "sick"
   "permission"
 }
@@ -134,7 +135,7 @@ enum santri_permission_type {
 Table santri_permission {
   id int [primary key, increment]
   santri_id int [ref: > santri.id, not null]
-  type santri_permission_type [not null]
+  type permission_type [not null]
   start_permission timestamptz [not null, default: 'now()']
   end_permission timestamptz [null, note: "Waktu berakhir, jika pulang, maka setting end permissionnya di akhir waktu berakhirnya schedule yang terakhir"]
   excuse varchar(255) [not null]
@@ -180,25 +181,26 @@ Table employee_schedule {
 }
 
 Table employee_presence {
-  id int [increment]
-  schedule_id int [null]
+  id int [primary key,increment]
+  schedule_id int [not null]
+  schedule_name varchar(100) [not null]
   type presence_type [not null]
-  employee_id int [not null]
-  notes text
+  employee_id int [not null] 
+  created_at timestamptz [not null, default: `now()`]
+  created_by presence_created_by_type [not null]
+  notes text [null]
+  employee_permission_id int [null]
 }
 Ref: employee_presence.employee_id > employee.id [delete: cascade]
 
 Table employee_permission {
   id int [primary key, increment]
   employee_id int [not null]
-  schedule_id int [not null]
-  schedule_name varchar(100) [not null]
-  start_permission time [not null, default: 'now()']
-  end_permission time [null, note: "waktu kembali, null berarti pulang"]
-  reason varchar(255) [not null]
-  is_go_home boolean [null, note: "Pulang, keluar sementara"]
+  type permission_type [not null]
+  start_permission timestamptz [not null, default: 'now()']
+  end_permission timestamptz [null]
+  excuse varchar(255) [not null]
 }
-
 Ref: employee_permission.employee_id > employee.id [delete: cascade]
 
 Table device {

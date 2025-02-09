@@ -10,37 +10,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type UserHandler interface {
-	CreateUserHandler(c *gin.Context)
-	ListUserHandler(c *gin.Context)
-	GetUserHandler(c *gin.Context)
-	UpdateUserHandler(c *gin.Context)
-	DeleteUserHandler(c *gin.Context)
+type UserHandler struct {
+	Logger  *logrus.Logger
+	UseCase *usecase.UserUseCase
 }
 
-type userHandler struct {
-	logger  *logrus.Logger
-	usecase usecase.UserUseCase
+func NewUserHandler(args *UserHandler) *UserHandler {
+	return args
 }
 
-func NewUserHandler(logger *logrus.Logger, usecase usecase.UserUseCase) UserHandler {
-	return &userHandler{
-		logger:  logger,
-		usecase: usecase,
-	}
-}
-
-func (h *userHandler) CreateUserHandler(c *gin.Context) {
+func (h *UserHandler) Create(c *gin.Context) {
 	var userRequest model.CreateUserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	userResponse, err := h.usecase.CreateUser(c, &userRequest)
+	userResponse, err := h.UseCase.Create(c, &userRequest)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -48,10 +37,10 @@ func (h *userHandler) CreateUserHandler(c *gin.Context) {
 	c.JSON(201, userResponse)
 }
 
-func (h *userHandler) ListUserHandler(c *gin.Context) {
+func (h *UserHandler) List(c *gin.Context) {
 	var listUserRequest model.ListUserRequest
 	if err := c.ShouldBindQuery(&listUserRequest); err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
@@ -63,9 +52,9 @@ func (h *userHandler) ListUserHandler(c *gin.Context) {
 		listUserRequest.Page = 1
 	}
 
-	result, err := h.usecase.ListUsers(c, &listUserRequest)
+	result, err := h.UseCase.List(c, &listUserRequest)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		if appErr, ok := err.(*exception.AppError); ok {
 			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
 			return
@@ -74,9 +63,9 @@ func (h *userHandler) ListUserHandler(c *gin.Context) {
 		return
 	}
 
-	count, err := h.usecase.CountUsers(c, &listUserRequest)
+	count, err := h.UseCase.Count(c, &listUserRequest)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -98,18 +87,18 @@ func (h *userHandler) ListUserHandler(c *gin.Context) {
 	})
 }
 
-func (h *userHandler) GetUserHandler(c *gin.Context) {
+func (h *UserHandler) GetUserHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	userId, err := strconv.Atoi(idParam)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 
-	result, err := h.usecase.GetUser(c, int32(userId), "")
+	result, err := h.UseCase.GetByID(c, int32(userId))
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 
 		if appErr, ok := err.(*exception.AppError); ok {
 			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
@@ -127,25 +116,25 @@ func (h *userHandler) GetUserHandler(c *gin.Context) {
 	}})
 }
 
-func (h *userHandler) UpdateUserHandler(c *gin.Context) {
+func (h *UserHandler) UpdateUserHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	userId, err := strconv.Atoi(idParam)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 
 	var userRequest model.UpdateUserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
-	result, err := h.usecase.UpdateUser(c, &userRequest, int32(userId))
+	result, err := h.UseCase.Update(c, &userRequest, int32(userId))
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -153,18 +142,18 @@ func (h *userHandler) UpdateUserHandler(c *gin.Context) {
 	c.JSON(200, model.ResponseData[*model.User]{Code: 200, Status: "success", Data: result})
 }
 
-func (h *userHandler) DeleteUserHandler(c *gin.Context) {
+func (h *UserHandler) DeleteUserHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	userId, err := strconv.Atoi(idParam)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 
-	deletedUser, err := h.usecase.DeleteUser(c, int32(userId))
+	deletedUser, err := h.UseCase.Delete(c, int32(userId))
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 
 		if appErr, ok := err.(*exception.AppError); ok {
 			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})

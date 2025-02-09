@@ -15,7 +15,7 @@ proto:
 start_postgres:
 	docker container start postgres
 postgres:
-	docker exec -it postgres psql -U postgres -d as_syafiiyah
+	docker exec -it postgresql psql -U postgres -d as_syafiiyah
 
 redis:
 	docker exec -it redis redis-cli
@@ -41,5 +41,7 @@ build_windows:
 build_linux:
 	GOOS=linux GOARCH=amd64 go build -o main cmd/rest/main.go
 
+mock:
+	docker run --rm -v "%cd%:/src" -w /src vektra/mockery
 test:
 	go test -v ./... -cover

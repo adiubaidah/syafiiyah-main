@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: user.sql
 
-package persistence
+package repository
 
 import (
 	"context"
@@ -59,27 +59,35 @@ func (q *Queries) CountUsers(ctx context.Context, arg CountUsersParams) (int64, 
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO
-    "user" ("role", "username", "password")
+    "user" ("role","email", "username", "password")
 VALUES
     (
         $1 :: role_type,
         $2 :: text,
-        $3 :: text
-    ) RETURNING id, role, username, password
+        $3 :: text,
+        $4 :: text
+    ) RETURNING id, role, email, username, password
 `
 
 type CreateUserParams struct {
 	Role     RoleType `db:"role"`
+	Email    string   `db:"email"`
 	Username string   `db:"username"`
 	Password string   `db:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Role, arg.Username, arg.Password)
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Role,
+		arg.Email,
+		arg.Username,
+		arg.Password,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Role,
+		&i.Email,
 		&i.Username,
 		&i.Password,
 	)
@@ -90,7 +98,7 @@ const deleteUser = `-- name: DeleteUser :one
 DELETE FROM
     "user"
 WHERE
-    "id" = $1 RETURNING id, role, username, password
+    "id" = $1 RETURNING id, role, email, username, password
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id int32) (User, error) {
@@ -99,18 +107,60 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Role,
+		&i.Email,
 		&i.Username,
 		&i.Password,
 	)
 	return i, err
 }
 
-const getUser = `-- name: GetUser :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
-    "user"."id",
-    "user"."role",
-    "user"."username",
-    "user"."password",
+    "user".id, "user".role, "user".email, "user".username, "user".password,
+    CASE
+        WHEN "parent"."id" IS NOT NULL THEN "parent"."id"
+        WHEN "employee"."id" IS NOT NULL THEN "employee"."id"
+        ELSE NULL
+    END AS "owner_id"
+FROM
+    "user"
+LEFT JOIN "parent" ON "user"."id" = "parent"."user_id"
+LEFT JOIN "employee" ON "user"."id" = "employee"."user_id"
+WHERE
+    (
+        $1::text IS NOT NULL
+        AND "user"."email" = $1::text
+    )
+LIMIT
+    1
+`
+
+type GetUserByEmailRow struct {
+	ID       int32        `db:"id"`
+	Role     NullRoleType `db:"role"`
+	Email    pgtype.Text  `db:"email"`
+	Username pgtype.Text  `db:"username"`
+	Password pgtype.Text  `db:"password"`
+	OwnerID  interface{}  `db:"owner_id"`
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (GetUserByEmailRow, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i GetUserByEmailRow
+	err := row.Scan(
+		&i.ID,
+		&i.Role,
+		&i.Email,
+		&i.Username,
+		&i.Password,
+		&i.OwnerID,
+	)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT
+    "user".id, "user".role, "user".email, "user".username, "user".password,
     CASE
         WHEN "parent"."id" IS NOT NULL THEN "parent"."id"
         WHEN "employee"."id" IS NOT NULL THEN "employee"."id"
@@ -125,33 +175,70 @@ WHERE
         $1::integer IS NOT NULL
         AND "user"."id" = $1::integer
     )
-    OR (
-        $2::text IS NOT NULL
-        AND "user"."username" = $2::text
-    )
 LIMIT
     1
 `
 
-type GetUserParams struct {
-	ID       pgtype.Int4 `db:"id"`
-	Username pgtype.Text `db:"username"`
-}
-
-type GetUserRow struct {
+type GetUserByIdRow struct {
 	ID       int32        `db:"id"`
 	Role     NullRoleType `db:"role"`
+	Email    pgtype.Text  `db:"email"`
 	Username pgtype.Text  `db:"username"`
 	Password pgtype.Text  `db:"password"`
 	OwnerID  interface{}  `db:"owner_id"`
 }
 
-func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, error) {
-	row := q.db.QueryRow(ctx, getUser, arg.ID, arg.Username)
-	var i GetUserRow
+func (q *Queries) GetUserById(ctx context.Context, id pgtype.Int4) (GetUserByIdRow, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
+	var i GetUserByIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.Role,
+		&i.Email,
+		&i.Username,
+		&i.Password,
+		&i.OwnerID,
+	)
+	return i, err
+}
+
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT
+    "user".id, "user".role, "user".email, "user".username, "user".password,
+    CASE
+        WHEN "parent"."id" IS NOT NULL THEN "parent"."id"
+        WHEN "employee"."id" IS NOT NULL THEN "employee"."id"
+        ELSE NULL
+    END AS "owner_id"
+FROM
+    "user"
+LEFT JOIN "parent" ON "user"."id" = "parent"."user_id"
+LEFT JOIN "employee" ON "user"."id" = "employee"."user_id"
+WHERE
+    (
+        $1::text IS NOT NULL
+        AND "user"."username" = $1::text
+    )
+LIMIT
+    1
+`
+
+type GetUserByUsernameRow struct {
+	ID       int32        `db:"id"`
+	Role     NullRoleType `db:"role"`
+	Email    pgtype.Text  `db:"email"`
+	Username pgtype.Text  `db:"username"`
+	Password pgtype.Text  `db:"password"`
+	OwnerID  interface{}  `db:"owner_id"`
+}
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username pgtype.Text) (GetUserByUsernameRow, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
+	var i GetUserByUsernameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Role,
+		&i.Email,
 		&i.Username,
 		&i.Password,
 		&i.OwnerID,
@@ -164,14 +251,16 @@ UPDATE
     "user"
 SET
     "role" = COALESCE($1::role_type, "role"),
-    "username" = COALESCE($2, "username"),
-    "password" = COALESCE($3, "password")
+    "email" = COALESCE($2, "email"),
+    "username" = COALESCE($3, "username"),
+    "password" = COALESCE($4, "password")
 WHERE
-    "id" = $4 RETURNING id, role, username, password
+    "id" = $5 RETURNING id, role, email, username, password
 `
 
 type UpdateUserParams struct {
 	Role     NullRoleType `db:"role"`
+	Email    pgtype.Text  `db:"email"`
 	Username pgtype.Text  `db:"username"`
 	Password pgtype.Text  `db:"password"`
 	ID       int32        `db:"id"`
@@ -180,6 +269,7 @@ type UpdateUserParams struct {
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, updateUser,
 		arg.Role,
+		arg.Email,
 		arg.Username,
 		arg.Password,
 		arg.ID,
@@ -188,6 +278,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	err := row.Scan(
 		&i.ID,
 		&i.Role,
+		&i.Email,
 		&i.Username,
 		&i.Password,
 	)

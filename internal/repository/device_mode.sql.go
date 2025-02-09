@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: device_mode.sql
 
-package persistence
+package repository
 
 import (
 	"context"

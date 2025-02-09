@@ -7,7 +7,6 @@ import (
 )
 
 // Config stores all configuration of the application.
-// The values are read by viper from a env file or environment variable.
 type Config struct {
 	Environment            string        `mapstructure:"ENVIRONMENT"`
 	ServerAddress          string        `mapstructure:"SERVER_ADDRESS"`
@@ -18,6 +17,7 @@ type Config struct {
 	TokenSymmetricKey      string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	AccessTokenDuration    time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshTokenDuration   time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
+	GoogleOauthClient      string        `mapstructure:"GOOGLE_OAUTH_CLIENT"`
 	MQTTBroker             string        `mapstructure:"MQTT_BROKER"`
 	RedisAddress           string        `mapstructure:"REDIS_ADDRESS"`
 	DBRedis                int           `mapstructure:"DB_REDIS"`
@@ -30,7 +30,6 @@ type Config struct {
 
 const PathPhoto = "internal/storage/photo"
 
-// LoadConfig reads configuration from file or environment variables.
 func Load(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")

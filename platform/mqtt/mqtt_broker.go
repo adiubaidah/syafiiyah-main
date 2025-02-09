@@ -21,8 +21,8 @@ type MQTTBroker struct {
 	validator        *validator.Validate
 	Client           mqtt.Client
 	Topics           map[string]struct{}
-	deviceUseCase    usecase.DeviceUseCase
-	smartCardUseCase usecase.SmartCardUseCase
+	deviceUseCase    *usecase.DeviceUseCase
+	smartCardUseCase *usecase.SmartCardUseCase
 	SantriHandler    *mqttHandler.SantriMQTTHandler
 	mu               sync.Mutex
 	MessageHandler   mqtt.MessageHandler
@@ -30,8 +30,8 @@ type MQTTBroker struct {
 
 type MQTTBrokerConfig struct {
 	Logger           *logrus.Logger
-	DeviceUseCase    usecase.DeviceUseCase
-	SmartCardUseCase usecase.SmartCardUseCase
+	DeviceUseCase    *usecase.DeviceUseCase
+	SmartCardUseCase *usecase.SmartCardUseCase
 	SantriHandler    *mqttHandler.SantriMQTTHandler
 	BrokerURL        string
 	IsDevelopment    bool

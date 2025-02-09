@@ -10,24 +10,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type SmartCardUseCase interface {
-	CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCard, error)
-	ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (*[]model.SmartCardComplete, error)
-	GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCardComplete, error)
-	CountSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (int64, error)
-	UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (*model.SmartCardComplete, error)
-	DeleteSmartCard(ctx context.Context, id int32) (*model.SmartCard, error)
-}
-
-type service struct {
+type SmartCardUseCase struct {
 	store repo.Store
 }
 
-func NewSmartCardUseCase(store repo.Store) SmartCardUseCase {
-	return &service{store: store}
+func NewSmartCardUseCase(store repo.Store) *SmartCardUseCase {
+	return &SmartCardUseCase{store: store}
 }
 
-func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCard, error) {
+func (c *SmartCardUseCase) Create(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCard, error) {
 	createdSmartCard, err := c.store.CreateSmartCard(ctx, repo.CreateSmartCardParams{
 		Uid:        request.Uid,
 		IsActive:   true,
@@ -50,7 +41,7 @@ func (c *service) CreateSmartCard(ctx context.Context, request *model.SmartCardR
 	}, nil
 }
 
-func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (*[]model.SmartCardComplete, error) {
+func (c *SmartCardUseCase) List(ctx context.Context, request *model.ListSmartCardRequest) (*[]model.SmartCardComplete, error) {
 	listSmartCard, err := c.store.ListSmartCards(ctx, repo.ListSmartCardsParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		IsActive:     pgtype.Bool{Bool: request.IsActive == 1, Valid: request.IsActive != 0},
@@ -98,7 +89,7 @@ func (c *service) ListSmartCards(ctx context.Context, request *model.ListSmartCa
 	return &result, nil
 }
 
-func (c *service) CountSmartCards(ctx context.Context, request *model.ListSmartCardRequest) (int64, error) {
+func (c *SmartCardUseCase) Count(ctx context.Context, request *model.ListSmartCardRequest) (int64, error) {
 	count, err := c.store.CountSmartCards(ctx, repo.CountSmartCardsParams{
 		Q:         pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		IsActive:  pgtype.Bool{Bool: true, Valid: true},
@@ -112,7 +103,7 @@ func (c *service) CountSmartCards(ctx context.Context, request *model.ListSmartC
 	return count, nil
 }
 
-func (c *service) GetSmartCard(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCardComplete, error) {
+func (c *SmartCardUseCase) Get(ctx context.Context, request *model.SmartCardRequest) (*model.SmartCardComplete, error) {
 	smartCard, err := c.store.GetSmartCard(ctx, request.Uid)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
@@ -154,7 +145,7 @@ func (c *service) GetSmartCard(ctx context.Context, request *model.SmartCardRequ
 	}, nil
 }
 
-func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (*model.SmartCardComplete, error) {
+func (c *SmartCardUseCase) Update(ctx context.Context, request *model.UpdateSmartCardRequest, id int32) (*model.SmartCardComplete, error) {
 	var ownerRole string
 	var detailsId int32
 	var detailsName string
@@ -168,7 +159,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 		detailsName = santri.Name
 		ownerRole = "santri"
 	} else {
-		employee, err := c.store.GetEmployee(ctx, request.OwnerID)
+		employee, err := c.store.GetEmployeeByID(ctx, request.OwnerID)
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +194,7 @@ func (c *service) UpdateSmartCard(ctx context.Context, request *model.UpdateSmar
 	}, nil
 }
 
-func (c *service) DeleteSmartCard(ctx context.Context, id int32) (*model.SmartCard, error) {
+func (c *SmartCardUseCase) Delete(ctx context.Context, id int32) (*model.SmartCard, error) {
 	deletedSmartCard, err := c.store.DeleteSmartCard(ctx, id)
 	if err != nil {
 		return nil, err

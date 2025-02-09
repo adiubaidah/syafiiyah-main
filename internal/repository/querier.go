@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.27.0
 
-package persistence
+package repository
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	CountEmployeePresences(ctx context.Context, arg CountEmployeePresencesParams) (int64, error)
 	CountEmployees(ctx context.Context, arg CountEmployeesParams) (int64, error)
 	CountParents(ctx context.Context, arg CountParentsParams) (int64, error)
 	CountSantri(ctx context.Context, arg CountSantriParams) (int64, error)
@@ -21,8 +22,9 @@ type Querier interface {
 	CreateDeviceModes(ctx context.Context, arg []CreateDeviceModesParams) (int64, error)
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (Employee, error)
 	CreateEmployeeOccupation(ctx context.Context, arg CreateEmployeeOccupationParams) (EmployeeOccupation, error)
-	CreateHoliday(ctx context.Context, arg CreateHolidayParams) (Holiday, error)
-	CreateHolidayDates(ctx context.Context, arg []CreateHolidayDatesParams) (int64, error)
+	CreateEmployeePermission(ctx context.Context, arg CreateEmployeePermissionParams) (EmployeePermission, error)
+	CreateEmployeePresence(ctx context.Context, arg CreateEmployeePresenceParams) (EmployeePresence, error)
+	CreateEmployeePresences(ctx context.Context, arg []CreateEmployeePresencesParams) (int64, error)
 	CreateParent(ctx context.Context, arg CreateParentParams) (Parent, error)
 	CreateSantri(ctx context.Context, arg CreateSantriParams) (Santri, error)
 	CreateSantriOccupation(ctx context.Context, arg CreateSantriOccupationParams) (SantriOccupation, error)
@@ -35,8 +37,8 @@ type Querier interface {
 	DeleteDeviceModeByDeviceId(ctx context.Context, deviceID int32) error
 	DeleteEmployee(ctx context.Context, id int32) (Employee, error)
 	DeleteEmployeeOccupation(ctx context.Context, id int32) (EmployeeOccupation, error)
-	DeleteHoliday(ctx context.Context, id int32) (Holiday, error)
-	DeleteHolidayDateByHolidayId(ctx context.Context, holidayID int32) error
+	DeleteEmployeePermission(ctx context.Context, id int32) (EmployeePermission, error)
+	DeleteEmployeePresence(ctx context.Context, id int32) (EmployeePresence, error)
 	DeleteParent(ctx context.Context, id int32) (Parent, error)
 	DeleteSantri(ctx context.Context, id int32) (Santri, error)
 	DeleteSantriOccupation(ctx context.Context, id int32) (SantriOccupation, error)
@@ -44,18 +46,23 @@ type Querier interface {
 	DeleteSantriPresence(ctx context.Context, id int32) (SantriPresence, error)
 	DeleteSmartCard(ctx context.Context, id int32) (SmartCard, error)
 	DeleteUser(ctx context.Context, id int32) (User, error)
-	GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, error)
-	GetEmployeeByUserId(ctx context.Context, userID pgtype.Int4) (Employee, error)
+	GetEmployeeByID(ctx context.Context, id int32) (GetEmployeeByIDRow, error)
+	GetEmployeeByUserID(ctx context.Context, userID pgtype.Int4) (Employee, error)
+	GetEmployeePermission(ctx context.Context, id int32) (GetEmployeePermissionRow, error)
 	GetParent(ctx context.Context, id int32) (GetParentRow, error)
 	GetParentByUserId(ctx context.Context, userID pgtype.Int4) (Parent, error)
 	GetSantri(ctx context.Context, id int32) (GetSantriRow, error)
 	GetSantriPermission(ctx context.Context, id int32) (GetSantriPermissionRow, error)
 	GetSmartCard(ctx context.Context, uid string) (GetSmartCardRow, error)
-	GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, error)
+	GetUserByEmail(ctx context.Context, email pgtype.Text) (GetUserByEmailRow, error)
+	GetUserById(ctx context.Context, id pgtype.Int4) (GetUserByIdRow, error)
+	GetUserByUsername(ctx context.Context, username pgtype.Text) (GetUserByUsernameRow, error)
 	ListDeviceModes(ctx context.Context, deviceID int32) ([]DeviceMode, error)
 	ListDevices(ctx context.Context) ([]ListDevicesRow, error)
 	ListEmployeeOccupations(ctx context.Context) ([]ListEmployeeOccupationsRow, error)
-	ListHolidays(ctx context.Context, arg ListHolidaysParams) ([]ListHolidaysRow, error)
+	ListEmployeePermissions(ctx context.Context, arg ListEmployeePermissionsParams) ([]ListEmployeePermissionsRow, error)
+	ListEmployeePresences(ctx context.Context, arg ListEmployeePresencesParams) ([]ListEmployeePresencesRow, error)
+	ListMissingEmployeePresences(ctx context.Context, arg ListMissingEmployeePresencesParams) ([]ListMissingEmployeePresencesRow, error)
 	ListMissingSantriPresences(ctx context.Context, arg ListMissingSantriPresencesParams) ([]ListMissingSantriPresencesRow, error)
 	ListSantriOccupations(ctx context.Context) ([]ListSantriOccupationsRow, error)
 	ListSantriPermissions(ctx context.Context, arg ListSantriPermissionsParams) ([]ListSantriPermissionsRow, error)
@@ -65,7 +72,8 @@ type Querier interface {
 	UpdateDeviceMode(ctx context.Context, arg UpdateDeviceModeParams) (DeviceMode, error)
 	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) (Employee, error)
 	UpdateEmployeeOccupation(ctx context.Context, arg UpdateEmployeeOccupationParams) (EmployeeOccupation, error)
-	UpdateHoliday(ctx context.Context, arg UpdateHolidayParams) (Holiday, error)
+	UpdateEmployeePermission(ctx context.Context, arg UpdateEmployeePermissionParams) (EmployeePermission, error)
+	UpdateEmployeePresence(ctx context.Context, arg UpdateEmployeePresenceParams) (EmployeePresence, error)
 	UpdateParent(ctx context.Context, arg UpdateParentParams) (Parent, error)
 	UpdateSantri(ctx context.Context, arg UpdateSantriParams) (Santri, error)
 	UpdateSantriOccupation(ctx context.Context, arg UpdateSantriOccupationParams) (SantriOccupation, error)

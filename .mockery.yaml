@@ -1,0 +1,7 @@
+with-expecter: true
+packages:
+  github.com/adiubaidah/rfid-syafiiyah/internal/repository:
+    interfaces:
+      Store:
+        config:
+          dir: "internal/repository/mocks"

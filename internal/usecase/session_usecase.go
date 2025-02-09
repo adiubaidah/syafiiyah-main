@@ -11,21 +11,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type SessionUseCase interface {
-	CreateSession(session model.Session) error
-	GetSession(id string) (model.Session, error)
-	DeleteSession(id string) error
-}
-
-type sessionService struct {
+type SessionUseCase struct {
 	redisClient *redis.Client
 }
 
-func NewSessionUseCase(redisClient *redis.Client) SessionUseCase {
-	return &sessionService{redisClient: redisClient}
+func NewSessionUseCase(redisClient *redis.Client) *SessionUseCase {
+	return &SessionUseCase{redisClient: redisClient}
 }
 
-func (c *sessionService) CreateSession(session model.Session) error {
+func (c *SessionUseCase) Create(session model.Session) error {
 	ctx := context.Background()
 	sessionMap := map[string]any{
 		"username":      session.Username,
@@ -46,7 +40,7 @@ func (c *sessionService) CreateSession(session model.Session) error {
 	return nil
 }
 
-func (c *sessionService) GetSession(id string) (model.Session, error) {
+func (c *SessionUseCase) Get(id string) (model.Session, error) {
 	ctx := context.Background()
 	sessionMap, err := c.redisClient.HGetAll(ctx, "session:"+id).Result()
 	if err != nil {
@@ -89,7 +83,7 @@ func (c *sessionService) GetSession(id string) (model.Session, error) {
 	}, nil
 }
 
-func (c *sessionService) DeleteSession(id string) error {
+func (c *SessionUseCase) Delete(id string) error {
 	ctx := context.Background()
 	return c.redisClient.Del(ctx, "session:"+id).Err()
 }

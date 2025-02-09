@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: employee.sql
 
-package persistence
+package repository
 
 import (
 	"context"
@@ -129,7 +129,7 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int32) (Employee, error
 	return i, err
 }
 
-const getEmployee = `-- name: GetEmployee :one
+const getEmployeeByID = `-- name: GetEmployeeByID :one
 SELECT
     employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.user_id,
     "user"."id" AS "userId",
@@ -141,7 +141,7 @@ WHERE
     "employee"."id" = $1
 `
 
-type GetEmployeeRow struct {
+type GetEmployeeByIDRow struct {
 	ID           int32       `db:"id"`
 	Nip          pgtype.Text `db:"nip"`
 	Name         string      `db:"name"`
@@ -153,9 +153,9 @@ type GetEmployeeRow struct {
 	UserUsername pgtype.Text `db:"userUsername"`
 }
 
-func (q *Queries) GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, error) {
-	row := q.db.QueryRow(ctx, getEmployee, id)
-	var i GetEmployeeRow
+func (q *Queries) GetEmployeeByID(ctx context.Context, id int32) (GetEmployeeByIDRow, error) {
+	row := q.db.QueryRow(ctx, getEmployeeByID, id)
+	var i GetEmployeeByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Nip,
@@ -170,7 +170,7 @@ func (q *Queries) GetEmployee(ctx context.Context, id int32) (GetEmployeeRow, er
 	return i, err
 }
 
-const getEmployeeByUserId = `-- name: GetEmployeeByUserId :one
+const getEmployeeByUserID = `-- name: GetEmployeeByUserID :one
 SELECT
     employee.id, employee.nip, employee.name, employee.gender, employee.photo, employee.occupation_id, employee.user_id
 FROM
@@ -179,8 +179,8 @@ WHERE
     "user_id" = $1
 `
 
-func (q *Queries) GetEmployeeByUserId(ctx context.Context, userID pgtype.Int4) (Employee, error) {
-	row := q.db.QueryRow(ctx, getEmployeeByUserId, userID)
+func (q *Queries) GetEmployeeByUserID(ctx context.Context, userID pgtype.Int4) (Employee, error) {
+	row := q.db.QueryRow(ctx, getEmployeeByUserID, userID)
 	var i Employee
 	err := row.Scan(
 		&i.ID,

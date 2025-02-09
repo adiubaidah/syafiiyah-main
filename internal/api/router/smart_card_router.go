@@ -7,22 +7,22 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
 )
 
-func SmartCardRouter(handler handler.SmartCardHandler) []routers.Route {
+func SmartCardRouter(handler *handler.SmartCardHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method: http.MethodGet,
 			Path:   "/smart-card",
-			Handle: handler.ListSmartCardsHandler,
+			Handle: handler.List,
 		},
 		{
 			Method: http.MethodPut,
 			Path:   "/smart-card/:id",
-			Handle: handler.UpdateSmartCardHandler,
+			Handle: handler.Update,
 		},
 		{
 			Method: http.MethodDelete,
 			Path:   "/smart-card/:id",
-			Handle: handler.DeleteSmartCardHandler,
+			Handle: handler.Delete,
 		},
 	}
 

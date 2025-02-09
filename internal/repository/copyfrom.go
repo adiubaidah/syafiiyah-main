@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: copyfrom.go
 
-package persistence
+package repository
 
 import (
 	"context"
@@ -44,13 +44,13 @@ func (q *Queries) CreateDeviceModes(ctx context.Context, arg []CreateDeviceModes
 	return q.db.CopyFrom(ctx, []string{"device_mode"}, []string{"mode", "input_topic", "acknowledgment_topic", "device_id"}, &iteratorForCreateDeviceModes{rows: arg})
 }
 
-// iteratorForCreateHolidayDates implements pgx.CopyFromSource.
-type iteratorForCreateHolidayDates struct {
-	rows                 []CreateHolidayDatesParams
+// iteratorForCreateEmployeePresences implements pgx.CopyFromSource.
+type iteratorForCreateEmployeePresences struct {
+	rows                 []CreateEmployeePresencesParams
 	skippedFirstNextCall bool
 }
 
-func (r *iteratorForCreateHolidayDates) Next() bool {
+func (r *iteratorForCreateEmployeePresences) Next() bool {
 	if len(r.rows) == 0 {
 		return false
 	}
@@ -62,19 +62,25 @@ func (r *iteratorForCreateHolidayDates) Next() bool {
 	return len(r.rows) > 0
 }
 
-func (r iteratorForCreateHolidayDates) Values() ([]interface{}, error) {
+func (r iteratorForCreateEmployeePresences) Values() ([]interface{}, error) {
 	return []interface{}{
-		r.rows[0].Date,
-		r.rows[0].HolidayID,
+		r.rows[0].ScheduleID,
+		r.rows[0].ScheduleName,
+		r.rows[0].Type,
+		r.rows[0].EmployeeID,
+		r.rows[0].Notes,
+		r.rows[0].CreatedAt,
+		r.rows[0].CreatedBy,
+		r.rows[0].EmployeePermissionID,
 	}, nil
 }
 
-func (r iteratorForCreateHolidayDates) Err() error {
+func (r iteratorForCreateEmployeePresences) Err() error {
 	return nil
 }
 
-func (q *Queries) CreateHolidayDates(ctx context.Context, arg []CreateHolidayDatesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"holiday_date"}, []string{"date", "holiday_id"}, &iteratorForCreateHolidayDates{rows: arg})
+func (q *Queries) CreateEmployeePresences(ctx context.Context, arg []CreateEmployeePresencesParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"employee_presence"}, []string{"schedule_id", "schedule_name", "type", "employee_id", "notes", "created_at", "created_by", "employee_permission_id"}, &iteratorForCreateEmployeePresences{rows: arg})
 }
 
 // iteratorForCreateSantriPresences implements pgx.CopyFromSource.

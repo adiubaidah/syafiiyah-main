@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DeviceRouter(handler handler.DeviceHandler) []routers.Route {
+func DeviceRouter(handler *handler.DeviceHandler) []routers.Route {
 	return []routers.Route{
 		{
 			Method:      http.MethodPost,

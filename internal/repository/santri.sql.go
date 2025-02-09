@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: santri.sql
 
-package persistence
+package repository
 
 import (
 	"context"

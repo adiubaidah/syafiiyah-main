@@ -10,22 +10,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type SmartCardHandler interface {
-	ListSmartCardsHandler(c *gin.Context)
-	UpdateSmartCardHandler(c *gin.Context)
-	DeleteSmartCardHandler(c *gin.Context)
-}
-
-type smartCardHandler struct {
+type SmartCardHandler struct {
 	logger  *logrus.Logger
-	usecase usecase.SmartCardUseCase
+	usecase *usecase.SmartCardUseCase
 }
 
-func NewSmartCardHandler(logger *logrus.Logger, usecase usecase.SmartCardUseCase) SmartCardHandler {
-	return &smartCardHandler{logger: logger, usecase: usecase}
+func NewSmartCardHandler(logger *logrus.Logger, usecase *usecase.SmartCardUseCase) *SmartCardHandler {
+	return &SmartCardHandler{logger: logger, usecase: usecase}
 }
 
-func (h *smartCardHandler) ListSmartCardsHandler(c *gin.Context) {
+func (h *SmartCardHandler) List(c *gin.Context) {
 	var request model.ListSmartCardRequest
 	if err := c.ShouldBind(&request); err != nil {
 		h.logger.Error(err)
@@ -45,14 +39,14 @@ func (h *smartCardHandler) ListSmartCardsHandler(c *gin.Context) {
 		request.CardOwner = repo.CardOwnerAll
 	}
 
-	result, err := h.usecase.ListSmartCards(c, &request)
+	result, err := h.usecase.List(c, &request)
 	if err != nil {
 		h.logger.Error("error lur", err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
 
-	count, err := h.usecase.CountSmartCards(c, &request)
+	count, err := h.usecase.Count(c, &request)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
@@ -76,7 +70,7 @@ func (h *smartCardHandler) ListSmartCardsHandler(c *gin.Context) {
 	})
 }
 
-func (h *smartCardHandler) UpdateSmartCardHandler(c *gin.Context) {
+func (h *SmartCardHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.logger.Error(err)
@@ -92,7 +86,7 @@ func (h *smartCardHandler) UpdateSmartCardHandler(c *gin.Context) {
 		return
 	}
 
-	result, err := h.usecase.UpdateSmartCard(c, &smartCardRequest, smartCardId)
+	result, err := h.usecase.Update(c, &smartCardRequest, smartCardId)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
@@ -102,7 +96,7 @@ func (h *smartCardHandler) UpdateSmartCardHandler(c *gin.Context) {
 	c.JSON(200, model.ResponseData[model.SmartCardComplete]{Code: 200, Status: "success", Data: *result})
 }
 
-func (h *smartCardHandler) DeleteSmartCardHandler(c *gin.Context) {
+func (h *SmartCardHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.logger.Error(err)
@@ -111,7 +105,7 @@ func (h *smartCardHandler) DeleteSmartCardHandler(c *gin.Context) {
 	}
 	smartCardId := int32(id)
 
-	deletedSmartCard, err := h.usecase.DeleteSmartCard(c, smartCardId)
+	deletedSmartCard, err := h.usecase.Delete(c, smartCardId)
 	if err != nil {
 		h.logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})

@@ -1,0 +1,59 @@
+// employee.proto
+
+syntax = "proto3";
+
+option go_package = "github.com/adiubaidah/rfid-syafiiyah/internal/constant/proto;proto";
+
+message EmployeeSchedule {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string startPresence = 4;
+  string startTime = 5;
+  string finishTime = 6;
+}
+
+
+message CreateEmployeeScheduleRequest {
+  string name = 2;
+  string description = 3;
+  string startPresence = 4;
+  string startTime = 5;
+  string finishTime = 6;
+}
+
+message GetEmployeeScheduleRequest {
+  int32 id = 1;
+}
+
+message ActiveEmployeeScheduleRequest {
+}
+
+message PrevEmployeeScheduleRequest {
+}
+
+
+message UpdateEmployeeScheduleRequest {
+  EmployeeSchedule schedule = 1;
+}
+
+message DeleteEmployeeScheduleRequest {
+  int32 id = 1;
+}
+
+message ListEmployeeScheduleRequest {
+}
+
+message ListEmployeeScheduleResponse {
+  repeated EmployeeSchedule schedules = 1;
+}
+
+service EmployeeScheduleService {
+  rpc CreateEmployeeSchedule(CreateEmployeeScheduleRequest) returns (EmployeeSchedule);
+  rpc ListEmployeeSchedule(ListEmployeeScheduleRequest) returns (ListEmployeeScheduleResponse);
+  rpc ActiveEmployeeSchedule(ActiveEmployeeScheduleRequest) returns (EmployeeSchedule);
+  rpc PrevEmployeeSchedule(PrevEmployeeScheduleRequest) returns (EmployeeSchedule);
+  rpc GetEmployeeSchedule(GetEmployeeScheduleRequest) returns (EmployeeSchedule);
+  rpc UpdateEmployeeSchedule(UpdateEmployeeScheduleRequest) returns (EmployeeSchedule);
+  rpc DeleteEmployeeSchedule(DeleteEmployeeScheduleRequest) returns (EmployeeSchedule);
+}

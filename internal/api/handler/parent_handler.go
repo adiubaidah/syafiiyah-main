@@ -17,36 +17,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ParentHandler interface {
-	CreateParentHandler(c *gin.Context)
-	ListParentHandler(c *gin.Context)
-	GetParentHandler(c *gin.Context)
-	UpdateParentHandler(c *gin.Context)
-	DeleteParentHandler(c *gin.Context)
+type ParentHandler struct {
+	Config      *config.Config
+	Logger      *logrus.Logger
+	Storage     *storage.StorageManager
+	UseCase     *usecase.ParentUseCase
+	UserUseCase *usecase.UserUseCase
 }
 
-type parentHandler struct {
-	config      *config.Config
-	logger      *logrus.Logger
-	storage     *storage.StorageManager
-	usecase     usecase.ParentUseCase
-	userUseCase usecase.UserUseCase
+func NewParentHandler(args *ParentHandler) *ParentHandler {
+	return args
 }
 
-func NewParentHandler(logger *logrus.Logger, config *config.Config, storage *storage.StorageManager, usecase usecase.ParentUseCase, userUseCase usecase.UserUseCase) ParentHandler {
-	return &parentHandler{
-		config:      config,
-		logger:      logger,
-		usecase:     usecase,
-		storage:     storage,
-		userUseCase: userUseCase,
-	}
-}
-
-func (h *parentHandler) CreateParentHandler(c *gin.Context) {
+func (h *ParentHandler) CreateParentHandler(c *gin.Context) {
 	var request model.CreateParentRequest
 	if err := c.ShouldBind(&request); err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
@@ -54,7 +40,7 @@ func (h *parentHandler) CreateParentHandler(c *gin.Context) {
 	photo, err := c.FormFile("photo")
 	if err != nil {
 		if err != http.ErrMissingFile {
-			h.logger.Error(err)
+			h.Logger.Error(err)
 			c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 			return
 		}
@@ -64,25 +50,25 @@ func (h *parentHandler) CreateParentHandler(c *gin.Context) {
 			return
 		}
 		fileName := fmt.Sprintf("%s%s", uuid.New().String(), util.GetFileExtension(photo))
-		if request.Photo, err = h.storage.UploadFile(c, photo, fileName); err != nil {
-			h.logger.Error(err)
+		if request.Photo, err = h.Storage.UploadFile(c, photo, fileName); err != nil {
+			h.Logger.Error(err)
 			c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Failed to save photo"})
 			return
 		}
 	}
 
 	if request.UserID != 0 {
-		_, err := h.userUseCase.GetUser(c, request.UserID, "")
+		_, err := h.UserUseCase.GetByID(c, request.UserID)
 		if err != nil {
-			h.logger.Error(err)
+			h.Logger.Error(err)
 			c.JSON(404, model.ResponseMessage{Code: 404, Status: "error", Message: err.Error()})
 			return
 		}
 	}
 
-	result, err := h.usecase.CreateParent(c, &request)
+	result, err := h.UseCase.Create(c, &request)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -93,10 +79,10 @@ func (h *parentHandler) CreateParentHandler(c *gin.Context) {
 	})
 }
 
-func (h *parentHandler) ListParentHandler(c *gin.Context) {
+func (h *ParentHandler) ListParentHandler(c *gin.Context) {
 	var request model.ListParentRequest
 	if err := c.ShouldBind(&request); err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
@@ -106,16 +92,16 @@ func (h *parentHandler) ListParentHandler(c *gin.Context) {
 	if request.Page == 0 {
 		request.Page = 1
 	}
-	result, err := h.usecase.ListParents(c, &request)
+	result, err := h.UseCase.List(c, &request)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
 
-	count, err := h.usecase.CountParents(c, &request)
+	count, err := h.UseCase.Count(c, &request)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: err.Error()})
 		return
 	}
@@ -137,18 +123,18 @@ func (h *parentHandler) ListParentHandler(c *gin.Context) {
 	})
 }
 
-func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
+func (h *ParentHandler) UpdateParentHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 
-	oldData, err := h.usecase.GetParent(c, int32(id))
+	oldData, err := h.UseCase.GetByID(c, int32(id))
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(404, model.ResponseMessage{Code: 404, Status: "error", Message: err.Error()})
 		return
 	}
@@ -156,15 +142,15 @@ func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
 	var request model.UpdateParentRequest
 
 	if err := c.ShouldBind(&request); err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 		return
 	}
 
 	if request.UserID != 0 {
-		user, err := h.userUseCase.GetUser(c, request.UserID, "")
+		user, err := h.UserUseCase.GetByID(c, request.UserID)
 		if err != nil {
-			h.logger.Error(err)
+			h.Logger.Error(err)
 			c.JSON(404, model.ResponseMessage{Code: 404, Status: "error", Message: err.Error()})
 			return
 		}
@@ -179,7 +165,7 @@ func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
 	photo, err := c.FormFile("photo")
 	if err != nil {
 		if err != http.ErrMissingFile {
-			h.logger.Error(err)
+			h.Logger.Error(err)
 			c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: err.Error()})
 			return
 		}
@@ -189,20 +175,20 @@ func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
 			return
 		}
 		fileName := fmt.Sprintf("%s%s", uuid.New().String(), util.GetFileExtension(photo))
-		if request.Photo, err = h.storage.UploadFile(c, photo, fileName); err != nil {
-			h.logger.Error(err)
+		if request.Photo, err = h.Storage.UploadFile(c, photo, fileName); err != nil {
+			h.Logger.Error(err)
 			c.JSON(500, model.ResponseMessage{Code: 500, Status: "error", Message: "Failed to save photo"})
 			return
 		}
 
 		if oldData.Photo != "" {
-			h.storage.DeleteFile(context.Background(), oldData.Photo)
+			h.Storage.DeleteFile(context.Background(), oldData.Photo)
 		}
 	}
 
-	result, err := h.usecase.UpdateParent(c, &request, int32(id))
+	result, err := h.UseCase.Update(c, &request, int32(id))
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		if appErr, ok := err.(*exception.AppError); ok {
 			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
 			return
@@ -216,18 +202,18 @@ func (h *parentHandler) UpdateParentHandler(c *gin.Context) {
 
 }
 
-func (h *parentHandler) GetParentHandler(c *gin.Context) {
+func (h *ParentHandler) GetParentHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 
-	result, err := h.usecase.GetParent(c, int32(id))
+	result, err := h.UseCase.GetByID(c, int32(id))
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		if appErr, ok := err.(*exception.AppError); ok {
 			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
 			return
@@ -239,18 +225,18 @@ func (h *parentHandler) GetParentHandler(c *gin.Context) {
 	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: *result})
 }
 
-func (h *parentHandler) DeleteParentHandler(c *gin.Context) {
+func (h *ParentHandler) DeleteParentHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		c.JSON(400, model.ResponseMessage{Code: 400, Status: "error", Message: "Invalid ID"})
 		return
 	}
 
-	result, err := h.usecase.DeleteParent(c, int32(id))
+	result, err := h.UseCase.Delete(c, int32(id))
 	if err != nil {
-		h.logger.Error(err)
+		h.Logger.Error(err)
 		if appErr, ok := err.(*exception.AppError); ok {
 			c.JSON(appErr.Code, model.ResponseMessage{Code: appErr.Code, Status: "error", Message: appErr.Message})
 			return
@@ -261,7 +247,7 @@ func (h *parentHandler) DeleteParentHandler(c *gin.Context) {
 	}
 
 	if result.Photo != "" {
-		h.storage.DeleteFile(context.Background(), result.Photo)
+		h.Storage.DeleteFile(context.Background(), result.Photo)
 	}
 
 	c.JSON(200, model.ResponseData[model.ParentResponse]{Code: 200, Status: "success", Data: *result})

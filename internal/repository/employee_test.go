@@ -1,4 +1,4 @@
-package persistence
+package repository
 
 import (
 	"context"
@@ -211,7 +211,7 @@ func TestListEmployeePagination(t *testing.T) {
 func TestGetEmployee(t *testing.T) {
 	employee1 := createRandomEmployee(t)
 
-	employee2, err := testStore.GetEmployee(context.Background(), employee1.ID)
+	employee2, err := testStore.GetEmployeeByID(context.Background(), employee1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, employee2)
 

@@ -11,22 +11,15 @@ import (
 	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
 )
 
-type DeviceUseCase interface {
-	CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (*model.DeviceResponse, error)
-	ListDevices(ctx context.Context) (*[]model.DeviceWithModesResponse, error)
-	UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (*model.DeviceResponse, error)
-	DeleteDevice(ctx context.Context, deviceId int32) (*model.DeviceResponse, error)
-}
-
-type deviceService struct {
+type DeviceUseCase struct {
 	store repo.Store
 }
 
-func NewDeviceUseCase(store repo.Store) DeviceUseCase {
-	return &deviceService{store: store}
+func NewDeviceUseCase(store repo.Store) *DeviceUseCase {
+	return &DeviceUseCase{store: store}
 }
 
-func (c *deviceService) CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (*model.DeviceResponse, error) {
+func (c *DeviceUseCase) CreateDevice(ctx context.Context, request *model.CreateDeviceRequest) (*model.DeviceResponse, error) {
 	sqlStore := c.store.(*repo.SQLStore)
 	modeParams := make([]repo.CreateDeviceModesParams, 0)
 
@@ -49,7 +42,7 @@ func (c *deviceService) CreateDevice(ctx context.Context, request *model.CreateD
 	}, nil
 }
 
-func (c *deviceService) ListDevices(ctx context.Context) (*[]model.DeviceWithModesResponse, error) {
+func (c *DeviceUseCase) ListDevices(ctx context.Context) (*[]model.DeviceWithModesResponse, error) {
 	devices, err := c.store.ListDevices(ctx)
 	if err != nil {
 		return nil, err
@@ -83,7 +76,7 @@ func (c *deviceService) ListDevices(ctx context.Context) (*[]model.DeviceWithMod
 	return &responses, nil
 }
 
-func (c *deviceService) UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (*model.DeviceResponse, error) {
+func (c *DeviceUseCase) UpdateDevice(ctx context.Context, request *model.CreateDeviceRequest, deviceId int32) (*model.DeviceResponse, error) {
 	sqlStore := c.store.(*repo.SQLStore)
 	modeParams := make([]repo.CreateDeviceModesParams, 0)
 
@@ -106,7 +99,7 @@ func (c *deviceService) UpdateDevice(ctx context.Context, request *model.CreateD
 	}, nil
 }
 
-func (c *deviceService) DeleteDevice(ctx context.Context, deviceId int32) (*model.DeviceResponse, error) {
+func (c *DeviceUseCase) DeleteDevice(ctx context.Context, deviceId int32) (*model.DeviceResponse, error) {
 	device, err := c.store.DeleteDevice(ctx, deviceId)
 	if err != nil {
 		if errors.Is(err, exception.ErrNotFound) {
