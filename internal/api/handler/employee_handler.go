@@ -79,6 +79,7 @@ func (h *EmployeeHandler) List(c *gin.Context) {
 	if request.Page == 0 {
 		request.Page = 1
 	}
+
 	result, err := h.UseCase.List(c, &request)
 	if err != nil {
 		h.Logger.Error(err)

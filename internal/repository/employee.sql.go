@@ -21,31 +21,31 @@ FROM
     LEFT JOIN employee_occupation ON employee.occupation_id = employee_occupation.id
 WHERE
     (
-        $1 IS NULL
-        OR employee.name ILIKE '%%' || $1 || '%%'
-        OR employee.nip ILIKE '%%' || $1 || '%%'
+        $1::text IS NULL
+        OR employee.name ILIKE '%%' || $1::text || '%%'
+        OR employee.nip ILIKE '%%' || $1::text || '%%'
     )
     AND (
-        $2 IS NULL
-        OR employee.occupation_id = $2
+        $2::int IS NULL
+        OR employee.occupation_id = $2::int
     )
     AND (
-        $3 IS NULL
+        $3::boolean IS NULL
         OR (
-            $3 = TRUE
+            $3::boolean = TRUE
             AND "user".id IS NOT NULL
         )
         OR (
-            $3 = FALSE
+            $3::boolean = FALSE
             AND "user".id IS NULL
         )
     )
 `
 
 type CountEmployeesParams struct {
-	Q            interface{} `db:"q"`
-	OccupationID interface{} `db:"occupation_id"`
-	HasUser      interface{} `db:"has_user"`
+	Q            pgtype.Text `db:"q"`
+	OccupationID pgtype.Int4 `db:"occupation_id"`
+	HasUser      pgtype.Bool `db:"has_user"`
 }
 
 func (q *Queries) CountEmployees(ctx context.Context, arg CountEmployeesParams) (int64, error) {

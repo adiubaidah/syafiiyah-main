@@ -238,7 +238,7 @@ func (q *Queries) ListParents(ctx context.Context, arg ListParentParams) ([]List
 
 type ListEmployeesParams struct {
 	Q            pgtype.Text         `db:"q"`
-	OccupationID pgtype.Int4         `db:"occupation_id"`
+	OccupationID pgtype.Int4         `db:"occupation_id_param"`
 	HasUser      pgtype.Bool         `db:"has_user"`
 	LimitNumber  int32               `db:"limit_number"`
 	OffsetNumber int32               `db:"offset_number"`

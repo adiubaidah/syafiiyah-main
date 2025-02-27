@@ -56,6 +56,7 @@ func createRandomEmployeeWithUser(t *testing.T) (Employee, User) {
 	require.Equal(t, arg.Gender, employee.Gender)
 	require.Equal(t, arg.Photo.String, employee.Photo.String)
 	require.Equal(t, arg.OccupationID, employee.OccupationID)
+	require.NotZero(t, employee.UserID.Int32)
 	require.Equal(t, arg.UserID.Int32, employee.UserID.Int32)
 
 	return employee, user
@@ -67,35 +68,45 @@ func TestCreateEmployee(t *testing.T) {
 
 func TestListEmployeeWithQ(t *testing.T) {
 	clearEmployeeTable(t)
-	// Create test data with different names
 	employee1 := createRandomEmployee(t)
 	createRandomEmployee(t)
 	createRandomEmployee(t)
 
-	// Search for a specific parent name using `q`
-	arg := ListEmployeesParams{
-		Q:            pgtype.Text{String: employee1.Name[:3], Valid: true},
-		HasUser:      pgtype.Bool{Valid: false},
-		LimitNumber:  10,
-		OffsetNumber: 0,
-		OrderBy:      NullEmployeeOrderBy{Valid: false},
-		OccupationID: pgtype.Int4{Valid: false},
-	}
+	count := 0
 
-	// Perform List
-	employees, err := testStore.ListEmployees(context.Background(), arg)
-	require.NoError(t, err)
-	require.NotEmpty(t, employees)
-
-	// Verify that at least one result matches the queried name part
-	found := false
-	for _, employee := range employees {
-		if employee.Name == employee1.Name {
-			found = true
-			break
+	t.Run("List with `q` (search by name)", func(t *testing.T) {
+		arg := ListEmployeesParams{
+			Q:            pgtype.Text{String: employee1.Name[:3], Valid: true},
+			HasUser:      pgtype.Bool{Valid: false},
+			LimitNumber:  10,
+			OffsetNumber: 0,
+			OrderBy:      NullEmployeeOrderBy{Valid: false},
+			OccupationID: pgtype.Int4{Valid: false},
 		}
-	}
-	require.True(t, found, "Expected to find a employee matching the List")
+
+		employees, err := testStore.ListEmployees(context.Background(), arg)
+		require.NoError(t, err)
+		require.NotEmpty(t, employees)
+
+		found := false
+		for _, employee := range employees {
+			if employee.Name == employee1.Name {
+				found = true
+			}
+			count++
+		}
+		require.True(t, found, "Expected to find a employee matching the List")
+	})
+
+	t.Run("count employee", func(t *testing.T) {
+		result, err := testStore.CountEmployees(context.Background(), CountEmployeesParams{
+			Q:            pgtype.Text{String: employee1.Name[:3], Valid: true},
+			HasUser:      pgtype.Bool{Valid: false},
+			OccupationID: pgtype.Int4{Valid: false},
+		})
+		require.NoError(t, err)
+		require.Equal(t, count, int(result))
+	})
 }
 
 func TestListEmployeeWithHasUser(t *testing.T) {
@@ -136,7 +147,7 @@ func TestListEmployeeWithHasUser(t *testing.T) {
 		}
 	})
 
-	t.Run("List with `has_user = -1` (all parents)", func(t *testing.T) {
+	t.Run("List with `has_user = -1` (all employee)", func(t *testing.T) {
 		arg := ListEmployeesParams{
 			HasUser:      pgtype.Bool{Valid: false},
 			LimitNumber:  10,
@@ -225,6 +236,7 @@ func TestGetEmployee(t *testing.T) {
 }
 
 func TestUpdateEmployee(t *testing.T) {
+	clearEmployeeTable(t)
 	employee1 := createRandomEmployee(t)
 
 	// Update parent details
@@ -237,7 +249,7 @@ func TestUpdateEmployee(t *testing.T) {
 		Gender:       NullGenderType{Valid: false},
 		Photo:        pgtype.Text{String: newPhoto, Valid: true},
 		OccupationID: pgtype.Int4{Int32: employee1.OccupationID, Valid: true},
-		UserID:       employee1.UserID,
+		UserID:       pgtype.Int4{Int32: employee1.UserID.Int32, Valid: employee1.UserID.Valid},
 	}
 
 	employeeUpdated, err := testStore.UpdateEmployee(context.Background(), arg)
@@ -251,6 +263,45 @@ func TestUpdateEmployee(t *testing.T) {
 	require.Equal(t, employee1.Gender, employeeUpdated.Gender) // Gender should remain unchanged
 	require.Equal(t, newPhoto, employeeUpdated.Photo.String)
 	require.Equal(t, employee1.UserID, employeeUpdated.UserID) // UserID should remain unchanged
+}
+
+func TestUpdateBindEmployeeAndUser(t *testing.T) {
+	clearEmployeeTable(t)
+	clearUserTable(t)
+	employee, _ := createRandomEmployeeWithUser(t)
+
+	t.Run("Bind user to two employees and must failed", func(t *testing.T) {
+		employee2 := createRandomEmployee(t)
+		arg := UpdateEmployeeParams{
+			ID:           employee2.ID,
+			Nip:          pgtype.Text{String: employee2.Nip.String, Valid: true},
+			Name:         pgtype.Text{String: employee2.Name, Valid: true},
+			Gender:       NullGenderType{Valid: false},
+			Photo:        employee2.Photo,
+			OccupationID: pgtype.Int4{Int32: employee2.OccupationID, Valid: true},
+			UserID:       pgtype.Int4{Int32: employee.UserID.Int32, Valid: true},
+		}
+
+		_, err := testStore.UpdateEmployee(context.Background(), arg)
+		require.Error(t, err)
+	})
+
+	t.Run("Unbind employee from user", func(t *testing.T) {
+		arg := UpdateEmployeeParams{
+			ID:           employee.ID,
+			Nip:          pgtype.Text{String: employee.Nip.String, Valid: true},
+			Name:         pgtype.Text{String: employee.Name, Valid: true},
+			Gender:       NullGenderType{Valid: false},
+			Photo:        employee.Photo,
+			OccupationID: pgtype.Int4{Int32: employee.OccupationID, Valid: true},
+			UserID:       pgtype.Int4{Valid: false},
+		}
+
+		employeeUpdated, err := testStore.UpdateEmployee(context.Background(), arg)
+		require.NoError(t, err)
+		require.NotEmpty(t, employeeUpdated)
+		require.Zero(t, employeeUpdated.UserID.Int32, "Expected employee to be unbinded from user")
+	})
 }
 
 func TestDeleteEmployee(t *testing.T) {

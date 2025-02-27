@@ -225,6 +225,48 @@ func (ns NullParentOrderBy) Value() (driver.Value, error) {
 	return string(ns.ParentOrderBy), nil
 }
 
+type PermissionType string
+
+const (
+	PermissionTypeSick       PermissionType = "sick"
+	PermissionTypePermission PermissionType = "permission"
+)
+
+func (e *PermissionType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PermissionType(s)
+	case string:
+		*e = PermissionType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PermissionType: %T", src)
+	}
+	return nil
+}
+
+type NullPermissionType struct {
+	PermissionType PermissionType
+	Valid          bool // Valid is true if PermissionType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPermissionType) Scan(value interface{}) error {
+	if value == nil {
+		ns.PermissionType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PermissionType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPermissionType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PermissionType), nil
+}
+
 type PresenceCreatedByType string
 
 const (
@@ -404,48 +446,6 @@ func (ns NullSantriOrderBy) Value() (driver.Value, error) {
 	return string(ns.SantriOrderBy), nil
 }
 
-type SantriPermissionType string
-
-const (
-	SantriPermissionTypeSick       SantriPermissionType = "sick"
-	SantriPermissionTypePermission SantriPermissionType = "permission"
-)
-
-func (e *SantriPermissionType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = SantriPermissionType(s)
-	case string:
-		*e = SantriPermissionType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for SantriPermissionType: %T", src)
-	}
-	return nil
-}
-
-type NullSantriPermissionType struct {
-	SantriPermissionType SantriPermissionType
-	Valid                bool // Valid is true if SantriPermissionType is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullSantriPermissionType) Scan(value interface{}) error {
-	if value == nil {
-		ns.SantriPermissionType, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.SantriPermissionType.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullSantriPermissionType) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.SantriPermissionType), nil
-}
-
 type UserOrderBy string
 
 const (
@@ -529,12 +529,12 @@ type EmployeeOccupation struct {
 }
 
 type EmployeePermission struct {
-	ID              int32                `db:"id"`
-	EmployeeID      int32                `db:"employee_id"`
-	Type            SantriPermissionType `db:"type"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission"`
-	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
-	Excuse          string               `db:"excuse"`
+	ID              int32              `db:"id"`
+	EmployeeID      int32              `db:"employee_id"`
+	Type            PermissionType     `db:"type"`
+	StartPermission pgtype.Timestamptz `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz `db:"end_permission"`
+	Excuse          string             `db:"excuse"`
 }
 
 type EmployeePresence struct {
@@ -547,16 +547,6 @@ type EmployeePresence struct {
 	CreatedBy            PresenceCreatedByType `db:"created_by"`
 	Notes                pgtype.Text           `db:"notes"`
 	EmployeePermissionID pgtype.Int4           `db:"employee_permission_id"`
-}
-
-type EmployeeSchedule struct {
-	ID int32 `db:"id"`
-	// ex: Pagi, siang, sore, malam
-	Name          string      `db:"name"`
-	StartPresence pgtype.Time `db:"start_presence"`
-	// Waktu jenis
-	StartTime  pgtype.Time `db:"start_time"`
-	FinishTime pgtype.Time `db:"finish_time"`
 }
 
 type Holiday struct {
@@ -603,10 +593,10 @@ type SantriOccupation struct {
 }
 
 type SantriPermission struct {
-	ID              int32                `db:"id"`
-	SantriID        int32                `db:"santri_id"`
-	Type            SantriPermissionType `db:"type"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission"`
+	ID              int32              `db:"id"`
+	SantriID        int32              `db:"santri_id"`
+	Type            PermissionType     `db:"type"`
+	StartPermission pgtype.Timestamptz `db:"start_permission"`
 	// Waktu berakhir, jika pulang, maka setting end permissionnya di akhir waktu berakhirnya schedule yang terakhir
 	EndPermission pgtype.Timestamptz `db:"end_permission"`
 	Excuse        string             `db:"excuse"`

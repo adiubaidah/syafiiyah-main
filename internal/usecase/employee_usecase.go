@@ -44,14 +44,17 @@ func (s *EmployeeUseCase) Create(ctx context.Context, request *model.CreateEmplo
 }
 
 func (s *EmployeeUseCase) List(ctx context.Context, request *model.ListEmployeeRequest) (*[]model.EmployeeComplete, error) {
-	employees, err := s.store.ListEmployees(ctx, repo.ListEmployeesParams{
+
+	arg := repo.ListEmployeesParams{
 		Q:            pgtype.Text{String: request.Q, Valid: request.Q != ""},
 		OccupationID: pgtype.Int4{Int32: request.OccupationID, Valid: request.OccupationID != 0},
 		HasUser:      pgtype.Bool{Bool: request.HasUser == 1, Valid: request.HasUser != 0},
 		LimitNumber:  request.Limit,
 		OffsetNumber: (request.Page - 1) * request.Limit,
-		OrderBy:      repo.NullEmployeeOrderBy{EmployeeOrderBy: request.Order, Valid: request.Order != ""},
-	})
+		OrderBy:      repo.NullEmployeeOrderBy{EmployeeOrderBy: repo.EmployeeOrderBy(request.Order), Valid: request.Order != ""},
+	}
+
+	employees, err := s.store.ListEmployees(ctx, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +71,7 @@ func (s *EmployeeUseCase) List(ctx context.Context, request *model.ListEmployeeR
 			UserID:       employee.UserID.Int32,
 			Occupation: model.EmployeeOccupation{
 				ID:   employee.OccupationID,
-				Name: employee.Name,
+				Name: employee.OccupationName,
 			},
 		})
 	}

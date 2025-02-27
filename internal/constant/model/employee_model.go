@@ -24,12 +24,12 @@ type UpdateEmployeeRequest struct {
 }
 
 type ListEmployeeRequest struct {
-	Q            string               `form:"q"`
-	Order        repo.EmployeeOrderBy `form:"order" binding:"omitempty,employee-order"`
-	HasUser      int8                 `form:"has-user" binding:"oneof=0 1 -1"`
-	Limit        int32                `form:"limit" binding:"omitempty,gte=1"`
-	Page         int32                `form:"page" binding:"omitempty,gte=1"`
-	OccupationID int32                `form:"occupation_id"`
+	Q            string `form:"q"`
+	Order        string `form:"order" binding:"omitempty,employee-order"`
+	HasUser      int8   `form:"has-user" binding:"oneof=0 1 -1"`
+	Limit        int32  `form:"limit" binding:"omitempty,gte=1"`
+	Page         int32  `form:"page" binding:"omitempty,gte=1"`
+	OccupationID int32  `form:"occupation_id"`
 }
 
 type Employee struct {

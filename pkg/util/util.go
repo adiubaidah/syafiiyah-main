@@ -3,7 +3,10 @@ package util
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"log"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -44,4 +47,17 @@ func Generate32ByteKey() string {
 	}
 	key := hex.EncodeToString(bytes)
 	return key
+}
+
+func debugQuery(query string, args ...interface{}) string {
+	var placeholderRegexp = regexp.MustCompile(`\$(\d+)`) // e.g. "$1"
+	return placeholderRegexp.ReplaceAllStringFunc(query, func(ph string) string {
+		// Get the index, e.g. for "$2" index becomes 2.
+		idx, err := strconv.Atoi(ph[1:])
+		if err != nil || idx < 1 || idx > len(args) {
+			return ph
+		}
+		// Wrap value in quotes for readability.
+		return fmt.Sprintf("'%v'", args[idx-1])
+	})
 }

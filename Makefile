@@ -33,7 +33,7 @@ migrate_down:
 	migrate -path db/migration -database $(DB_URL) -verbose down
 
 db_schema:
-	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
+	dbml2sql --postgres -o db/migration/000001_init_schema.sql.up.sql doc/db.dbml
 
 build_windows:
 	go build -o main.exe cmd/rest/main.go

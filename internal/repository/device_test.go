@@ -37,6 +37,7 @@ func createRandomArduinoModesParams(name string) []CreateDeviceModesParams {
 }
 
 func TestCreateArduinoWithModes(t *testing.T) {
+	clearDeviceTable(t)
 	nameRandom := random.RandomString(10)
 	modeParams := createRandomArduinoModesParams(nameRandom)
 

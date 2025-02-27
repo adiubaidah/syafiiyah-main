@@ -3,4 +3,4 @@ app.env
 ignore__*
 *.log
 main.exe
-internal/storage/photo/*
+cmd/rest/__debug*.exe

@@ -28,22 +28,22 @@ FROM
     LEFT JOIN employee_occupation ON employee.occupation_id = employee_occupation.id
 WHERE
     (
-        @q IS NULL
-        OR employee.name ILIKE '%%' || @q || '%%'
-        OR employee.nip ILIKE '%%' || @q || '%%'
+        sqlc.narg(q)::text IS NULL
+        OR employee.name ILIKE '%%' || sqlc.narg(q)::text || '%%'
+        OR employee.nip ILIKE '%%' || sqlc.narg(q)::text || '%%'
     )
     AND (
-        @occupation_id IS NULL
-        OR employee.occupation_id = @occupation_id
+        sqlc.narg(occupation_id)::int IS NULL
+        OR employee.occupation_id = sqlc.narg(occupation_id)::int
     )
     AND (
-        @has_user IS NULL
+        sqlc.narg(has_user)::boolean IS NULL
         OR (
-            @has_user = TRUE
+            sqlc.narg(has_user)::boolean = TRUE
             AND "user".id IS NOT NULL
         )
         OR (
-            @has_user = FALSE
+            sqlc.narg(has_user)::boolean = FALSE
             AND "user".id IS NULL
         )
     );

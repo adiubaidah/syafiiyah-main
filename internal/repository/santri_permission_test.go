@@ -20,7 +20,7 @@ func createRandomSantriPermission(t *testing.T) (SantriPermission, Santri) {
 	startPermission := random.RandomTimeStamp().In(time.Local)
 	endTime := startPermission.Add(time.Hour * 2)
 
-	permissionTypes := []SantriPermissionType{SantriPermissionTypePermission, SantriPermissionTypeSick}
+	permissionTypes := []PermissionType{PermissionTypePermission, PermissionTypeSick}
 
 	arg := CreateSantriPermissionParams{
 		SantriID:        santri.ID,
@@ -73,7 +73,7 @@ func TestListSantriPermission(t *testing.T) {
 
 	t.Run("list santri should contain santri permission type", func(t *testing.T) {
 		arg := ListSantriPermissionsParams{
-			Type:         NullSantriPermissionType{SantriPermissionType: SantriPermissionTypePermission, Valid: true},
+			Type:         NullPermissionType{PermissionType: PermissionTypePermission, Valid: true},
 			OffsetNumber: 0,
 			LimitNumber:  10,
 		}
@@ -83,7 +83,7 @@ func TestListSantriPermission(t *testing.T) {
 		require.NotEmpty(t, santriPermissions)
 
 		for _, santriPermission := range santriPermissions {
-			require.Equal(t, SantriPermissionTypePermission, santriPermission.Type)
+			require.Equal(t, PermissionTypePermission, santriPermission.Type)
 		}
 	})
 

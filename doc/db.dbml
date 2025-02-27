@@ -154,7 +154,7 @@ Table employee {
   gender gender_type [not null]
   photo varchar(100) [null]
   occupation_id int [ref: > employee_occupation.id, not null]
-  user_id int [unique]
+  user_id int [null, unique]
 
   Indexes {
     name
@@ -170,14 +170,6 @@ Table admin_restrictions {
    Indexes {
     (admin_id, restricted_employee_id) [unique]
   }
-}
-
-Table employee_schedule {
-  id int [increment, primary key]
-  name varchar(100) [note: "ex: Pagi, siang, sore, malam", not null]
-  start_presence time [not null]
-  start_time time [not null, note: "Waktu jenis"]
-  finish_time time [not null]
 }
 
 Table employee_presence {

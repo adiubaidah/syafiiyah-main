@@ -31,11 +31,11 @@ VALUES
 `
 
 type CreateEmployeePermissionParams struct {
-	EmployeeID      int32                `db:"employee_id"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission"`
-	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
-	Type            SantriPermissionType `db:"type"`
-	Excuse          string               `db:"excuse"`
+	EmployeeID      int32              `db:"employee_id"`
+	StartPermission pgtype.Timestamptz `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz `db:"end_permission"`
+	Type            interface{}        `db:"type"`
+	Excuse          string             `db:"excuse"`
 }
 
 func (q *Queries) CreateEmployeePermission(ctx context.Context, arg CreateEmployeePermissionParams) (EmployeePermission, error) {
@@ -91,13 +91,13 @@ WHERE
 `
 
 type GetEmployeePermissionRow struct {
-	ID              int32                `db:"id"`
-	EmployeeID      int32                `db:"employee_id"`
-	Type            SantriPermissionType `db:"type"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission"`
-	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
-	Excuse          string               `db:"excuse"`
-	EmployeeName    string               `db:"employee_name"`
+	ID              int32              `db:"id"`
+	EmployeeID      int32              `db:"employee_id"`
+	Type            PermissionType     `db:"type"`
+	StartPermission pgtype.Timestamptz `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz `db:"end_permission"`
+	Excuse          string             `db:"excuse"`
+	EmployeeName    string             `db:"employee_name"`
 }
 
 func (q *Queries) GetEmployeePermission(ctx context.Context, id int32) (GetEmployeePermissionRow, error) {
@@ -146,23 +146,23 @@ LIMIT
 `
 
 type ListEmployeePermissionsParams struct {
-	Q            pgtype.Text              `db:"q"`
-	EmployeeID   pgtype.Int4              `db:"employee_id"`
-	Type         NullSantriPermissionType `db:"type"`
-	FromDate     pgtype.Timestamptz       `db:"from_date"`
-	EndDate      pgtype.Timestamptz       `db:"end_date"`
-	OffsetNumber int32                    `db:"offset_number"`
-	LimitNumber  int32                    `db:"limit_number"`
+	Q            pgtype.Text        `db:"q"`
+	EmployeeID   pgtype.Int4        `db:"employee_id"`
+	Type         interface{}        `db:"type"`
+	FromDate     pgtype.Timestamptz `db:"from_date"`
+	EndDate      pgtype.Timestamptz `db:"end_date"`
+	OffsetNumber int32              `db:"offset_number"`
+	LimitNumber  int32              `db:"limit_number"`
 }
 
 type ListEmployeePermissionsRow struct {
-	ID              int32                `db:"id"`
-	EmployeeID      int32                `db:"employee_id"`
-	Type            SantriPermissionType `db:"type"`
-	StartPermission pgtype.Timestamptz   `db:"start_permission"`
-	EndPermission   pgtype.Timestamptz   `db:"end_permission"`
-	Excuse          string               `db:"excuse"`
-	EmployeeName    string               `db:"employee_name"`
+	ID              int32              `db:"id"`
+	EmployeeID      int32              `db:"employee_id"`
+	Type            PermissionType     `db:"type"`
+	StartPermission pgtype.Timestamptz `db:"start_permission"`
+	EndPermission   pgtype.Timestamptz `db:"end_permission"`
+	Excuse          string             `db:"excuse"`
+	EmployeeName    string             `db:"employee_name"`
 }
 
 func (q *Queries) ListEmployeePermissions(ctx context.Context, arg ListEmployeePermissionsParams) ([]ListEmployeePermissionsRow, error) {

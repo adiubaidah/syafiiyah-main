@@ -24,5 +24,5 @@ DROP TYPE IF EXISTS "role_type" CASCADE;
 DROP TYPE IF EXISTS "gender_type" CASCADE;
 DROP TYPE IF EXISTS "presence_type" CASCADE;
 DROP TYPE IF EXISTS "device_mode_type" CASCADE;
-DROP TYPE IF EXISTS "santri_permission_type" CASCADE;
+DROP TYPE IF EXISTS "permission_type" CASCADE;
 DROP TYPE IF EXISTS "presence_created_by_type" CASCADE;
