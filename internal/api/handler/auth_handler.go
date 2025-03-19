@@ -3,12 +3,12 @@ package handler
 import (
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/exception"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	"github.com/adiubaidah/syafiiyah-main/internal/usecase"
+	"github.com/adiubaidah/syafiiyah-main/pkg/config"
+	"github.com/adiubaidah/syafiiyah-main/pkg/token"
+	"github.com/adiubaidah/syafiiyah-main/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/idtoken"

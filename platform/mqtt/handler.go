@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/exception"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
 )
 
 func (h *MQTTBroker) handleRecord(acknowledgmentTopic string, request *model.SmartCardRequest) {

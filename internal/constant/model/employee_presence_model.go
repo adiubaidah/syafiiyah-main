@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
 )
 
 type CreateEmployeePresenceRequest struct {

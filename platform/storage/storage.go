@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/syafiiyah-main/pkg/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/smithy-go"

@@ -3,8 +3,8 @@ package worker
 import (
 	"context"
 
-	pb "github.com/adiubaidah/rfid-syafiiyah/internal/protobuf"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
+	pb "github.com/adiubaidah/syafiiyah-main/internal/protobuf"
+	"github.com/adiubaidah/syafiiyah-main/internal/usecase"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )

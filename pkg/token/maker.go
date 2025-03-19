@@ -3,7 +3,7 @@ package token
 import (
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
 )
 
 // Maker is an interface for managing tokens

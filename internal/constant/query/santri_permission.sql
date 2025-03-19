@@ -12,7 +12,7 @@ VALUES
         @santri_id,
         @start_permission,
         sqlc.narg(end_permission),
-        @type :: santri_permission_type,
+        @type :: permission_type,
         @excuse
     ) RETURNING *;
 
@@ -31,8 +31,8 @@ WHERE
         OR "santri_id" = sqlc.narg(santri_id) :: integer
     )
     AND (
-        sqlc.narg(type) :: santri_permission_type IS NULL
-        OR "type" = sqlc.narg(type) :: santri_permission_type
+        sqlc.narg(type) :: permission_type IS NULL
+        OR "type" = sqlc.narg(type) :: permission_type
     )
     AND (
         sqlc.narg(from_date) :: timestamptz IS NULL

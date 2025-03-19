@@ -3,9 +3,9 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/token"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
+	"github.com/adiubaidah/syafiiyah-main/pkg/token"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )

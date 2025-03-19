@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
-	storage "github.com/adiubaidah/rfid-syafiiyah/platform/storage"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	"github.com/adiubaidah/syafiiyah-main/internal/usecase"
+	"github.com/adiubaidah/syafiiyah-main/pkg/util"
+	storage "github.com/adiubaidah/syafiiyah-main/platform/storage"
 )
 
 type EmployeeHandler struct {

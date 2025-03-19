@@ -1,4 +1,4 @@
-DB_URL=postgresql://postgres:root@localhost:5432/as_syafiiyah?sslmode=disable
+DB_URL=postgresql://postgres:12345@localhost:5432/as_syafiiyah?sslmode=disable
 
 sqlcinit:
 	docker run --rm -v "%cd%:/src" -w /src sqlc/sqlc init

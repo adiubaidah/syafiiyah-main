@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
+	"github.com/adiubaidah/syafiiyah-main/pkg/config"
 	"github.com/gin-gonic/gin"
 )
 

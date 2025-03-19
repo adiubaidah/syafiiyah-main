@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
-	mocks "github.com/adiubaidah/rfid-syafiiyah/internal/repository/mocks"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
+	mocks "github.com/adiubaidah/syafiiyah-main/internal/repository/mocks"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

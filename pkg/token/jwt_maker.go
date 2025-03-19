@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 

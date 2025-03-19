@@ -3,9 +3,9 @@ package routing
 import (
 	"net/http"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/api/handler"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/api/middleware"
-	"github.com/adiubaidah/rfid-syafiiyah/platform/routers"
+	"github.com/adiubaidah/syafiiyah-main/internal/api/handler"
+	"github.com/adiubaidah/syafiiyah-main/internal/api/middleware"
+	"github.com/adiubaidah/syafiiyah-main/platform/routers"
 	"github.com/gin-gonic/gin"
 )
 

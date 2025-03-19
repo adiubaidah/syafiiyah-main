@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/random"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/syafiiyah-main/pkg/random"
+	"github.com/adiubaidah/syafiiyah-main/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 )

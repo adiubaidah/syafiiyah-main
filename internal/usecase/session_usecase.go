@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/exception"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )

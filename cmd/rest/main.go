@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/initiator"
+	"github.com/adiubaidah/syafiiyah-main/initiator"
 )
 
 func main() {

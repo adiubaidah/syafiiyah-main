@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/random"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
+	"github.com/adiubaidah/syafiiyah-main/pkg/random"
 	"github.com/stretchr/testify/require"
 )
 

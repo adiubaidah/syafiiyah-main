@@ -1,6 +1,6 @@
 package model
 
-import repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
+import repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
 
 type CreateDeviceRequest struct {
 	Name  string                `json:"name" binding:"required,min=3,max=50"`

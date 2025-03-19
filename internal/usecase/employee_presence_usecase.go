@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/exception"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
+	"github.com/adiubaidah/syafiiyah-main/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 

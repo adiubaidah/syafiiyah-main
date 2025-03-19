@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	pb "github.com/adiubaidah/rfid-syafiiyah/internal/protobuf"
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/exception"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	pb "github.com/adiubaidah/syafiiyah-main/internal/protobuf"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
+	"github.com/adiubaidah/syafiiyah-main/internal/usecase"
+	"github.com/adiubaidah/syafiiyah-main/pkg/util"
 	"github.com/sirupsen/logrus"
 )
 

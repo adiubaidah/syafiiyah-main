@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	pb "github.com/adiubaidah/rfid-syafiiyah/internal/protobuf"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	pb "github.com/adiubaidah/syafiiyah-main/internal/protobuf"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )

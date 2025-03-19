@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/config"
+	"github.com/adiubaidah/syafiiyah-main/pkg/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

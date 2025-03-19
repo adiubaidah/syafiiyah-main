@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/random"
+	"github.com/adiubaidah/syafiiyah-main/pkg/random"
 	"github.com/stretchr/testify/require"
 )
 

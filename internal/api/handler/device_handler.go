@@ -3,9 +3,9 @@ package handler
 import (
 	"strconv"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
-	"github.com/adiubaidah/rfid-syafiiyah/platform/mqtt"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	"github.com/adiubaidah/syafiiyah-main/internal/usecase"
+	"github.com/adiubaidah/syafiiyah-main/platform/mqtt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )

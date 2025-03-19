@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/exception"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/exception"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	"github.com/adiubaidah/syafiiyah-main/internal/usecase"
 )
 
 type EmployeeOccupationHandler interface {

@@ -25,7 +25,7 @@ VALUES
         $1,
         $2,
         $3,
-        $4 :: santri_permission_type,
+        $4 :: permission_type,
         $5
     ) RETURNING id, santri_id, type, start_permission, end_permission, excuse
 `
@@ -34,7 +34,7 @@ type CreateSantriPermissionParams struct {
 	SantriID        int32              `db:"santri_id"`
 	StartPermission pgtype.Timestamptz `db:"start_permission"`
 	EndPermission   pgtype.Timestamptz `db:"end_permission"`
-	Type            interface{}        `db:"type"`
+	Type            PermissionType     `db:"type"`
 	Excuse          string             `db:"excuse"`
 }
 
@@ -130,8 +130,8 @@ WHERE
         OR "santri_id" = $2 :: integer
     )
     AND (
-        $3 :: santri_permission_type IS NULL
-        OR "type" = $3 :: santri_permission_type
+        $3 :: permission_type IS NULL
+        OR "type" = $3 :: permission_type
     )
     AND (
         $4 :: timestamptz IS NULL
@@ -148,7 +148,7 @@ LIMIT
 type ListSantriPermissionsParams struct {
 	Q            pgtype.Text        `db:"q"`
 	SantriID     pgtype.Int4        `db:"santri_id"`
-	Type         interface{}        `db:"type"`
+	Type         NullPermissionType `db:"type"`
 	FromDate     pgtype.Timestamptz `db:"from_date"`
 	EndDate      pgtype.Timestamptz `db:"end_date"`
 	OffsetNumber int32              `db:"offset_number"`

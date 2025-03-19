@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/adiubaidah/rfid-syafiiyah/internal/constant/model"
-	mqttHandler "github.com/adiubaidah/rfid-syafiiyah/internal/mqtt"
-	repo "github.com/adiubaidah/rfid-syafiiyah/internal/repository"
-	"github.com/adiubaidah/rfid-syafiiyah/internal/usecase"
-	"github.com/adiubaidah/rfid-syafiiyah/pkg/util"
+	"github.com/adiubaidah/syafiiyah-main/internal/constant/model"
+	mqttHandler "github.com/adiubaidah/syafiiyah-main/internal/mqtt"
+	repo "github.com/adiubaidah/syafiiyah-main/internal/repository"
+	"github.com/adiubaidah/syafiiyah-main/internal/usecase"
+	"github.com/adiubaidah/syafiiyah-main/pkg/util"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
@@ -55,7 +55,7 @@ func NewMQTTBroker(config *MQTTBrokerConfig) *MQTTBroker {
 func (h *MQTTBroker) Init(brokerURL string) {
 	h.logger.Println("Initializing MQTT client...")
 	opts := mqtt.NewClientOptions().AddBroker(brokerURL)
-	opts.SetClientID("rfid-syafiiyah")
+	opts.SetClientID("syafiiyah-main")
 	opts.SetDefaultPublishHandler(h.defaultMessageHandler())
 
 	client := mqtt.NewClient(opts)
